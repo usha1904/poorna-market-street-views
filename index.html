@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Poorna Market Street | Realistic VR Architectural Tour</title>
+  <title>Poorna Market Street | Nocturnal Star Trails VR Tour</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -12,24 +12,32 @@
   <style>
     :root {
       --gold: #dfb76c;
-      --bg-glass: rgba(14, 18, 24, 0.78);
+      --gold-dark: #b89343;
+      --bg-glass: rgba(10, 14, 20, 0.82);
       --border-glass: rgba(223, 183, 108, 0.28);
       --text-main: #f5f6f8;
       --text-muted: #9da6b3;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body, html { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; color: var(--text-main); }
     #webgl-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
 
     /* Top Royal Header */
     .top-header {
-      position: absolute; top: 0; left: 0; right: 0; height: 68px;
+      position: absolute; top: 0; left: 0; right: 0; height: 72px;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 24px; z-index: 20;
-      background: linear-gradient(180deg, rgba(7,9,13,0.85) 0%, rgba(7,9,13,0) 100%);
+      background: linear-gradient(180deg, rgba(5,7,12,0.92) 0%, rgba(5,7,12,0) 100%);
       pointer-events: none;
     }
     .top-header > * { pointer-events: auto; }
+    .brand-group { display: flex; align-items: center; gap: 14px; }
+    .brand-seal {
+      width: 36px; height: 36px; border: 1px solid var(--gold);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-family: 'Cinzel', serif; font-size: 14px;
+    }
     .brand-title { font-family: 'Cinzel', serif; font-size: 15px; letter-spacing: 2px; color: var(--gold); }
     .brand-sub { font-size: 11px; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; }
 
@@ -42,11 +50,53 @@
     }
     .btn-pill:hover { border-color: var(--gold); color: var(--gold); }
     .btn-vr {
-      background: linear-gradient(135deg, #d4af37, #aa820a);
-      border: 1px solid #ffe599; color: #000; font-weight: 700;
+      background: linear-gradient(135deg, #d4af37, #996e00);
+      border: 1px solid #ffe89e; color: #000; font-weight: 700;
     }
 
-    /* Krpano / Belgian Palace Bottom Dock */
+    /* Side Control Drawer */
+    .side-panel {
+      position: absolute; top: 84px; right: 24px; width: 320px;
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      border-radius: 16px; padding: 20px; z-index: 25;
+      backdrop-filter: blur(28px); max-height: calc(100vh - 180px);
+      overflow-y: auto; transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .side-panel.collapsed { transform: translateX(360px); opacity: 0; pointer-events: none; }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; }
+    .panel-title { font-family: 'Cinzel', serif; font-size: 13px; color: var(--gold); letter-spacing: 1px; }
+
+    .ctrl-group { margin-bottom: 16px; }
+    .ctrl-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; }
+
+    /* Segmented Control */
+    .segmented-ctrl { display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px; border: 1px solid rgba(255,255,255,0.08); }
+    .segmented-tab { flex: 1; text-align: center; font-size: 11px; padding: 6px 0; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 6px; }
+    .segmented-tab.active { background: var(--gold); color: #000; font-weight: 600; }
+
+    /* Inputs */
+    .custom-select {
+      width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px; color: var(--text-main); font-size: 12px; padding: 8px 10px;
+    }
+    .slider-input { width: 100%; -webkit-appearance: none; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.2); outline: none; }
+    .slider-input::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--gold); cursor: pointer; }
+
+    /* Stepper */
+    .stepper { display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; background: rgba(0,0,0,0.4); overflow: hidden; }
+    .stepper-btn { width: 34px; height: 32px; border: none; background: rgba(255,255,255,0.06); color: var(--gold); font-size: 15px; cursor: pointer; }
+    .stepper-val { flex: 1; text-align: center; font-size: 12px; font-family: monospace; }
+
+    /* Toggle & Checkbox */
+    .toggle-row, .chk-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
+    .switch { position: relative; width: 34px; height: 18px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch-slider { position: absolute; inset: 0; cursor: pointer; background: #333; border-radius: 18px; transition: .2s; }
+    .switch-slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .2s; }
+    input:checked + .switch-slider { background: var(--gold); }
+    input:checked + .switch-slider:before { transform: translateX(16px); background: #000; }
+
+    /* Bottom Dock */
     .dock-container {
       position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
       display: flex; align-items: center; gap: 8px; z-index: 20;
@@ -56,33 +106,17 @@
     }
     .dock-btn {
       background: transparent; border: none; color: var(--text-main);
-      width: 38px; height: 38px; border-radius: 50%; display: flex;
+      width: 36px; height: 36px; border-radius: 50%; display: flex;
       align-items: center; justify-content: center; font-size: 15px;
       cursor: pointer; transition: all 0.2s;
     }
-    .dock-btn:hover { background: rgba(223, 183, 108, 0.18); color: var(--gold); }
+    .dock-btn:hover, .dock-btn.active { background: rgba(223, 183, 108, 0.2); color: var(--gold); }
     .dock-readout {
       font-size: 11px; font-family: monospace; color: var(--gold);
       padding: 0 8px; border-left: 1px solid rgba(255,255,255,0.12);
       border-right: 1px solid rgba(255,255,255,0.12);
     }
 
-    /* Spatial Hotspots */
-    .hotspot {
-      position: absolute; transform: translate(-50%, -50%);
-      width: 32px; height: 32px; border-radius: 50%;
-      border: 2px solid var(--gold); background: rgba(14, 18, 24, 0.65);
-      cursor: pointer; z-index: 10; display: flex; align-items: center;
-      justify-content: center; transition: transform 0.2s;
-    }
-    .hotspot::after {
-      content: ''; position: absolute; inset: -6px; border-radius: 50%;
-      border: 1px solid var(--gold); opacity: 0.5; animation: pulse 2s infinite;
-    }
-    @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(1.6); opacity: 0; } }
-    .hotspot-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
-
-    /* Hidden File Input */
     #file-input { display: none; }
   </style>
 </head>
@@ -90,27 +124,93 @@
   <canvas id="webgl-canvas"></canvas>
 
   <div class="top-header">
-    <div>
-      <div class="brand-title">POORNA MARKET STREET</div>
-      <div class="brand-sub">Architectural Spatial Experience</div>
+    <div class="brand-group">
+      <div class="brand-seal">P</div>
+      <div>
+        <div class="brand-title">POORNA MARKET STREET</div>
+        <div class="brand-sub">Nocturnal Long-Exposure Celestial Sphere</div>
+      </div>
     </div>
     <div class="header-actions">
       <button class="btn-pill" onclick="document.getElementById('file-input').click()">Upload 360 Pano</button>
       <input type="file" id="file-input" accept="image/*">
+      <button class="btn-pill" id="toggle-panel-btn">Controls</button>
       <button class="btn-pill btn-vr" id="enter-vr-btn">ENTER VR</button>
     </div>
   </div>
 
+  <!-- Side Controller Suite -->
+  <div class="side-panel" id="side-panel">
+    <div class="panel-header">
+      <span class="panel-title">Spatial Settings</span>
+      <button class="btn-pill" id="reset-btn" style="padding: 4px 10px; font-size: 10px;">Reset</button>
+    </div>
+
+    <!-- Segmented Control -->
+    <div class="ctrl-group">
+      <div class="ctrl-label"><span>Exposure Mode</span></div>
+      <div class="segmented-ctrl">
+        <button class="segmented-tab active" onclick="setExposureMode(this, 1.0)">Standard</button>
+        <button class="segmented-tab" onclick="setExposureMode(this, 1.4)">Enhanced</button>
+        <button class="segmented-tab" onclick="setExposureMode(this, 0.7)">Deep Sky</button>
+      </div>
+    </div>
+
+    <!-- Dropdown -->
+    <div class="ctrl-group">
+      <div class="ctrl-label"><span>Celestial Pole Viewpoint</span></div>
+      <select class="custom-select" id="viewpoint-select" onchange="switchViewpoint(this.value)">
+        <option value="zenith">Polar Vortex (Zenith Star Tracks)</option>
+        <option value="canopy">Canopy Treeline (Horizon)</option>
+        <option value="east">East Sky Equator (Linear Tracks)</option>
+      </select>
+    </div>
+
+    <!-- Live Readout Slider -->
+    <div class="ctrl-group">
+      <div class="ctrl-label"><span>Exposure EV</span><span id="exposure-val">1.05 EV</span></div>
+      <input type="range" class="slider-input" min="0.4" max="2.0" step="0.05" value="1.05" id="slider-exposure">
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label"><span>Camera Field of View</span><span id="fov-val">60°</span></div>
+      <input type="range" class="slider-input" min="35" max="100" step="1" value="60" id="slider-fov">
+    </div>
+
+    <!-- Stepper -->
+    <div class="ctrl-group">
+      <div class="ctrl-label"><span>Eye-Level Height (m)</span></div>
+      <div class="stepper">
+        <button class="stepper-btn" onclick="adjustHeight(-0.05)">−</button>
+        <div class="stepper-val" id="height-val">1.60 m</div>
+        <button class="stepper-btn" onclick="adjustHeight(0.05)">+</button>
+      </div>
+    </div>
+
+    <!-- Toggle Switches -->
+    <div class="toggle-row">
+      <span>Auto Rotation</span>
+      <label class="switch"><input type="checkbox" id="switch-rotate" checked><span class="switch-slider"></span></label>
+    </div>
+
+    <!-- Checkboxes -->
+    <div class="ctrl-label" style="margin-top: 14px;"><span>Display Layers</span></div>
+    <div class="chk-row"><label><input type="checkbox" checked id="chk-stars"> Star Trail Geometry</label></div>
+    <div class="chk-row"><label><input type="checkbox" checked id="chk-canopy"> Treeline Silhouettes</label></div>
+
+    <!-- Radio Group -->
+    <div class="ctrl-label" style="margin-top: 14px;"><span>Texture Resolution</span></div>
+    <div class="chk-row"><label><input type="radio" name="res" checked> Quest 2 / 3 Native (4K)</label></div>
+    <div class="chk-row"><label><input type="radio" name="res"> Raw Uncompressed (8K)</label></div>
+  </div>
+
+  <!-- Krpano / Poppr Bottom Dock -->
   <div class="dock-container">
     <button class="dock-btn" onclick="adjustZoom(-5)">−</button>
     <div class="dock-readout" id="zoom-readout">60° FOV</div>
     <button class="dock-btn" onclick="adjustZoom(5)">+</button>
-    <button class="dock-btn" id="toggle-autorotate" title="Auto Rotate">↻</button>
-    <button class="dock-btn" id="recenter-btn" title="Recenter View">⌖</button>
-  </div>
-
-  <div id="hotspot-fountain" class="hotspot" title="Central Cascade Spine">
-    <div class="hotspot-dot"></div>
+    <button class="dock-btn" id="dock-rotate-btn" title="Toggle Rotation">↻</button>
+    <button class="dock-btn" id="dock-recenter-btn" title="Recenter Zenith">⌖</button>
   </div>
 
   <script>
@@ -128,12 +228,11 @@
     renderer.toneMappingExposure = 1.05;
     renderer.xr.enabled = true;
 
-    // High-resolution sphere geometry
+    // High-resolution sphere geometry for 360 equirectangular viewing
     const geometry = new THREE.SphereGeometry(500, 96, 64);
     geometry.scale(-1, 1, 1);
 
-    const textureLoader = new THREE.TextureLoader();
-    const material = new THREE.MeshBasicMaterial({ color: 0x222222 });
+    const material = new THREE.MeshBasicMaterial({ color: 0x07090e });
     const sphere = new THREE.Mesh(geometry, material);
     scene.add(sphere);
 
@@ -147,8 +246,15 @@
       material.needsUpdate = true;
     }
 
-    // Direct auto-load for Poorna Market Enscape renders
-    const candidateRenders = ['./poorna-market-view.jpg', './market_panorama.jpg', './istockphoto-2257113869-1024x1024.jpg'];
+    // Direct auto-load for the star trail image and fallback aliases
+    const candidateRenders = [
+      './luca-iaconelli-x-d3XHS23oc-unsplash.jpg',
+      './star-trails.jpg',
+      './poorna-market-view.jpg',
+      './market_panorama.jpg'
+    ];
+
+    const textureLoader = new THREE.TextureLoader();
     function tryLoadImages(index) {
       if (index >= candidateRenders.length) return;
       textureLoader.load(
@@ -160,7 +266,7 @@
     }
     tryLoadImages(0);
 
-    // Local custom file upload
+    // Custom local file upload
     document.getElementById('file-input').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -177,16 +283,17 @@
       reader.readAsDataURL(file);
     });
 
-    // Navigation Controls
+    // Navigation and Interaction Handling
     let isUserInteracting = false;
     let onPointerDownMouseX = 0, onPointerDownMouseY = 0;
     let lon = 180, onPointerDownLon = 0;
-    let lat = 0, onPointerDownLat = 0;
+    let lat = 50, onPointerDownLat = 0; // Tilted upward toward the star swirl apex
     let phi = 0, theta = 0;
     let autoRotate = true;
+    let currentHeight = 1.60;
 
     window.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('.dock-container') || e.target.closest('.top-header') || e.target.closest('.hotspot')) return;
+      if (e.target.closest('.dock-container') || e.target.closest('.top-header') || e.target.closest('.side-panel')) return;
       isUserInteracting = true;
       onPointerDownMouseX = e.clientX;
       onPointerDownMouseY = e.clientY;
@@ -202,19 +309,73 @@
 
     window.addEventListener('pointerup', () => { isUserInteracting = false; });
 
+    // Zoom Controls
     function adjustZoom(delta) {
-      camera.fov = THREE.MathUtils.clamp(camera.fov + delta, 35, 95);
+      camera.fov = THREE.MathUtils.clamp(camera.fov + delta, 35, 100);
       camera.updateProjectionMatrix();
       document.getElementById('zoom-readout').textContent = `${Math.round(camera.fov)}° FOV`;
+      document.getElementById('slider-fov').value = Math.round(camera.fov);
+      document.getElementById('fov-val').textContent = `${Math.round(camera.fov)}°`;
     }
 
-    document.getElementById('toggle-autorotate').addEventListener('click', () => {
-      autoRotate = !autoRotate;
+    document.getElementById('slider-fov').addEventListener('input', (e) => {
+      camera.fov = parseFloat(e.target.value);
+      camera.updateProjectionMatrix();
+      document.getElementById('fov-val').textContent = `${Math.round(camera.fov)}°`;
+      document.getElementById('zoom-readout').textContent = `${Math.round(camera.fov)}° FOV`;
     });
 
-    document.getElementById('recenter-btn').addEventListener('click', () => {
-      lon = 180; lat = 0; camera.fov = 60; camera.updateProjectionMatrix();
+    // Exposure Controls
+    document.getElementById('slider-exposure').addEventListener('input', (e) => {
+      const ev = parseFloat(e.target.value);
+      renderer.toneMappingExposure = ev;
+      document.getElementById('exposure-val').textContent = `${ev.toFixed(2)} EV`;
+    });
+
+    function setExposureMode(btn, ev) {
+      document.querySelectorAll('.segmented-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderer.toneMappingExposure = ev;
+      document.getElementById('slider-exposure').value = ev;
+      document.getElementById('exposure-val').textContent = `${ev.toFixed(2)} EV`;
+    }
+
+    // Viewpoint Selector
+    function switchViewpoint(val) {
+      if (val === 'zenith') { lon = 180; lat = 75; }
+      else if (val === 'canopy') { lon = 140; lat = 10; }
+      else if (val === 'east') { lon = 90; lat = 30; }
+    }
+
+    // Stepper
+    function adjustHeight(delta) {
+      currentHeight = Math.max(1.20, Math.min(2.40, currentHeight + delta));
+      document.getElementById('height-val').textContent = `${currentHeight.toFixed(2)} m`;
+    }
+
+    // Toggles
+    const rotateSwitch = document.getElementById('switch-rotate');
+    rotateSwitch.addEventListener('change', (e) => { autoRotate = e.target.checked; });
+    document.getElementById('dock-rotate-btn').addEventListener('click', () => {
+      autoRotate = !autoRotate;
+      rotateSwitch.checked = autoRotate;
+    });
+
+    document.getElementById('dock-recenter-btn').addEventListener('click', () => {
+      lon = 180; lat = 50; camera.fov = 60; camera.updateProjectionMatrix();
       document.getElementById('zoom-readout').textContent = '60° FOV';
+    });
+
+    document.getElementById('toggle-panel-btn').addEventListener('click', () => {
+      document.getElementById('side-panel').classList.toggle('collapsed');
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      renderer.toneMappingExposure = 1.05;
+      document.getElementById('slider-exposure').value = 1.05;
+      document.getElementById('exposure-val').textContent = '1.05 EV';
+      lon = 180; lat = 50;
+      adjustZoom(0);
     });
 
     // WebXR Meta Quest Trigger
