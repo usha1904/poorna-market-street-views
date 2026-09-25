@@ -3,1144 +3,245 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Poorna Market Street | 360° Architectural WebXR Viewer</title>
-  
-  <!-- Tailwind CSS & Three.js CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  
-  <!-- Typography for Architectural Design -->
+  <title>Poorna Market Street | Realistic VR Architectural Tour</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <style>
     :root {
-      --font-display: 'Space Grotesk', -apple-system, sans-serif;
-      --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
-      --amber-accent: #F59E0B;
-      --cyan-accent: #06B6D4;
-      --glass-surface: rgba(14, 18, 28, 0.86);
-      --glass-border: rgba(255, 255, 255, 0.12);
+      --gold: #dfb76c;
+      --bg-glass: rgba(14, 18, 24, 0.78);
+      --border-glass: rgba(223, 183, 108, 0.28);
+      --text-main: #f5f6f8;
+      --text-muted: #9da6b3;
     }
-    body {
-      font-family: var(--font-body);
-      background-color: #030712;
-      color: #F3F4F6;
-      overflow: hidden;
-      touch-action: none;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; color: var(--text-main); }
+    #webgl-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+
+    /* Top Royal Header */
+    .top-header {
+      position: absolute; top: 0; left: 0; right: 0; height: 68px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; z-index: 20;
+      background: linear-gradient(180deg, rgba(7,9,13,0.85) 0%, rgba(7,9,13,0) 100%);
+      pointer-events: none;
     }
-    h1, h2, h3, h4, .font-heading {
-      font-family: var(--font-display);
+    .top-header > * { pointer-events: auto; }
+    .brand-title { font-family: 'Cinzel', serif; font-size: 15px; letter-spacing: 2px; color: var(--gold); }
+    .brand-sub { font-size: 11px; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; }
+
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .btn-pill {
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      color: var(--text-main); padding: 8px 16px; border-radius: 40px;
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      backdrop-filter: blur(20px); transition: all 0.2s;
     }
-    .spatial-glass {
-      background: var(--glass-surface);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border: 1px solid var(--glass-border);
-      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    .btn-pill:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-vr {
+      background: linear-gradient(135deg, #d4af37, #aa820a);
+      border: 1px solid #ffe599; color: #000; font-weight: 700;
     }
-    .spatial-item {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Krpano / Belgian Palace Bottom Dock */
+    .dock-container {
+      position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 8px; z-index: 20;
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      padding: 6px 14px; border-radius: 40px; backdrop-filter: blur(24px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
     }
-    .spatial-item:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(245, 158, 11, 0.4);
+    .dock-btn {
+      background: transparent; border: none; color: var(--text-main);
+      width: 38px; height: 38px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: 15px;
+      cursor: pointer; transition: all 0.2s;
     }
-    .vr-focus-ring:focus-visible, .vr-focus-ring:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px #F59E0B, 0 0 18px rgba(245, 158, 11, 0.45);
+    .dock-btn:hover { background: rgba(223, 183, 108, 0.18); color: var(--gold); }
+    .dock-readout {
+      font-size: 11px; font-family: monospace; color: var(--gold);
+      padding: 0 8px; border-left: 1px solid rgba(255,255,255,0.12);
+      border-right: 1px solid rgba(255,255,255,0.12);
     }
-    input[type=range] {
-      -webkit-appearance: none;
-      width: 100%;
-      background: transparent;
+
+    /* Spatial Hotspots */
+    .hotspot {
+      position: absolute; transform: translate(-50%, -50%);
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid var(--gold); background: rgba(14, 18, 24, 0.65);
+      cursor: pointer; z-index: 10; display: flex; align-items: center;
+      justify-content: center; transition: transform 0.2s;
     }
-    input[type=range]::-webkit-slider-runnable-track {
-      width: 100%;
-      height: 6px;
-      cursor: pointer;
-      background: rgba(255, 255, 255, 0.16);
-      border-radius: 9999px;
+    .hotspot::after {
+      content: ''; position: absolute; inset: -6px; border-radius: 50%;
+      border: 1px solid var(--gold); opacity: 0.5; animation: pulse 2s infinite;
     }
-    input[type=range]::-webkit-slider-thumb {
-      height: 18px;
-      width: 18px;
-      border-radius: 50%;
-      background: #F59E0B;
-      cursor: pointer;
-      -webkit-appearance: none;
-      margin-top: -6px;
-      box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
-      transition: transform 0.15s ease;
-    }
-    input[type=range]::-webkit-slider-thumb:hover {
-      transform: scale(1.15);
-    }
-    .custom-scroll::-webkit-scrollbar {
-      width: 5px;
-    }
-    .custom-scroll::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-    }
-    .custom-scroll::-webkit-scrollbar-thumb:hover {
-      background: rgba(245, 158, 11, 0.5);
-    }
-    @keyframes pulseRing {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      50% { transform: scale(1.18); opacity: 0.3; }
-      100% { transform: scale(0.95); opacity: 0.8; }
-    }
-    .pulse-hotspot {
-      animation: pulseRing 2.4s infinite ease-in-out;
-    }
+    @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(1.6); opacity: 0; } }
+    .hotspot-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
+
+    /* Hidden File Input */
+    #file-input { display: none; }
   </style>
 </head>
-<body class="w-screen h-screen relative overflow-hidden select-none bg-black text-slate-100">
+<body>
+  <canvas id="webgl-canvas"></canvas>
 
-  <div id="canvas-container" class="absolute inset-0 w-full h-full z-0 cursor-grab active:cursor-grabbing"></div>
-
-  <!-- Subtle VR Center Reticle for Gaze / Headset targeting -->
-  <div id="vr-reticle" class="pointer-events-none absolute inset-0 flex items-center justify-center z-10 opacity-35">
-    <div class="w-6 h-6 border border-white/60 rounded-full flex items-center justify-center">
-      <div class="w-1.5 h-1.5 bg-amber-400 rounded-full"></div>
+  <div class="top-header">
+    <div>
+      <div class="brand-title">POORNA MARKET STREET</div>
+      <div class="brand-sub">Architectural Spatial Experience</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-pill" onclick="document.getElementById('file-input').click()">Upload 360 Pano</button>
+      <input type="file" id="file-input" accept="image/*">
+      <button class="btn-pill btn-vr" id="enter-vr-btn">ENTER VR</button>
     </div>
   </div>
 
-  <header class="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 sm:px-6 py-4 pointer-events-none">
-    <div class="flex items-center space-x-3 pointer-events-auto">
-      <div class="flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl spatial-glass">
-        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-        <div>
-          <span class="font-heading font-bold text-xs sm:text-sm tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-orange-300 to-yellow-200">
-            POORNA MARKET // STREET VIEWS
-          </span>
-          <p class="text-[9px] text-zinc-400 font-mono tracking-tighter">ARCHITECTURAL WEBXR DESIGN TESTBED</p>
-        </div>
-      </div>
-      <div class="hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-xl spatial-glass text-xs text-zinc-300">
-        <span class="text-zinc-500 font-mono text-[10px]">CURRENT VIEW:</span>
-        <span id="header-scene-tag" class="font-medium text-amber-300">Central Fountain Spine</span>
-      </div>
-    </div>
-
-    <!-- Right Header Actions -->
-    <div class="flex items-center space-x-2 pointer-events-auto">
-      <!-- Direct Upload 360 Pano Button (supports user provided file) -->
-      <label for="local-file-picker" class="vr-focus-ring flex items-center space-x-1.5 px-3 py-2 rounded-xl spatial-glass cursor-pointer text-xs font-medium hover:border-amber-400/60 transition-all">
-        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-        </svg>
-        <span class="hidden md:inline">Load Custom 360</span>
-        <input type="file" id="local-file-picker" accept="image/jpeg,image/png" class="hidden">
-      </label>
-
-      <!-- GitHub Setup Guide Modal Button -->
-      <button id="guide-modal-btn" class="vr-focus-ring p-2.5 rounded-xl spatial-glass text-zinc-300 hover:text-white transition-all" title="GitHub Hosting & Quest Setup Guide">
-        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-      </button>
-
-      <!-- Toggle Spatial Controller Drawer -->
-      <button id="spatial-drawer-btn" class="vr-focus-ring p-2.5 rounded-xl spatial-glass text-zinc-300 hover:text-white transition-all" title="Toggle Controls Inspector">
-        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
-        </svg>
-      </button>
-
-      <!-- Primary Enter VR Trigger for Meta Quest Browser -->
-      <button id="webxr-enter-btn" class="vr-focus-ring flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs tracking-wider uppercase shadow-lg shadow-amber-500/25 transition-transform active:scale-95">
-        <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-        </svg>
-        <span id="vr-btn-label">ENTER VR</span>
-      </button>
-    </div>
-  </header>
-
-  <aside id="spatial-drawer" class="absolute top-20 right-4 sm:right-6 bottom-6 w-84 sm:w-96 spatial-glass rounded-2xl p-4 sm:p-5 z-20 flex flex-col space-y-4 shadow-2xl transition-all duration-300 ease-out border border-white/10">
-    <div class="flex items-center justify-between pb-3 border-b border-white/10">
-      <div class="flex items-center space-x-2.5">
-        <div class="p-1.5 rounded-lg bg-amber-500/20 text-amber-400">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-          </svg>
-        </div>
-        <div>
-          <h2 class="font-heading font-semibold text-sm text-white">Spatial Controller Suite</h2>
-          <p class="text-[10px] text-zinc-400 font-mono">ENSCAPE VR SPECIFICATIONS</p>
-        </div>
-      </div>
-      <button id="close-drawer-btn" class="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
-
-    <!-- Scrollable container for UI components -->
-    <div class="flex-1 overflow-y-auto space-y-4 pr-1.5 custom-scroll text-xs">
-      
-      <!-- 1. BUTTONS (Primary & Ghost/Secondary) -->
-      <section class="space-y-1.5">
-        <div class="flex justify-between items-center">
-          <label class="font-semibold text-zinc-300 uppercase tracking-wider text-[10px]">1. View & Calibration Actions (Buttons)</label>
-          <span class="text-[9px] font-mono text-zinc-500">PRIMARY / GHOST</span>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <!-- Primary Variant -->
-          <button id="btn-recenter-primary" class="vr-focus-ring w-full py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-semibold text-center shadow-md shadow-amber-400/20 active:scale-95 transition-all">
-            Recenter View
-          </button>
-          <!-- Ghost/Secondary Variant -->
-          <button id="btn-reset-ghost" class="vr-focus-ring w-full py-2.5 px-3 rounded-xl spatial-item text-amber-300 border border-amber-400/30 hover:border-amber-400 hover:bg-amber-400/10 font-medium text-center active:scale-95 transition-all">
-            Reset Adjustments
-          </button>
-        </div>
-      </section>
-
-      <!-- 2. DROPDOWN (Native Select Menu for Market Viewpoints) -->
-      <section class="space-y-1.5">
-        <div class="flex justify-between items-center">
-          <label for="viewpoint-select" class="font-semibold text-zinc-300 uppercase tracking-wider text-[10px]">2. Market Viewpoints (Dropdown)</label>
-          <span class="text-[9px] font-mono text-zinc-500">WAYFINDING</span>
-        </div>
-        <div class="relative">
-          <select id="viewpoint-select" class="vr-focus-ring w-full appearance-none bg-zinc-900/90 border border-white/15 text-zinc-200 px-3.5 py-2.5 rounded-xl cursor-pointer focus:border-amber-400 focus:ring-1 focus:ring-amber-400 pr-9">
-            <option value="center">Central Water Cascade & Promenade</option>
-            <option value="kiosks">Sneha Produce Stalls & Fruit Canopy</option>
-            <option value="jewelry">Sri Lakshmi Jewelry & Textile Arcade</option>
-            <option value="benches">Shaded Bench & Heritage Tree Plaza</option>
-          </select>
-          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-amber-400">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          </div>
-        </div>
-      </section>
-
-      <!-- 3. SEGMENTED CONTROL (Exclusive Choice for Enscape Lighting) -->
-      <section class="space-y-1.5">
-        <div class="flex justify-between items-center">
-          <label class="font-semibold text-zinc-300 uppercase tracking-wider text-[10px]">3. Enscape Lighting Modes (Segmented)</label>
-          <span class="text-[9px] font-mono text-zinc-500">SUN / SKY</span>
-        </div>
-        <div class="grid grid-cols-3 p-1 rounded-xl bg-zinc-950/70 border border-white/10" id="lighting-segmented">
-          <button data-mode="day" class="seg-tab vr-focus-ring py-2 rounded-lg text-xs font-medium text-center text-zinc-400 hover:text-white transition-all">
-            Daylight
-          </button>
-          <button data-mode="dusk" class="seg-tab vr-focus-ring py-2 rounded-lg text-xs font-semibold text-center text-slate-950 bg-amber-400 shadow-sm transition-all">
-            Dusk Glow
-          </button>
-          <button data-mode="night" class="seg-tab vr-focus-ring py-2 rounded-lg text-xs font-medium text-center text-zinc-400 hover:text-white transition-all">
-            Night Festival
-          </button>
-        </div>
-      </section>
-
-      <!-- 4. SLIDERS WITH LIVE READOUTS -->
-      <section class="space-y-3">
-        <!-- Exposure Slider -->
-        <div class="space-y-1">
-          <div class="flex justify-between items-center">
-            <label for="slider-exposure" class="font-semibold text-zinc-300 uppercase tracking-wider text-[10px]">4. Illuminance Exposure (Slider)</label>
-            <span id="readout-exposure" class="font-mono text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded text-[11px] border border-amber-500/30">1.00 EV</span>
-          </div>
-          <input type="range" id="slider-exposure" min="0.5" max="2.5" value="1.0" step="0.05">
-          <div class="flex justify-between text-[9px] text-zinc-500 font-mono">
-            <span>0.5 EV (Low Light)</span>
-            <span>1.0 EV (Standard)</span>
-            <span>2.5 EV (Overcast)</span>
-          </div>
-        </div>
-
-        <!-- Field of View Slider -->
-        <div class="space-y-1">
-          <div class="flex justify-between items-center">
-            <label for="slider-fov" class="font-semibold text-zinc-300 uppercase tracking-wider text-[10px]">Camera Field of View</label>
-            <span id="readout-fov" class="font-mono text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded text-[11px] border border-amber-500/30">75°</span>
-          </div>
-          <input type="range" id="slider-fov" min="45" max="100" value="75" step="1">
-          <div class="flex justify-between text-[9px] text-zinc-500 font-mono">
-            <span>45° (Telephoto)</span>
-            <span>75° (Human Vision)</span>
-            <span>100° (Wide)</span>
-          </div>
-        </div>
-
-        <!-- Warmth / Color Temp Slider -->
-        <div class="space-y-1">
-          <div class="flex justify-between items-center">
-            <label for="slider-warmth" class="font-semibold text-zinc-300 uppercase tracking-wider text-[10px]">Warmth & Color Temp</label>
-            <span id="readout-warmth" class="font-mono text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded text-[11px] border border-amber-500/30">3800 K</span>
-          </div>
-          <input type="range" id="slider-warmth" min="2800" max="6500" value="3800" step="100">
-        </div>
-      </section>
-
-      <!-- 5. STEPPER (Numeric Eye-Level Height) -->
-      <section class="space-y-1.5">
-        <div class="flex justify-between items-center">
-          <label class="font-semibold text-zinc-300 uppercase tracking-wider text-[10px]">5. Eye Level Height (Stepper)</label>
-          <span class="text-[9px] font-mono text-zinc-500">ANTHROPOMETRIC</span>
-        </div>
-        <div class="flex items-center justify-between p-1.5 rounded-xl bg-zinc-950/70 border border-white/10">
-          <button id="stepper-sub" class="vr-focus-ring w-9 h-9 rounded-lg flex items-center justify-center bg-white/5 hover:bg-amber-500/20 text-zinc-300 hover:text-amber-400 font-bold text-lg active:scale-95 transition-all">
-            -
-          </button>
-          <div class="flex items-baseline space-x-1">
-            <span id="readout-height" class="font-mono text-base font-bold text-amber-300">1.65</span>
-            <span class="text-zinc-500 text-xs">meters</span>
-          </div>
-          <button id="stepper-add" class="vr-focus-ring w-9 h-9 rounded-lg flex items-center justify-center bg-white/5 hover:bg-amber-500/20 text-zinc-300 hover:text-amber-400 font-bold text-lg active:scale-95 transition-all">
-            +
-          </button>
-        </div>
-        <p class="text-[9px] text-zinc-400">Controls virtual camera perspective relative to the street pavers.</p>
-      </section>
-
-      <!-- 6. TOGGLES (On/Off Switches) -->
-      <section class="space-y-2">
-        <label class="font-semibold text-zinc-300 uppercase tracking-wider text-[10px] block">6. Spatial Overlays (Toggles)</label>
-        
-        <!-- Toggle: Spatial Hotspots -->
-        <div class="flex items-center justify-between p-2 rounded-xl spatial-item">
-          <div>
-            <span class="text-xs font-medium text-zinc-200 block">Spatial Hotspots</span>
-            <span class="text-[10px] text-zinc-400">Architectural info pins</span>
-          </div>
-          <button id="toggle-hotspots" role="switch" aria-checked="true" class="vr-focus-ring w-11 h-6 rounded-full bg-amber-400 p-0.5 transition-colors relative flex items-center">
-            <span class="w-5 h-5 rounded-full bg-slate-950 shadow-md transform translate-x-5 transition-transform duration-200"></span>
-          </button>
-        </div>
-
-        <!-- Toggle: Horizon Level Ring -->
-        <div class="flex items-center justify-between p-2 rounded-xl spatial-item">
-          <div>
-            <span class="text-xs font-medium text-zinc-200 block">Horizon Level Ring</span>
-            <span class="text-[10px] text-zinc-400">0° Eye-level Reference</span>
-          </div>
-          <button id="toggle-horizon" role="switch" aria-checked="true" class="vr-focus-ring w-11 h-6 rounded-full bg-amber-400 p-0.5 transition-colors relative flex items-center">
-            <span class="w-5 h-5 rounded-full bg-slate-950 shadow-md transform translate-x-5 transition-transform duration-200"></span>
-          </button>
-        </div>
-      </section>
-
-      <!-- 7. CHECKBOXES (Multi-Select Design Layers) -->
-      <section class="space-y-1.5">
-        <label class="font-semibold text-zinc-300 uppercase tracking-wider text-[10px] block">7. BIM Design Layers (Checkboxes)</label>
-        <div class="space-y-1.5">
-          <label class="vr-focus-ring flex items-center space-x-2.5 p-2 rounded-xl spatial-item cursor-pointer">
-            <input type="checkbox" id="chk-landscape" checked class="w-4 h-4 rounded text-amber-400 bg-zinc-900 border-zinc-700 focus:ring-amber-400">
-            <div>
-              <span class="text-xs font-medium text-zinc-200 block">Tree Canopy & Shrub Planters</span>
-              <span class="text-[10px] text-zinc-400">Neem trees and ornamental foliage</span>
-            </div>
-          </label>
-          <label class="vr-focus-ring flex items-center space-x-2.5 p-2 rounded-xl spatial-item cursor-pointer">
-            <input type="checkbox" id="chk-signage" checked class="w-4 h-4 rounded text-amber-400 bg-zinc-900 border-zinc-700 focus:ring-amber-400">
-            <div>
-              <span class="text-xs font-medium text-zinc-200 block">Retail Arcade Signage</span>
-              <span class="text-[10px] text-zinc-400">Jewelry, textile & vernacular typography</span>
-            </div>
-          </label>
-          <label class="vr-focus-ring flex items-center space-x-2.5 p-2 rounded-xl spatial-item cursor-pointer">
-            <input type="checkbox" id="chk-water" checked class="w-4 h-4 rounded text-amber-400 bg-zinc-900 border-zinc-700 focus:ring-amber-400">
-            <div>
-              <span class="text-xs font-medium text-zinc-200 block">Water Channel Fountain Jets</span>
-              <span class="text-[10px] text-zinc-400">Reflective canal & cooling splash jets</span>
-            </div>
-          </label>
-        </div>
-      </section>
-
-      <!-- 8. RADIO GROUP (Single-Select Headset Fidelity) -->
-      <section class="space-y-1.5">
-        <label class="font-semibold text-zinc-300 uppercase tracking-wider text-[10px] block">8. Headset Target Texture (Radio Group)</label>
-        <div class="grid grid-cols-1 gap-1.5">
-          <label class="vr-focus-ring flex items-center justify-between p-2 rounded-xl spatial-item cursor-pointer border border-transparent has-[:checked]:border-amber-400/50 has-[:checked]:bg-amber-500/10">
-            <div class="flex items-center space-x-2">
-              <input type="radio" name="fidelity" value="quest3" checked class="text-amber-400 bg-zinc-900 border-zinc-700 focus:ring-amber-400">
-              <span class="text-xs text-zinc-200">Meta Quest 3 (5760 × 2880)</span>
-            </div>
-            <span class="text-[10px] font-mono text-emerald-400">Recommended</span>
-          </label>
-          <label class="vr-focus-ring flex items-center justify-between p-2 rounded-xl spatial-item cursor-pointer border border-transparent has-[:checked]:border-amber-400/50 has-[:checked]:bg-amber-500/10">
-            <div class="flex items-center space-x-2">
-              <input type="radio" name="fidelity" value="quest2" class="text-amber-400 bg-zinc-900 border-zinc-700 focus:ring-amber-400">
-              <span class="text-xs text-zinc-200">Meta Quest 2 (3840 × 1920)</span>
-            </div>
-            <span class="text-[10px] font-mono text-zinc-400">Optimized</span>
-          </label>
-          <label class="vr-focus-ring flex items-center justify-between p-2 rounded-xl spatial-item cursor-pointer border border-transparent has-[:checked]:border-amber-400/50 has-[:checked]:bg-amber-500/10">
-            <div class="flex items-center space-x-2">
-              <input type="radio" name="fidelity" value="ultra" class="text-amber-400 bg-zinc-900 border-zinc-700 focus:ring-amber-400">
-              <span class="text-xs text-zinc-200">Ultra Enscape Raw (8K Pano)</span>
-            </div>
-            <span class="text-[10px] font-mono text-amber-400">Max Quality</span>
-          </label>
-        </div>
-      </section>
-
-    </div>
-
-    <!-- Status footer in drawer -->
-    <div class="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-zinc-400 font-mono">
-      <span class="flex items-center space-x-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-        <span id="xr-connection-status">WebXR System Ready</span>
-      </span>
-      <span>v2.8 REVISION</span>
-    </div>
-  </aside>
-
-  <div id="hotspot-modal" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="w-full max-w-md spatial-glass rounded-2xl p-6 border border-amber-400/40 transform scale-95 transition-transform duration-300" id="hotspot-modal-card">
-      <div class="flex items-center justify-between pb-3 border-b border-white/10">
-        <div class="flex items-center space-x-2.5">
-          <span class="w-3 h-3 rounded-full bg-amber-400 pulse-hotspot"></span>
-          <h3 id="modal-title" class="font-heading font-bold text-base text-white">Central Water Cascade</h3>
-        </div>
-        <button id="btn-close-modal" class="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <div class="py-4 space-y-3 text-xs leading-relaxed text-zinc-300">
-        <p id="modal-description">Detailed architectural description will appear here.</p>
-        <div class="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-black/40 border border-white/5 font-mono text-[10px]">
-          <div><span class="text-zinc-500">MATERIAL:</span> <span id="modal-spec-mat" class="text-amber-300">Polished Granite</span></div>
-          <div><span class="text-zinc-500">CLIMATE:</span> <span id="modal-spec-impact" class="text-cyan-300">Microclimate Cooling</span></div>
-        </div>
-      </div>
-      <div class="flex justify-end">
-        <button id="btn-dismiss-modal" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-semibold text-xs transition-colors">
-          Return to 360 View
-        </button>
-      </div>
-    </div>
+  <div class="dock-container">
+    <button class="dock-btn" onclick="adjustZoom(-5)">−</button>
+    <div class="dock-readout" id="zoom-readout">60° FOV</div>
+    <button class="dock-btn" onclick="adjustZoom(5)">+</button>
+    <button class="dock-btn" id="toggle-autorotate" title="Auto Rotate">↻</button>
+    <button class="dock-btn" id="recenter-btn" title="Recenter View">⌖</button>
   </div>
 
-  <div id="guide-modal" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="w-full max-w-2xl max-h-[85vh] spatial-glass rounded-2xl p-6 border border-white/15 flex flex-col space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-white/10">
-        <div>
-          <h2 class="font-heading font-bold text-lg text-white">Poorna Market 360 Deployment Guide</h2>
-          <p class="text-xs text-zinc-400">Hosting on GitHub Pages & Viewing inside Meta Quest</p>
-        </div>
-        <button id="btn-close-guide" class="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      <div class="flex-1 overflow-y-auto space-y-4 pr-1 custom-scroll text-xs text-zinc-300">
-        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-          <h4 class="font-heading font-semibold text-sm text-amber-400 flex items-center space-x-1.5">
-            <span>Step 1: Adding your Enscape Panorama to GitHub</span>
-          </h4>
-          <ol class="list-decimal list-inside space-y-1.5 font-mono text-[11px] text-zinc-300 bg-black/50 p-2.5 rounded-lg border border-white/5">
-            <li>Save your 360 image with the filename: <span class="text-amber-300 font-bold">poorna-market-view.jpg</span></li>
-            <li>In your GitHub repo: <span class="text-cyan-300">usha1904/poorna-market-street-views</span></li>
-            <li>Click <strong>Add file &gt; Upload files</strong></li>
-            <li>Drag <span class="text-amber-300">poorna-market-view.jpg</span> into the root folder (beside `index.html`) and commit.</li>
-            <li>The viewer automatically detects and renders this image on reload!</li>
-          </ol>
-        </div>
-
-        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-          <h4 class="font-heading font-semibold text-sm text-cyan-400 flex items-center space-x-1.5">
-            <span>Step 2: Entering VR in Meta Quest 2 / Quest 3</span>
-          </h4>
-          <ul class="list-disc list-inside space-y-1.5 leading-relaxed text-zinc-300">
-            <li>Put on your Meta Quest headset.</li>
-            <li>Open the pre-installed <strong>Meta Quest Browser</strong>.</li>
-            <li>Visit: <span class="text-amber-300 font-mono">https://usha1904.github.io/poorna-market-street-views/</span></li>
-            <li>Tap the orange <strong>ENTER VR</strong> button in the top right.</li>
-            <li>You will enter full 6DoF stereoscopic immersion with true architectural scale.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="pt-2 border-t border-white/10 flex justify-end">
-        <button id="btn-dismiss-guide" class="px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-semibold text-xs transition-colors">
-          Explore Poorna Market
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="absolute bottom-6 left-6 z-20 flex items-center space-x-2 pointer-events-auto">
-    <div class="flex items-center space-x-1.5 p-1.5 rounded-xl spatial-glass text-xs">
-      <button id="btn-pan-left" class="p-2 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white" title="Pan Left">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-      </button>
-      <button id="btn-pan-right" class="p-2 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white" title="Pan Right">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-      </button>
-      <div class="h-4 w-px bg-white/10 mx-1"></div>
-      <button id="btn-fullscreen" class="p-2 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white" title="Toggle Fullscreen">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-      </button>
-    </div>
-    <span class="hidden md:inline-block px-3 py-2 rounded-xl spatial-glass text-[11px] text-zinc-400 font-mono">
-      DRAG TO LOOK AROUND • SCROLL TO ZOOM
-    </span>
+  <div id="hotspot-fountain" class="hotspot" title="Central Cascade Spine">
+    <div class="hotspot-dot"></div>
   </div>
 
   <script>
-    // Core Three.js references
-    let scene, camera, renderer, sphereMesh, horizonRing, raycaster, mouse;
+    const canvas = document.getElementById('webgl-canvas');
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 0.1);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.xr.enabled = true;
+
+    // High-resolution sphere geometry
+    const geometry = new THREE.SphereGeometry(500, 96, 64);
+    geometry.scale(-1, 1, 1);
+
+    const textureLoader = new THREE.TextureLoader();
+    const material = new THREE.MeshBasicMaterial({ color: 0x222222 });
+    const sphere = new THREE.Mesh(geometry, material);
+    scene.add(sphere);
+
+    function applyTexture(texture) {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = false;
+      material.map = texture;
+      material.color.set(0xffffff);
+      material.needsUpdate = true;
+    }
+
+    // Direct auto-load for Poorna Market Enscape renders
+    const candidateRenders = ['./poorna-market-view.jpg', './market_panorama.jpg', './istockphoto-2257113869-1024x1024.jpg'];
+    function tryLoadImages(index) {
+      if (index >= candidateRenders.length) return;
+      textureLoader.load(
+        candidateRenders[index],
+        (tex) => applyTexture(tex),
+        undefined,
+        () => tryLoadImages(index + 1)
+      );
+    }
+    tryLoadImages(0);
+
+    // Local custom file upload
+    document.getElementById('file-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const texture = new THREE.Texture(img);
+          texture.needsUpdate = true;
+          applyTexture(texture);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Navigation Controls
     let isUserInteracting = false;
-    let onPointerDownPointerX = 0, onPointerDownPointerY = 0;
+    let onPointerDownMouseX = 0, onPointerDownMouseY = 0;
     let lon = 180, onPointerDownLon = 0;
     let lat = 0, onPointerDownLat = 0;
     let phi = 0, theta = 0;
-    let xrSession = null;
-    let hotspots = [];
-    const container = document.getElementById('canvas-container');
+    let autoRotate = true;
 
-    // Poorna Market Hotspots matching user's Enscape Street render
-    const MARKET_HOTSPOTS = [
-      {
-        id: 'hs-water',
-        lat: -14,
-        lon: 180,
-        title: 'Central Water Cascade & Fountain',
-        desc: 'Geometric continuous reflecting pool with central submerged bubbler jets. Provides evaporative passive cooling along the central pedestrian spine.',
-        material: 'Kota Stone & Basalt Basin',
-        impact: '-2.8°C Microclimate Drop'
-      },
-      {
-        id: 'hs-paving',
-        lat: -28,
-        lon: 180,
-        title: 'Artisan Paving & Tactile Walkway',
-        desc: 'Terracotta and encaustic patterned geometric floor carpet bordered by directional yellow tactile blister pavers for inclusive universal wayfinding.',
-        material: 'Vitrified Ceramic & Pavers',
-        impact: 'Barrier-free Accessibility'
-      },
-      {
-        id: 'hs-canopy',
-        lat: 22,
-        lon: 180,
-        title: 'Tree Canopy Fairy Lights & Night Lighting',
-        desc: 'Dense flowering street canopy intertwined with low-voltage warm 2700K fairy lights and solar street lampposts creating an inviting night festival atmosphere.',
-        material: 'Living Neem Trees & LED String',
-        impact: 'Pedestrian Biophilic Comfort'
-      },
-      {
-        id: 'hs-sneha',
-        lat: 3,
-        lon: 138,
-        title: 'Sneha Market Kiosk & Fresh Produce',
-        desc: 'Modular timber and powder-coated steel vendors stalls for fresh bananas, mangoes, and jasmine garlands with retractable textile awnings.',
-        material: 'Treated Teak & Canvas Awning',
-        impact: 'Vernacular Street Economy'
-      },
-      {
-        id: 'hs-jewelry',
-        lat: 5,
-        lon: 226,
-        title: 'Sri Lakshmi Jewelry & Textile Arcade',
-        desc: 'Two-story colonnade retail arcade featuring gold jewelry displays, traditional Mysore silks, and bilingual architectural signboards.',
-        material: 'Teak Millwork & Clear Low-E Glazing',
-        impact: 'Commercial Street Vibrancy'
-      },
-      {
-        id: 'hs-bench',
-        lat: -8,
-        lon: 202,
-        title: 'Pergola Shaded Seating',
-        desc: 'Sculptural organic timber tree-root benches allowing elderly visitors and families to pause under shaded greenery.',
-        material: 'Reclaimed Timber Slabs',
-        impact: 'Social Gathering Space'
-      }
-    ];
-
-    // High quality procedural Canvas texture recreating Poorna Market Street
-    // (Used as instant zero-latency preview and fallback before image upload)
-    function generatePoornaMarketEquirectangular(mode = 'dusk', warmthKelvin = 3800) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 2048;
-      canvas.height = 1024;
-      const ctx = canvas.getContext('2d');
-      const w = canvas.width;
-      const h = canvas.height;
-
-      // 1. Sky & Atmospheric gradient
-      let skyTop, skyMid, streetColor;
-      if (mode === 'day') {
-        skyTop = '#2563EB';
-        skyMid = '#93C5FD';
-        streetColor = '#C8BEAF';
-      } else if (mode === 'night') {
-        skyTop = '#050B14';
-        skyMid = '#0F172A';
-        streetColor = '#1F1A17';
-      } else { // Dusk (matches Enscape render provided)
-        skyTop = '#1E293B';
-        skyMid = '#64748B';
-        streetColor = '#3D342C';
-      }
-
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
-      skyGrad.addColorStop(0, skyTop);
-      skyGrad.addColorStop(0.48, skyMid);
-      skyGrad.addColorStop(0.51, '#1A1817');
-      skyGrad.addColorStop(0.55, streetColor);
-      skyGrad.addColorStop(1, '#161311');
-      ctx.fillStyle = skyGrad;
-      ctx.fillRect(0, 0, w, h);
-
-      // 2. Pedestrian Market Paving Medallions & Floor Tiles
-      const floorStart = h * 0.51;
-      ctx.strokeStyle = 'rgba(245, 158, 11, 0.35)';
-      ctx.lineWidth = 2;
-      for (let x = 0; x < w; x += 128) {
-        ctx.beginPath();
-        ctx.moveTo(x, floorStart);
-        ctx.lineTo(x * 1.5 - (w * 0.25), h);
-        ctx.stroke();
-      }
-
-      // Ornamental decorative terracotta patterns on ground
-      ctx.fillStyle = 'rgba(180, 83, 9, 0.4)';
-      for (let x = 64; x < w; x += 256) {
-        ctx.beginPath();
-        ctx.arc(x, h * 0.78, 48, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(254, 243, 199, 0.35)';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-      }
-
-      // Central water fountain channel
-      ctx.fillStyle = '#0284C7';
-      ctx.fillRect(w * 0.44, floorStart + 15, w * 0.12, h * 0.32);
-      ctx.strokeStyle = '#38BDF8';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(w * 0.44, floorStart + 15, w * 0.12, h * 0.32);
-
-      // Water Fountain Splash Rings
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      for (let i = 0; i < 4; i++) {
-        ctx.beginPath();
-        ctx.arc(w * 0.5, floorStart + 50 + (i * 60), 14, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // 3. Shopfront Façades along the street corridor
-      const drawShop = (x, y, width, height, title, color) => {
-        ctx.fillStyle = color;
-        ctx.fillRect(x, y, width, height);
-        // Signboard
-        ctx.fillStyle = '#78350F';
-        ctx.fillRect(x, y + 10, width, 36);
-        ctx.fillStyle = '#FEF3C7';
-        ctx.font = 'bold 18px "Space Grotesk", sans-serif';
-        ctx.fillText(title, x + 15, y + 35);
-        // Glazed windows
-        ctx.fillStyle = 'rgba(254, 240, 138, 0.55)';
-        ctx.fillRect(x + 10, y + 55, width - 20, height - 65);
-      };
-
-      // Left Shopfronts (Sneha Footwear & Produce Kiosks)
-      drawShop(w * 0.08, h * 0.28, 280, 220, 'SNEHA PRODUCE & FOOTWEAR', '#B45309');
-      drawShop(w * 0.24, h * 0.31, 230, 190, 'FRUIT & FLOWER KIOSKS', '#92400E');
-
-      // Right Shopfronts (Jewelry Shop & Textile Store)
-      drawShop(w * 0.65, h * 0.28, 280, 220, 'SRI LAKSHMI JEWELRY', '#991B1B');
-      drawShop(w * 0.82, h * 0.30, 260, 200, 'POORNA TEXTILE ARCADE', '#1E3A8A');
-
-      // 4. Overarching Trees with Glowing Fairy Lights
-      ctx.fillStyle = '#14532D';
-      for (let i = 0; i < 7; i++) {
-        const tx = w * 0.18 + i * (w * 0.11);
-        ctx.beginPath();
-        ctx.arc(tx, h * 0.25, 75, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Fairy light sparkles
-        ctx.fillStyle = '#FEF08A';
-        for (let j = 0; j < 22; j++) {
-          const lx = tx - 55 + Math.random() * 110;
-          const ly = h * 0.25 - 45 + Math.random() * 90;
-          ctx.beginPath();
-          ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.fillStyle = '#14532D';
-      }
-
-      // Title overlay in panorama for clear architectural orientation
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = 'bold 24px "Space Grotesk", sans-serif';
-      ctx.fillText('POORNA MARKET STREET // 360° PEDESTRIAN PROMENADE [NORTH]', 80, h * 0.48);
-
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.repeat.x = -1; // Invert inside sphere
-      return texture;
-    }
-
-    function initThreeScene() {
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 0, 0);
-
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.xr.enabled = true;
-      container.appendChild(renderer.domElement);
-
-      // Inverted 360 Sphere
-      const geometry = new THREE.SphereGeometry(500, 60, 40);
-      geometry.scale(-1, 1, 1);
-
-      // Try loading poorna-market-view.jpg or market_panorama.jpg, fallback to procedural canvas
-      const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      sphereMesh = new THREE.Mesh(geometry, sphereMaterial);
-      scene.add(sphereMesh);
-
-      const textureLoader = new THREE.TextureLoader();
-      textureLoader.load(
-        'poorna-market-view.jpg',
-        (texture) => {
-          texture.wrapS = THREE.RepeatWrapping;
-          texture.repeat.x = -1;
-          sphereMesh.material.map = texture;
-          sphereMesh.material.needsUpdate = true;
-          document.getElementById('header-scene-tag').textContent = "Poorna Market 360 (Image Loaded)";
-        },
-        undefined,
-        () => {
-          // Secondary fallback attempt: market_panorama.jpg
-          textureLoader.load(
-            'market_panorama.jpg',
-            (tex2) => {
-              tex2.wrapS = THREE.RepeatWrapping;
-              tex2.repeat.x = -1;
-              sphereMesh.material.map = tex2;
-              sphereMesh.material.needsUpdate = true;
-              document.getElementById('header-scene-tag').textContent = "Poorna Market 360 (market_panorama.jpg)";
-            },
-            undefined,
-            () => {
-              // Procedural replica fallback
-              const procTex = generatePoornaMarketEquirectangular('dusk', 3800);
-              sphereMesh.material.map = procTex;
-              sphereMesh.material.needsUpdate = true;
-            }
-          );
-        }
-      );
-
-      // 0° Eye-level Horizon Guide Ring
-      const ringGeo = new THREE.RingGeometry(485, 487, 64);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0xF59E0B, side: THREE.DoubleSide, transparent: true, opacity: 0.35 });
-      horizonRing = new THREE.Mesh(ringGeo, ringMat);
-      horizonRing.rotation.x = Math.PI / 2;
-      scene.add(horizonRing);
-
-      // Place 3D Spatial Hotspots
-      setupHotspots();
-
-      // Desktop & Touch Interaction Listeners
-      container.addEventListener('pointerdown', onPointerDown);
-      document.addEventListener('pointermove', onPointerMove);
-      document.addEventListener('pointerup', onPointerUp);
-      container.addEventListener('wheel', onDocumentMouseWheel, { passive: true });
-      window.addEventListener('resize', onWindowResize);
-
-      // Raycaster for 3D Hotspot selection
-      raycaster = new THREE.Raycaster();
-      mouse = new THREE.Vector2();
-      container.addEventListener('click', onCanvasClick);
-
-      // Setup WebXR & Gyroscope
-      setupWebXRSupport();
-      setupGyroControls();
-
-      // Begin animation loop
-      renderer.setAnimationLoop(animateScene);
-    }
-
-    function setupHotspots() {
-      hotspots = [];
-      MARKET_HOTSPOTS.forEach((data) => {
-        const phi = THREE.MathUtils.degToRad(90 - data.lat);
-        const theta = THREE.MathUtils.degToRad(data.lon);
-        const r = 460;
-
-        const x = r * Math.sin(phi) * Math.cos(theta);
-        const y = r * Math.cos(phi);
-        const z = r * Math.sin(phi) * Math.sin(theta);
-
-        const group = new THREE.Group();
-        group.position.set(x, y, z);
-        group.lookAt(0, 0, 0);
-
-        // Outer pulsing ring
-        const ringGeo = new THREE.RingGeometry(8, 13, 32);
-        const ringMat = new THREE.MeshBasicMaterial({ color: 0xF59E0B, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-
-        // Center dot
-        const dotGeo = new THREE.CircleGeometry(5, 32);
-        const dotMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, side: THREE.DoubleSide });
-        const dotMesh = new THREE.Mesh(dotGeo, dotMat);
-
-        group.add(ringMesh);
-        group.add(dotMesh);
-        group.userData = data;
-
-        scene.add(group);
-        hotspots.push(group);
-      });
-    }
-
-    function onPointerDown(e) {
-      if (e.isPrimary === false) return;
+    window.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.dock-container') || e.target.closest('.top-header') || e.target.closest('.hotspot')) return;
       isUserInteracting = true;
-      onPointerDownPointerX = e.clientX;
-      onPointerDownPointerY = e.clientY;
+      onPointerDownMouseX = e.clientX;
+      onPointerDownMouseY = e.clientY;
       onPointerDownLon = lon;
       onPointerDownLat = lat;
-    }
+    });
 
-    function onPointerMove(e) {
+    window.addEventListener('pointermove', (e) => {
       if (!isUserInteracting) return;
-      lon = (onPointerDownPointerX - e.clientX) * 0.16 + onPointerDownLon;
-      lat = (e.clientY - onPointerDownPointerY) * 0.16 + onPointerDownLat;
-    }
+      lon = (onPointerDownMouseX - e.clientX) * 0.15 + onPointerDownLon;
+      lat = (e.clientY - onPointerDownMouseY) * 0.15 + onPointerDownLat;
+    });
 
-    function onPointerUp(e) {
-      if (e.isPrimary === false) return;
-      isUserInteracting = false;
-    }
+    window.addEventListener('pointerup', () => { isUserInteracting = false; });
 
-    function onDocumentMouseWheel(e) {
-      const newFov = camera.fov + e.deltaY * 0.05;
-      camera.fov = THREE.MathUtils.clamp(newFov, 45, 100);
+    function adjustZoom(delta) {
+      camera.fov = THREE.MathUtils.clamp(camera.fov + delta, 35, 95);
       camera.updateProjectionMatrix();
-      document.getElementById('slider-fov').value = Math.round(camera.fov);
-      document.getElementById('readout-fov').textContent = `${Math.round(camera.fov)}°`;
+      document.getElementById('zoom-readout').textContent = `${Math.round(camera.fov)}° FOV`;
     }
 
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
+    document.getElementById('toggle-autorotate').addEventListener('click', () => {
+      autoRotate = !autoRotate;
+    });
 
-    function onCanvasClick(e) {
-      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-      raycaster.setFromCamera(mouse, camera);
+    document.getElementById('recenter-btn').addEventListener('click', () => {
+      lon = 180; lat = 0; camera.fov = 60; camera.updateProjectionMatrix();
+      document.getElementById('zoom-readout').textContent = '60° FOV';
+    });
 
-      const intersects = raycaster.intersectObjects(hotspots, true);
-      if (intersects.length > 0) {
-        let root = intersects[0].object;
-        while (root.parent && !root.userData.title) {
-          root = root.parent;
-        }
-        if (root.userData.title) {
-          displayHotspotCard(root.userData);
-        }
-      }
-    }
-
-    function displayHotspotCard(data) {
-      document.getElementById('modal-title').textContent = data.title;
-      document.getElementById('modal-description').textContent = data.desc;
-      document.getElementById('modal-spec-mat').textContent = data.material;
-      document.getElementById('modal-spec-impact').textContent = data.impact;
-
-      const modal = document.getElementById('hotspot-modal');
-      const card = document.getElementById('hotspot-modal-card');
-      modal.classList.remove('opacity-0', 'pointer-events-none');
-      card.classList.remove('scale-95');
-      card.classList.add('scale-100');
-    }
-
-    function dismissHotspotCard() {
-      const modal = document.getElementById('hotspot-modal');
-      const card = document.getElementById('hotspot-modal-card');
-      modal.classList.add('opacity-0', 'pointer-events-none');
-      card.classList.remove('scale-100');
-      card.classList.add('scale-95');
-    }
-
-    function setupWebXRSupport() {
-      const vrBtn = document.getElementById('webxr-enter-btn');
-      const btnLabel = document.getElementById('vr-btn-label');
-      const badge = document.getElementById('xr-connection-status');
-
-      if ('xr' in navigator) {
-        navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
-          if (supported) {
-            badge.textContent = "Meta Quest VR Available";
-            badge.classList.add('text-amber-300');
-            vrBtn.addEventListener('click', toggleVRSession);
-          } else {
-            badge.textContent = "WebXR Non-VR Mode";
-            vrBtn.addEventListener('click', toggleFullScreen);
-          }
-        }).catch(() => {
-          badge.textContent = "Standard WebGL Display";
-          vrBtn.addEventListener('click', toggleFullScreen);
-        });
-      } else {
-        badge.textContent = "WebGL Orbit Mode";
-        vrBtn.addEventListener('click', toggleFullScreen);
-      }
-    }
-
-    async function toggleVRSession() {
-      if (!xrSession) {
-        try {
-          const session = await navigator.xr.requestSession('immersive-vr', {
-            optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking']
-          });
+    // WebXR Meta Quest Trigger
+    const enterVrBtn = document.getElementById('enter-vr-btn');
+    if ('xr' in navigator) {
+      navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+        if (!supported) enterVrBtn.style.display = 'none';
+      });
+      enterVrBtn.addEventListener('click', () => {
+        navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor'] }).then((session) => {
           renderer.xr.setSession(session);
-          xrSession = session;
-          document.getElementById('vr-btn-label').textContent = 'EXIT VR';
-          session.addEventListener('end', () => {
-            xrSession = null;
-            document.getElementById('vr-btn-label').textContent = 'ENTER VR';
-          });
-        } catch (err) {
-          console.warn("VR request failed:", err);
-          toggleFullScreen();
-        }
-      } else {
-        xrSession.end();
-      }
-    }
-
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen().catch(() => {});
-      }
-    }
-
-    function setupGyroControls() {
-      if (window.DeviceOrientationEvent && 'ontouchstart' in window) {
-        window.addEventListener('deviceorientation', (e) => {
-          if (!isUserInteracting && e.alpha !== null && e.beta !== null) {
-            lon = (lon + (e.gamma * 0.04)) % 360;
-          }
-        });
-      }
-    }
-
-    function bindAllUIEvents() {
-      // 1. BUTTONS (Primary & Ghost)
-      document.getElementById('btn-recenter-primary').addEventListener('click', () => {
-        lon = 180;
-        lat = 0;
-        camera.fov = 75;
-        camera.updateProjectionMatrix();
-        document.getElementById('slider-fov').value = 75;
-        document.getElementById('readout-fov').textContent = '75°';
-      });
-
-      document.getElementById('btn-reset-ghost').addEventListener('click', () => {
-        document.getElementById('slider-exposure').value = 1.0;
-        document.getElementById('readout-exposure').textContent = '1.00 EV';
-        document.getElementById('slider-fov').value = 75;
-        document.getElementById('readout-fov').textContent = '75°';
-        document.getElementById('slider-warmth').value = 3800;
-        document.getElementById('readout-warmth').textContent = '3800 K';
-        sphereMesh.material.color.setScalar(1.0);
-        camera.position.y = 0;
-        document.getElementById('readout-height').textContent = '1.65';
-      });
-
-      // 2. DROPDOWN (Viewpoints)
-      document.getElementById('viewpoint-select').addEventListener('change', (e) => {
-        const val = e.target.value;
-        if (val === 'center') { lon = 180; lat = -10; }
-        else if (val === 'kiosks') { lon = 138; lat = 3; }
-        else if (val === 'jewelry') { lon = 226; lat = 5; }
-        else if (val === 'benches') { lon = 202; lat = -8; }
-      });
-
-      // 3. SEGMENTED CONTROL (Daylight, Dusk, Night Festival)
-      const segTabs = document.querySelectorAll('#lighting-segmented .seg-tab');
-      segTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          segTabs.forEach(t => {
-            t.classList.remove('bg-amber-400', 'text-slate-950', 'font-semibold', 'shadow-sm');
-            t.classList.add('text-zinc-400');
-          });
-          tab.classList.add('bg-amber-400', 'text-slate-950', 'font-semibold', 'shadow-sm');
-          tab.classList.remove('text-zinc-400');
-
-          const mode = tab.getAttribute('data-mode');
-          const warmthVal = parseInt(document.getElementById('slider-warmth').value, 10);
-          const fallbackTex = generatePoornaMarketEquirectangular(mode, warmthVal);
-          sphereMesh.material.map = fallbackTex;
-          sphereMesh.material.needsUpdate = true;
         });
       });
-
-      // 4. SLIDERS (Exposure, FOV, Warmth)
-      const sliderExposure = document.getElementById('slider-exposure');
-      const readoutExposure = document.getElementById('readout-exposure');
-      sliderExposure.addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value);
-        readoutExposure.textContent = `${val.toFixed(2)} EV`;
-        sphereMesh.material.color.setScalar(val);
-      });
-
-      const sliderFov = document.getElementById('slider-fov');
-      const readoutFov = document.getElementById('readout-fov');
-      sliderFov.addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value);
-        camera.fov = val;
-        camera.updateProjectionMatrix();
-        readoutFov.textContent = `${val}°`;
-      });
-
-      const sliderWarmth = document.getElementById('slider-warmth');
-      const readoutWarmth = document.getElementById('readout-warmth');
-      sliderWarmth.addEventListener('input', (e) => {
-        const val = parseInt(e.target.value, 10);
-        readoutWarmth.textContent = `${val} K`;
-        if (val < 4000) {
-          sphereMesh.material.color.setRGB(1.05, 0.98, 0.92);
-        } else {
-          sphereMesh.material.color.setRGB(0.95, 0.98, 1.05);
-        }
-      });
-
-      // 5. STEPPER (Human Eye-Level Height 1.50m - 2.10m)
-      let eyeHeight = 1.65;
-      const readoutHeight = document.getElementById('readout-height');
-      document.getElementById('stepper-add').addEventListener('click', () => {
-        eyeHeight = Math.min(2.10, eyeHeight + 0.05);
-        readoutHeight.textContent = eyeHeight.toFixed(2);
-        camera.position.y = (eyeHeight - 1.65) * 6;
-      });
-      document.getElementById('stepper-sub').addEventListener('click', () => {
-        eyeHeight = Math.max(1.50, eyeHeight - 0.05);
-        readoutHeight.textContent = eyeHeight.toFixed(2);
-        camera.position.y = (eyeHeight - 1.65) * 6;
-      });
-
-      // 6. TOGGLES (Hotspots & Horizon Ring)
-      const toggleHotspots = document.getElementById('toggle-hotspots');
-      toggleHotspots.addEventListener('click', () => {
-        const checked = toggleHotspots.getAttribute('aria-checked') === 'true';
-        toggleHotspots.setAttribute('aria-checked', !checked);
-        const dot = toggleHotspots.querySelector('span');
-        if (!checked) {
-          toggleHotspots.classList.add('bg-amber-400');
-          toggleHotspots.classList.remove('bg-zinc-800');
-          dot.classList.add('translate-x-5');
-          hotspots.forEach(h => h.visible = true);
-        } else {
-          toggleHotspots.classList.remove('bg-amber-400');
-          toggleHotspots.classList.add('bg-zinc-800');
-          dot.classList.remove('translate-x-5');
-          hotspots.forEach(h => h.visible = false);
-        }
-      });
-
-      const toggleHorizon = document.getElementById('toggle-horizon');
-      toggleHorizon.addEventListener('click', () => {
-        const checked = toggleHorizon.getAttribute('aria-checked') === 'true';
-        toggleHorizon.setAttribute('aria-checked', !checked);
-        const dot = toggleHorizon.querySelector('span');
-        if (!checked) {
-          toggleHorizon.classList.add('bg-amber-400');
-          toggleHorizon.classList.remove('bg-zinc-800');
-          dot.classList.add('translate-x-5');
-          horizonRing.visible = true;
-        } else {
-          toggleHorizon.classList.remove('bg-amber-400');
-          toggleHorizon.classList.add('bg-zinc-800');
-          dot.classList.remove('translate-x-5');
-          horizonRing.visible = false;
-        }
-      });
-
-      // 7. CHECKBOXES (Layer simulation)
-      ['chk-landscape', 'chk-signage', 'chk-water'].forEach(id => {
-        document.getElementById(id).addEventListener('change', () => {
-          sphereMesh.material.opacity = 0.85;
-          setTimeout(() => sphereMesh.material.opacity = 1.0, 120);
-        });
-      });
-
-      // 8. LOCAL FILE PICKER (Enables user to load poorna-market-view.jpg directly)
-      const filePicker = document.getElementById('local-file-picker');
-      filePicker.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function(evt) {
-            const img = new Image();
-            img.onload = function() {
-              const uploadedTex = new THREE.Texture(img);
-              uploadedTex.wrapS = THREE.RepeatWrapping;
-              uploadedTex.repeat.x = -1;
-              uploadedTex.needsUpdate = true;
-
-              sphereMesh.material.map.dispose();
-              sphereMesh.material.map = uploadedTex;
-              sphereMesh.material.needsUpdate = true;
-              document.getElementById('header-scene-tag').textContent = file.name.slice(0, 26);
-            };
-            img.src = evt.target.result;
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-
-      // Floating Pan Buttons & Drawer Toggles
-      document.getElementById('btn-pan-left').addEventListener('click', () => lon -= 25);
-      document.getElementById('btn-pan-right').addEventListener('click', () => lon += 25);
-      document.getElementById('btn-fullscreen').addEventListener('click', toggleFullScreen);
-
-      const drawer = document.getElementById('spatial-drawer');
-      document.getElementById('spatial-drawer-btn').addEventListener('click', () => {
-        drawer.classList.toggle('translate-x-full');
-        drawer.classList.toggle('opacity-0');
-        drawer.classList.toggle('pointer-events-none');
-      });
-      document.getElementById('close-drawer-btn').addEventListener('click', () => {
-        drawer.classList.add('translate-x-full', 'opacity-0', 'pointer-events-none');
-      });
-
-      // Modals
-      document.getElementById('btn-close-modal').addEventListener('click', dismissHotspotCard);
-      document.getElementById('btn-dismiss-modal').addEventListener('click', dismissHotspotCard);
-
-      const guideModal = document.getElementById('guide-modal');
-      document.getElementById('guide-modal-btn').addEventListener('click', () => {
-        guideModal.classList.remove('opacity-0', 'pointer-events-none');
-      });
-      document.getElementById('btn-close-guide').addEventListener('click', () => {
-        guideModal.classList.add('opacity-0', 'pointer-events-none');
-      });
-      document.getElementById('btn-dismiss-guide').addEventListener('click', () => {
-        guideModal.classList.add('opacity-0', 'pointer-events-none');
-      });
+    } else {
+      enterVrBtn.style.display = 'none';
     }
 
-    function animateScene() {
+    // Render Loop
+    renderer.setAnimationLoop(() => {
+      if (autoRotate && !isUserInteracting && !renderer.xr.isPresenting) {
+        lon += 0.04;
+      }
+      lat = Math.max(-85, Math.min(85, lat));
+      phi = THREE.MathUtils.degToRad(90 - lat);
+      theta = THREE.MathUtils.degToRad(lon);
+
       if (!renderer.xr.isPresenting) {
-        lat = Math.max(-85, Math.min(85, lat));
-        phi = THREE.MathUtils.degToRad(90 - lat);
-        theta = THREE.MathUtils.degToRad(lon);
-
         camera.target = new THREE.Vector3(
           500 * Math.sin(phi) * Math.cos(theta),
           500 * Math.cos(phi),
@@ -1149,23 +250,13 @@
         camera.lookAt(camera.target);
       }
 
-      // Hotspot pulse animation
-      const t = performance.now() * 0.003;
-      hotspots.forEach((hs, idx) => {
-        const ring = hs.children[0];
-        if (ring) {
-          const s = 1 + Math.sin(t + idx * 1.4) * 0.14;
-          ring.scale.set(s, s, s);
-        }
-      });
-
       renderer.render(scene, camera);
-    }
+    });
 
-    // Execute on page load
-    window.addEventListener('load', () => {
-      initThreeScene();
-      bindAllUIEvents();
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
     });
   </script>
 </body>
