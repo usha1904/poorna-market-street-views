@@ -175,7 +175,10 @@
       padding: 0 24px; z-index: 20;
       background: linear-gradient(180deg, rgba(7,9,13,0.85) 0%, rgba(7,9,13,0) 100%);
       pointer-events: none;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.5s ease, visibility 0.5s;
     }
+    .top-hud.visible { opacity: 1; visibility: visible; }
     .top-hud > * { pointer-events: auto; }
     .hud-brand { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 2px; color: var(--gold-line); }
     .hud-sub { font-size: 10px; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; }
@@ -194,14 +197,18 @@
     }
 
     /* ==========================================================================
-       KRPANO / POPPR FLOATING BOTTOM DOCK
+       KRPANO / POPPR FLOATING BOTTOM DOCK (Hidden on welcome, appears after START)
        ========================================================================== */
     .bottom-dock {
       position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
-      display: flex; align-items: center; gap: 8px; z-index: 20;
+      display: none; align-items: center; gap: 8px; z-index: 20;
       background: rgba(14, 18, 24, 0.82); border: 1px solid var(--gold-line);
       padding: 6px 14px; border-radius: 40px; backdrop-filter: blur(20px);
       box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      opacity: 0; transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .bottom-dock.visible {
+      display: flex; opacity: 1;
     }
     .dock-btn {
       background: transparent; border: none; color: var(--text-ivory);
@@ -274,7 +281,7 @@
       </button>
     </div>
 
-    <!-- Bottom Language Switcher -->
+    <!-- Bottom Language Switcher (Now free of collision) -->
     <div class="welcome-bottom">
       <div class="language-bar">
         <span class="lang-btn active" id="btn-en" onclick="changeLanguage('en')">ENGLISH</span>
@@ -289,13 +296,13 @@
   <!-- ==========================================================================
        TOP ARCHITECTURAL HUD
        ========================================================================== -->
-  <div class="top-hud">
+  <div class="top-hud" id="top-hud">
     <div>
       <div class="hud-brand">POORNA MARKET STREET</div>
       <div class="hud-sub">Architectural 360 Spatial View</div>
     </div>
     <div class="hud-actions">
-      <button class="btn-action" onclick="document.getElementById('welcome-screen').classList.remove('hidden')">INFO</button>
+      <button class="btn-action" id="info-btn">INFO</button>
       <button class="btn-action" onclick="document.getElementById('file-input').click()">Upload 360 Pano</button>
       <input type="file" id="file-input" accept="image/*">
       <button class="btn-action btn-vr-trigger" id="enter-vr-btn">ENTER VR</button>
@@ -305,7 +312,7 @@
   <!-- ==========================================================================
        KRPANO / POPPR FLOATING BOTTOM DOCK
        ========================================================================== -->
-  <div class="bottom-dock">
+  <div class="bottom-dock" id="bottom-dock">
     <button class="dock-btn" onclick="stepZoom(-5)" title="Zoom Out">−</button>
     <div class="dock-zoom-readout" id="zoom-readout">60° FOV</div>
     <button class="dock-btn" onclick="stepZoom(5)" title="Zoom In">+</button>
@@ -354,9 +361,22 @@
       if (activeBtn) activeBtn.classList.add('active');
     }
 
-    // Dismiss welcome screen on START
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const bottomDock = document.getElementById('bottom-dock');
+    const topHud = document.getElementById('top-hud');
+
+    // Dismiss welcome screen on START -> Reveal bottom zoom dock & HUD
     document.getElementById('start-tour-btn').addEventListener('click', () => {
-      document.getElementById('welcome-screen').classList.add('hidden');
+      welcomeScreen.classList.add('hidden');
+      bottomDock.classList.add('visible');
+      topHud.classList.add('visible');
+    });
+
+    // Re-open INFO modal -> Hide bottom dock to prevent collision
+    document.getElementById('info-btn').addEventListener('click', () => {
+      welcomeScreen.classList.remove('hidden');
+      bottomDock.classList.remove('visible');
+      topHud.classList.remove('visible');
     });
 
     /* Three.js Scene Setup */
