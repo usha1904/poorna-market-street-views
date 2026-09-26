@@ -62,7 +62,7 @@
       pointer-events: auto;
     }
 
-    /* PAGE 2 HUD */
+    /* TOP LEFT NAVIGATION (PAGE 2) */
     #nav-header {
       position: absolute;
       top: 24px;
@@ -134,7 +134,142 @@
       margin-top: 2px;
     }
 
-    /* PAGE 1 ROYAL LOCKED SCREEN */
+    /* TOP RIGHT INFO BUTTON (PAGE 2) */
+    #info-btn-wrapper {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      z-index: 120;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    #info-btn-wrapper.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .icon-info-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(10, 20, 36, 0.88);
+      border: 1.5px solid rgba(212, 175, 55, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #f7e7c4;
+      font-family: 'Georgia', serif;
+      font-size: 1.25rem;
+      font-style: italic;
+      font-weight: bold;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+      transition: transform 0.2s, background 0.2s, border-color 0.2s;
+    }
+
+    .icon-info-btn:hover {
+      background: rgba(212, 175, 55, 0.3);
+      border-color: #fff;
+      transform: scale(1.08);
+    }
+
+    /* FLOATING INFO MODAL / DRAWER */
+    #info-card {
+      position: absolute;
+      top: 80px;
+      right: 24px;
+      width: 340px;
+      max-width: calc(100vw - 48px);
+      background: rgba(9, 18, 32, 0.94);
+      border: 1px solid rgba(214, 185, 120, 0.65);
+      border-radius: 8px;
+      padding: 18px 20px;
+      z-index: 150;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: opacity 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    #info-card.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .info-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(214, 185, 120, 0.25);
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .info-card-header h3 {
+      font-size: 0.95rem;
+      color: #ebd39f;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .info-close-btn {
+      background: none;
+      border: none;
+      color: #dfcaa2;
+      font-size: 1.4rem;
+      line-height: 1;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .info-close-btn:hover {
+      color: #ffffff;
+    }
+
+    .info-category-tag {
+      display: inline-block;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: rgba(214, 185, 120, 0.15);
+      color: #ebd39f;
+      border: 1px solid rgba(214, 185, 120, 0.35);
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    .info-body-text {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.82rem;
+      line-height: 1.65;
+      color: #d1dced;
+      margin-bottom: 12px;
+    }
+
+    .info-meta-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.74rem;
+      color: #a8b8cc;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 10px;
+    }
+
+    .info-meta-row b {
+      color: #ffffff;
+    }
+
+    /* ROYAL START SCREEN OVERLAY (PAGE 1) */
     #start-screen {
       position: absolute;
       inset: 0;
@@ -279,7 +414,7 @@
       color: #ffffff;
     }
 
-    /* Footer: ENGLISH ◇ TELUGU ◇ HINDI */
+    /* Language Switcher Footer */
     .lang-bar {
       position: absolute;
       bottom: 40px;
@@ -311,7 +446,7 @@
       font-size: 0.65rem;
     }
 
-    /* BOTTOM LEFT AERIAL PLAN */
+    /* AERIAL PLAN MINI-MAP (PAGE 2) */
     #minimap-card {
       position: absolute;
       bottom: 24px;
@@ -364,7 +499,7 @@
       pointer-events: none;
     }
 
-    /* Clean Dots (No numbers inside) */
+    /* Clean Hotspot Dots */
     .plan-dot {
       position: absolute;
       width: 13px;
@@ -400,7 +535,7 @@
       z-index: 30;
     }
 
-    /* Tooltips on Hover */
+    /* Floating Tooltip */
     .dot-tooltip {
       position: absolute;
       bottom: 24px;
@@ -431,13 +566,13 @@
 </head>
 <body>
 
-  <!-- VIEWPORT: 360 Pannellum + 2D Renders -->
+  <!-- VIEWPORT: 360 Pannellum or 2D Perspective Render -->
   <div id="viewport-container">
     <div id="panorama-viewport"></div>
     <img id="perspective-view-image" src="" alt="Active Space Render" />
   </div>
 
-  <!-- PAGE 2: Active Navigation Header -->
+  <!-- PAGE 2: Left Navigation Header -->
   <header id="nav-header">
     <button class="icon-back-btn" id="back-to-start-btn" title="Back to Overview">
       <svg viewBox="0 0 24 24">
@@ -446,9 +581,30 @@
     </button>
     <div class="hud-title-card">
       <h2>Sardar Vallabhbhai Patel Market</h2>
-      <span id="hud-vantage-name">Pedestrian Promenade (360° Drag to View)</span>
+      <span id="hud-vantage-name">Pedestrian Promenade (360° Drag View)</span>
     </div>
   </header>
+
+  <!-- PAGE 2: Right Corner Info Button -->
+  <div id="info-btn-wrapper">
+    <button class="icon-info-btn" id="info-toggle-btn" title="View Space Details">i</button>
+  </div>
+
+  <!-- PAGE 2: Info Card Panel -->
+  <aside id="info-card">
+    <div class="info-card-header">
+      <h3 id="info-card-title">View Details</h3>
+      <button class="info-close-btn" id="info-close-btn">&times;</button>
+    </div>
+    <span class="info-category-tag" id="info-tag">Overview</span>
+    <p class="info-body-text" id="info-text">
+      Select any point on the aerial site plan to explore architectural details and design concepts.
+    </p>
+    <div class="info-meta-row">
+      <span><b>Zone:</b> <span id="info-meta-zone">-</span></span>
+      <span><b>Key Features:</b> <span id="info-meta-features">-</span></span>
+    </div>
+  </aside>
 
   <!-- PAGE 1: Royal Locked Splash Screen -->
   <section id="start-screen">
@@ -457,7 +613,6 @@
     <div class="royal-border"></div>
 
     <div class="royal-container">
-      <!-- Colonnaded Heritage Line Drawing -->
       <svg class="crest-drawing" viewBox="0 0 200 60" fill="none" stroke="#ebd39f" stroke-width="1.2">
         <path d="M 85 58 L 85 24 L 94 14 L 100 8 L 106 14 L 115 24 L 115 58" />
         <circle cx="100" cy="22" r="5" />
@@ -485,7 +640,6 @@
         The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist.
       </p>
 
-      <!-- Diamond START Button -->
       <div class="diamond-btn-wrapper" id="start-tour-btn">
         <div class="diamond-box">
           <span class="diamond-label">START</span>
@@ -510,19 +664,17 @@
       <span>Click Point to View</span>
     </div>
     <div id="plan-viewport">
-      <!-- Axonometric plan drawing -->
       <img src="aerial-plan.jpg" alt="Aerial Plan of Market" id="master-plan-img" />
       <div id="plan-dots-container"></div>
     </div>
   </aside>
 
   <script>
-    // Trilingual Content
     const translations = {
       en: {
         title: "Sardar Vallabhbhai Patel (Poorna) Market",
         subtitle: "360° Architectural Tour",
-        desc: "The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist. The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist."
+        desc: "The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist."
       },
       te: {
         title: "సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్",
@@ -545,64 +697,101 @@
       document.getElementById('dyn-desc').textContent = translations[lang].desc;
     }
 
-    // Hotspot points mapped to the 5 perspective images + 360 panorama
+    // Points with Info details for images 1-5 + 360 view
     const marketVantages = [
       {
-        id: "boulevard-360",
-        name: "Tree-Lined Artisan Promenade (360° Drag View)",
+        id: "view-360",
+        name: "Artisan Promenade & Boulevard (360° View)",
         x: 52,
         y: 64,
         type: "360",
-        src: "Gemini_Generated_Image_yqbmbdyqbmbdyqbm.png"
+        src: "Gemini_Generated_Image_yqbmbdyqbmbdyqbm.png",
+        category: "Central Boulevard",
+        info: "A pedestrianized spine paved with regional motif floor inlays, illuminated tree canopies, and linear reflective water features flanked by modernized artisan shops and traditional stalls.",
+        zone: "Central Heritage Spine",
+        features: "Patterned stone inlay, atmospheric festoon lighting, linear shallow fountains"
       },
       {
-        id: "curved-terrace",
-        name: "Rooftop Garden & Deck Seating",
+        id: "view-1",
+        name: "1. Rooftop Garden & Timber Deck",
         x: 68,
         y: 24,
         type: "2d",
-        src: "1.jpg"
+        src: "1.jpg",
+        category: "Upper Level Terrace",
+        info: "Elevated curvilinear rooftop terrace featuring indigenous drought-resistant floral planters, timber slat balustrades, and leisure deck recliners for quiet community retreats overlooking the city skyline.",
+        zone: "North-East Upper Pavilion",
+        features: "Curved planter retaining walls, exposed brick parapet, wooden decking"
       },
       {
-        id: "courtyard-garden",
-        name: "Multi-Tier Timber Courtyard & Greenery",
+        id: "view-2",
+        name: "2. Timber Courtyard & Stepped Garden",
         x: 78,
         y: 38,
         type: "2d",
-        src: "2.jpg"
+        src: "2.jpg",
+        category: "Internal Courtyard",
+        info: "Biophilic open-air lightwell courtyard surrounded by multi-tier timber balconies, shaded perimeter seating, spiral staircases, and organic meandering ground pathways with children's play areas.",
+        zone: "East Residential / Commercial Core",
+        features: "Timber colonnades, living vertical green facades, stepped micro-topography"
       },
       {
-        id: "stepped-atrium",
-        name: "Angular Stepped Atrium & Skylight",
+        id: "view-3",
+        name: "3. Angular Stepped Light Atrium",
         x: 36,
         y: 46,
         type: "2d",
-        src: "3.jpg"
+        src: "3.jpg",
+        category: "Circulation Hub",
+        info: "Sculptural multi-level public circulation atrium with faceted raw concrete columns, wide gathering bleachers integrated with live planters, and glass skybridge links overhead.",
+        zone: "Central Transition Gallery",
+        features: "Geometrical lightwell, polished terrazzo flooring, integrated landscape risers"
       },
       {
-        id: "wooden-amphitheatre",
-        name: "Double-Height Library Amphitheatre",
+        id: "view-4",
+        name: "4. Double-Height Library Amphitheatre",
         x: 22,
         y: 68,
         type: "2d",
-        src: "4.jpg"
+        src: "4.jpg",
+        category: "Community & Cultural Wing",
+        info: "Sunlit interior social space sheltered beneath a glazed skylight canopy. Features tiered wooden bleachers with upholstered lounge cushions, reading alcoves, and double-height study mezzanines.",
+        zone: "West Public Learning Centre",
+        features: "Glazed roof trusses, stepped seating podium, acoustic wood paneling"
       },
       {
-        id: "terracotta-steps",
-        name: "Terracotta Curved Contour Steps & Ramp",
+        id: "view-5",
+        name: "5. Terracotta Contour Steps & Overpass",
         x: 48,
         y: 54,
         type: "2d",
-        src: "5.jpg"
+        src: "5.jpg",
+        category: "Open Amphitheatre & Ramp",
+        info: "Earth-toned terracotta amphitheatre stepped into the site contours, framed by perforated jali brick walls, lush succulent landscaping, and an elevated pedestrian bridge connecting terrace levels.",
+        zone: "South Civic Plaza",
+        features: "Curved monumental stairs, terracotta jali breeze screens, contoured terracing"
       }
     ];
 
     let pannellumInstance = null;
+    let currentVantage = marketVantages[0];
+
     const perspectiveImg = document.getElementById('perspective-view-image');
     const hudVantageName = document.getElementById('hud-vantage-name');
+    const infoCard = document.getElementById('info-card');
+
+    function updateInfoCard(vantage) {
+      document.getElementById('info-card-title').textContent = vantage.name;
+      document.getElementById('info-tag').textContent = vantage.category;
+      document.getElementById('info-text').textContent = vantage.info;
+      document.getElementById('info-meta-zone').textContent = vantage.zone;
+      document.getElementById('info-meta-features').textContent = vantage.features;
+    }
 
     function loadVantage(vantage) {
+      currentVantage = vantage;
       hudVantageName.textContent = vantage.name;
+      updateInfoCard(vantage);
 
       if (vantage.type === "360") {
         perspectiveImg.classList.remove('active');
@@ -615,7 +804,6 @@
           mouseZoom: true
         });
       } else {
-        // Show 2D Perspective Render smoothly
         perspectiveImg.src = vantage.src;
         perspectiveImg.classList.add('active');
         if (pannellumInstance) {
@@ -625,6 +813,19 @@
       }
     }
 
+    // Toggle Info Card
+    const infoBtnWrapper = document.getElementById('info-btn-wrapper');
+    const infoToggleBtn = document.getElementById('info-toggle-btn');
+    const infoCloseBtn = document.getElementById('info-close-btn');
+
+    infoToggleBtn.addEventListener('click', () => {
+      infoCard.classList.toggle('open');
+    });
+
+    infoCloseBtn.addEventListener('click', () => {
+      infoCard.classList.remove('open');
+    });
+
     // Populate Dots on the Plan
     const dotsContainer = document.getElementById('plan-dots-container');
     marketVantages.forEach((vantage, index) => {
@@ -633,7 +834,6 @@
       dot.style.left = `${vantage.x}%`;
       dot.style.top = `${vantage.y}%`;
 
-      // Tooltip appears only on cursor hover
       const tip = document.createElement('div');
       tip.className = 'dot-tooltip';
       tip.textContent = vantage.name;
@@ -652,8 +852,8 @@
     document.getElementById('start-tour-btn').addEventListener('click', () => {
       document.getElementById('start-screen').classList.add('hidden');
       document.getElementById('nav-header').classList.add('visible');
+      document.getElementById('info-btn-wrapper').classList.add('visible');
       document.getElementById('minimap-card').classList.add('visible');
-      // Load initial 360 panorama on start
       loadVantage(marketVantages[0]);
     });
 
@@ -661,7 +861,9 @@
     document.getElementById('back-to-start-btn').addEventListener('click', () => {
       document.getElementById('start-screen').classList.remove('hidden');
       document.getElementById('nav-header').classList.remove('visible');
+      document.getElementById('info-btn-wrapper').classList.remove('visible');
       document.getElementById('minimap-card').classList.remove('visible');
+      infoCard.classList.remove('open');
     });
   </script>
 </body>
