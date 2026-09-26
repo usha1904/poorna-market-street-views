@@ -3,89 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Belgian Royal Palace & Poorna Market | 360° Aerial Architectural Tour</title>
+  <title>Sardar Vallabhbhai Patel Market | 360° Architectural VR Tour</title>
 
   <!-- Tailwind CSS & Three.js CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-  <!-- Typography matching virtualtour.monarchie.be luxury aesthetic -->
+  <!-- Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
+    /* Architectural Palette extracted from Swatch:
+       --c-crimson: #581C14 (Deep Crimson / Maroon)
+       --c-rust:    #A8473B (Rich Terracotta / Rust)
+       --c-rose:    #B95F52 (Dusty Terracotta / Rose)
+       --c-blush:   #E5988A (Peach / Blush)
+       --c-cream:   #EBD8C8 (Almond Cream / Sand)
+       --c-ivory:   #F8EDE3 (Ivory / Off-White)
+    */
     :root {
-      --gold-primary: #dfb76c;
-      --gold-light: #fbe3a9;
-      --gold-dark: #a1782e;
-      --royal-glass: rgba(10, 14, 22, 0.82);
-      --royal-glass-heavy: rgba(6, 9, 15, 0.92);
-      --royal-border: rgba(223, 183, 108, 0.28);
+      --c-crimson: #581C14;
+      --c-rust: #A8473B;
+      --c-rose: #B95F52;
+      --c-blush: #E5988A;
+      --c-cream: #EBD8C8;
+      --c-ivory: #F8EDE3;
+      --glass-panel: rgba(88, 28, 20, 0.85);
+      --glass-border: rgba(229, 152, 138, 0.35);
     }
+
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
     }
+
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: #03060a;
-      color: #f3f4f6;
+      background-color: #240a07;
+      color: var(--c-ivory);
       overflow: hidden;
       touch-action: none;
       user-select: none;
     }
+
     .font-royal {
       font-family: 'Cinzel', Georgia, serif;
     }
-    .royal-glass {
-      background: var(--royal-glass);
-      backdrop-filter: blur(28px) saturate(180%);
-      -webkit-backdrop-filter: blur(28px) saturate(180%);
-      border: 1px solid var(--royal-border);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 1px 1px rgba(223, 183, 108, 0.1);
+
+    .terracotta-glass {
+      background: var(--glass-panel);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 20px 45px rgba(36, 10, 7, 0.6), 0 0 1px 1px rgba(229, 152, 138, 0.15);
     }
-    .royal-glass-heavy {
-      background: var(--royal-glass-heavy);
-      backdrop-filter: blur(32px) saturate(200%);
-      -webkit-backdrop-filter: blur(32px) saturate(200%);
-      border: 1px solid var(--royal-border);
-    }
-    .royal-item {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(223, 183, 108, 0.14);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .royal-item:hover {
-      background: rgba(223, 183, 108, 0.08);
-      border-color: rgba(223, 183, 108, 0.45);
-    }
-    .btn-gold-shimmer {
-      background: linear-gradient(135deg, #dfb76c 0%, #c49643 50%, #fbe3a9 100%);
-      background-size: 200% auto;
-      color: #0a0d13;
-      transition: all 0.35s ease;
-    }
-    .btn-gold-shimmer:hover {
-      background-position: right center;
-      box-shadow: 0 0 25px rgba(223, 183, 108, 0.55);
-      transform: translateY(-1px);
-    }
-    .btn-gold-ghost {
-      border: 1px solid rgba(223, 183, 108, 0.4);
-      color: var(--gold-primary);
-      background: rgba(223, 183, 108, 0.05);
+
+    .terracotta-item {
+      background: rgba(248, 237, 227, 0.05);
+      border: 1px solid rgba(229, 152, 138, 0.2);
       transition: all 0.25s ease;
     }
-    .btn-gold-ghost:hover {
-      border-color: var(--gold-light);
-      background: rgba(223, 183, 108, 0.15);
+    .terracotta-item:hover {
+      background: rgba(185, 95, 82, 0.25);
+      border-color: var(--c-blush);
+    }
+
+    .btn-terracotta-shimmer {
+      background: linear-gradient(135deg, #A8473B 0%, #B95F52 50%, #E5988A 100%);
+      background-size: 200% auto;
+      color: #F8EDE3;
+      transition: all 0.35s ease;
+    }
+    .btn-terracotta-shimmer:hover {
+      background-position: right center;
+      box-shadow: 0 0 25px rgba(229, 152, 138, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .btn-terracotta-ghost {
+      border: 1px solid var(--c-blush);
+      color: var(--c-cream);
+      background: rgba(168, 71, 59, 0.15);
+      transition: all 0.25s ease;
+    }
+    .btn-terracotta-ghost:hover {
+      border-color: var(--c-ivory);
+      background: rgba(185, 95, 82, 0.35);
       color: #fff;
     }
-    .gold-focus:focus-visible, .gold-focus:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px var(--gold-primary), 0 0 20px rgba(223, 183, 108, 0.4);
-    }
+
     input[type=range] {
       -webkit-appearance: none;
       width: 100%;
@@ -95,123 +103,113 @@
       width: 100%;
       height: 4px;
       cursor: pointer;
-      background: rgba(255, 255, 255, 0.18);
+      background: rgba(235, 216, 200, 0.25);
       border-radius: 9999px;
     }
     input[type=range]::-webkit-slider-thumb {
       height: 16px;
       width: 16px;
       border-radius: 50%;
-      background: var(--gold-primary);
+      background: var(--c-blush);
       cursor: pointer;
       -webkit-appearance: none;
       margin-top: -6px;
-      box-shadow: 0 0 10px rgba(223, 183, 108, 0.8);
+      box-shadow: 0 0 10px rgba(229, 152, 138, 0.8);
       transition: transform 0.15s ease;
     }
     input[type=range]::-webkit-slider-thumb:hover {
       transform: scale(1.2);
     }
+
     .custom-scroll::-webkit-scrollbar {
       width: 4px;
     }
     .custom-scroll::-webkit-scrollbar-thumb {
-      background: rgba(223, 183, 108, 0.25);
+      background: rgba(229, 152, 138, 0.35);
       border-radius: 4px;
     }
     .custom-scroll::-webkit-scrollbar-thumb:hover {
-      background: var(--gold-primary);
+      background: var(--c-blush);
     }
+
     @keyframes pulseRadar {
       0% { transform: scale(0.9); opacity: 0.9; }
-      50% { transform: scale(1.35); opacity: 0.2; }
+      50% { transform: scale(1.35); opacity: 0.25; }
       100% { transform: scale(0.9); opacity: 0.9; }
     }
     .pulse-radar {
       animation: pulseRadar 2.2s infinite cubic-bezier(0.4, 0, 0.6, 1);
     }
-    @keyframes crestRotate {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
   </style>
 </head>
-<body class="w-screen h-screen relative overflow-hidden select-none bg-black text-slate-100">
+<body class="w-screen h-screen relative overflow-hidden select-none bg-[#240a07] text-[#F8EDE3]">
 
+  <!-- WebGL 360 Panorama Viewport -->
   <div id="canvas-container" class="absolute inset-0 w-full h-full z-0 cursor-grab active:cursor-grabbing"></div>
 
-  <div id="vr-reticle" class="pointer-events-none absolute inset-0 flex items-center justify-center z-10 opacity-30">
-    <div class="w-7 h-7 border border-[#dfb76c]/60 rounded-full flex items-center justify-center">
-      <div class="w-1.5 h-1.5 bg-[#dfb76c] rounded-full"></div>
+  <!-- Reticle Indicator -->
+  <div class="pointer-events-none absolute inset-0 flex items-center justify-center z-10 opacity-30">
+    <div class="w-7 h-7 border border-[#E5988A]/60 rounded-full flex items-center justify-center">
+      <div class="w-1.5 h-1.5 bg-[#E5988A] rounded-full"></div>
     </div>
   </div>
 
-  <header class="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 sm:px-8 py-4 pointer-events-none transition-opacity duration-500" id="main-header">
-    <div class="flex items-center space-x-3 pointer-events-auto">
-      <!-- Menu Drawer Toggle -->
-      <button id="btn-toggle-left-menu" class="gold-focus p-2.5 rounded-xl royal-glass text-[#dfb76c] hover:text-white transition-all flex items-center space-x-2" title="Royal Directory Menu">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
-        </svg>
-        <span class="text-[11px] font-royal tracking-widest uppercase hidden md:inline">Menu</span>
+  <!-- Minimal Welcome Screen (Title and START button ONLY) -->
+  <div id="welcome-screen" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/75 backdrop-blur-md transition-opacity duration-700">
+    <div class="relative w-full max-w-lg terracotta-glass rounded-3xl p-10 sm:p-12 border border-[#E5988A]/50 shadow-[0_0_80px_rgba(88,28,20,0.8)] text-center flex flex-col items-center justify-center space-y-8">
+      
+      <!-- Market Title -->
+      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-royal font-bold text-[#F8EDE3] tracking-[0.18em] uppercase leading-relaxed text-center">
+        SARDAR VALLABHBHAI PATEL MARKET
+      </h1>
+
+      <div class="w-20 h-0.5 bg-gradient-to-r from-transparent via-[#E5988A] to-transparent"></div>
+
+      <!-- Start Button -->
+      <button id="btn-start" class="w-full sm:w-64 py-4 px-8 rounded-2xl btn-terracotta-shimmer font-royal font-bold text-sm tracking-[0.25em] uppercase shadow-xl shadow-[#581C14]/60 transform hover:-translate-y-0.5 active:scale-95 transition-all">
+        START
       </button>
 
-      <!-- Palace Crest Brand Seal -->
-      <div class="flex items-center space-x-3 px-3.5 py-2 rounded-2xl royal-glass">
-        <div class="w-8 h-8 rounded-full border border-[#dfb76c]/60 flex items-center justify-center text-[#dfb76c] font-royal font-bold text-sm bg-black/40">
-          👑
+    </div>
+  </div>
+
+  <!-- Top Header Navigation -->
+  <header class="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 sm:px-8 py-4 pointer-events-none transition-opacity duration-500" id="main-header">
+    <div class="flex items-center space-x-3 pointer-events-auto">
+      <div class="flex items-center space-x-3 px-4 py-2 rounded-2xl terracotta-glass">
+        <div class="w-8 h-8 rounded-full border border-[#E5988A]/60 flex items-center justify-center text-[#EBD8C8] font-royal font-bold text-sm bg-[#581C14]/60">
+          🏛️
         </div>
         <div>
-          <span class="font-royal font-bold text-xs sm:text-sm tracking-[0.2em] uppercase text-[#dfb76c] block">
-            ROYAL PALACE // URBAN AERIAL
+          <span class="font-royal font-bold text-xs sm:text-sm tracking-[0.18em] uppercase text-[#F8EDE3] block">
+            SARDAR VALLABHBHAI PATEL MARKET
           </span>
-          <p class="text-[9px] text-zinc-400 font-mono tracking-tighter uppercase">POORNA MARKET 360° SPATIAL SUITE</p>
+          <p class="text-[9px] text-[#E5988A] font-mono tracking-wider uppercase">POORNA MARKET 360° TOUR</p>
         </div>
-      </div>
-
-      <!-- Current Scene Moniker -->
-      <div class="hidden xl:flex items-center space-x-2 px-3.5 py-1.5 rounded-xl royal-glass text-xs">
-        <span class="text-zinc-500 font-mono text-[10px]">CURRENT VIEW:</span>
-        <span id="current-view-badge" class="font-royal text-[#dfb76c] tracking-wider">Aerial Drone Panoramic View</span>
       </div>
     </div>
 
-    <!-- Header Actions (Right) -->
+    <!-- Actions (Right) -->
     <div class="flex items-center space-x-2.5 pointer-events-auto">
-      <!-- Multilingual Switcher -->
-      <div class="hidden sm:flex items-center p-1 rounded-xl royal-glass text-[11px] font-medium" id="lang-switcher">
-        <button data-lang="nl" class="lang-tab px-2 py-1 rounded-lg text-zinc-400 hover:text-white transition-colors">NL</button>
-        <button data-lang="fr" class="lang-tab px-2 py-1 rounded-lg text-zinc-400 hover:text-white transition-colors">FR</button>
-        <button data-lang="de" class="lang-tab px-2 py-1 rounded-lg text-zinc-400 hover:text-white transition-colors">DE</button>
-        <button data-lang="en" class="lang-tab px-2 py-1 rounded-lg bg-[#dfb76c] text-black font-semibold shadow-sm">EN</button>
-      </div>
-
       <!-- Direct 360 Pano Upload Trigger -->
-      <label for="local-file-picker" class="gold-focus flex items-center space-x-1.5 px-3 py-2 rounded-xl royal-glass cursor-pointer text-xs font-medium hover:border-[#dfb76c] transition-all text-zinc-200">
-        <svg class="w-4 h-4 text-[#dfb76c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <label for="local-file-picker" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl terracotta-glass cursor-pointer text-xs font-medium hover:border-[#E5988A] transition-all text-[#F8EDE3]">
+        <svg class="w-4 h-4 text-[#E5988A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
         </svg>
         <span class="hidden lg:inline text-[11px] tracking-wider uppercase">Upload 360</span>
         <input type="file" id="local-file-picker" accept="image/jpeg,image/png" class="hidden">
       </label>
 
-      <!-- Info Modal Opener -->
-      <button id="btn-open-info" class="gold-focus p-2 rounded-xl royal-glass text-zinc-300 hover:text-[#dfb76c] transition-all" title="View Palace Tour Information">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-      </button>
-
       <!-- Spatial Inspector Toggle -->
-      <button id="btn-toggle-inspector" class="gold-focus p-2 rounded-xl royal-glass text-[#dfb76c] hover:text-white transition-all" title="Toggle Architectural Controller Suite">
+      <button id="btn-toggle-inspector" class="p-2 rounded-xl terracotta-glass text-[#EBD8C8] hover:text-[#F8EDE3] transition-all" title="Toggle Architectural Controllers">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
         </svg>
       </button>
 
-      <!-- Primary Enter VR Trigger for Meta Quest Browser -->
-      <button id="btn-enter-webxr" class="gold-focus flex items-center space-x-2 px-4 py-2 rounded-xl btn-gold-shimmer font-royal font-bold text-xs tracking-widest uppercase shadow-lg shadow-[#dfb76c]/20 transition-transform active:scale-95">
-        <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- WebXR Enter VR Button -->
+      <button id="btn-enter-webxr" class="flex items-center space-x-2 px-4 py-2 rounded-xl btn-terracotta-shimmer font-royal font-bold text-xs tracking-widest uppercase shadow-lg shadow-[#581C14]/40 transition-transform active:scale-95">
+        <svg class="w-4 h-4 text-[#F8EDE3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
         </svg>
         <span id="vr-status-label">ENTER VR</span>
@@ -219,510 +217,328 @@
     </div>
   </header>
 
-  <aside id="left-directory-drawer" class="absolute top-20 left-4 sm:left-8 bottom-24 w-72 sm:w-80 royal-glass-heavy rounded-2xl p-5 z-40 flex flex-col space-y-4 shadow-2xl transition-all duration-400 ease-out border border-[#dfb76c]/30 -translate-x-[120%] opacity-0 pointer-events-none">
-    <div class="flex items-center justify-between pb-3 border-b border-white/10">
+  <!-- Architectural Controllers Suite (Right Drawer) -->
+  <aside id="right-inspector-drawer" class="absolute top-20 right-4 sm:right-8 bottom-24 w-84 sm:w-96 terracotta-glass rounded-2xl p-5 z-40 flex flex-col space-y-4 shadow-2xl transition-all duration-400 ease-out border border-[#E5988A]/40 translate-x-[120%] opacity-0 pointer-events-none">
+    <div class="flex items-center justify-between pb-3 border-b border-[#E5988A]/20">
       <div class="flex items-center space-x-2">
-        <span class="text-base text-[#dfb76c]">🏰</span>
-        <h3 class="font-royal font-bold text-sm tracking-widest text-[#dfb76c] uppercase">Tour Directory</h3>
-      </div>
-      <button id="btn-close-left-menu" class="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
-
-    <div class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scroll text-xs">
-      <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest px-2 pt-2">Exterior & Urban Masterplan</div>
-      <button data-scene="aerial" class="scene-menu-item active-scene w-full p-2.5 rounded-xl text-left flex items-center justify-between bg-[#dfb76c]/15 border border-[#dfb76c]/40 text-[#dfb76c]">
+        <span class="text-base text-[#E5988A]">⚙️</span>
         <div>
-          <span class="font-royal font-semibold block text-xs">1. Aerial Drone Panorama</span>
-          <span class="text-[10px] text-zinc-400">Elevation 120m • 360° Canopy</span>
-        </div>
-        <span class="text-xs">✦</span>
-      </button>
-
-      <button data-scene="promenade" class="scene-menu-item w-full p-2.5 rounded-xl text-left flex items-center justify-between royal-item text-zinc-300 hover:text-white">
-        <div>
-          <span class="font-royal font-semibold block text-xs">2. Central Market Promenade</span>
-          <span class="text-[10px] text-zinc-400">Reflecting pool & Water Fountain</span>
-        </div>
-        <span class="text-zinc-500">→</span>
-      </button>
-
-      <button data-scene="kiosks" class="scene-menu-item w-full p-2.5 rounded-xl text-left flex items-center justify-between royal-item text-zinc-300 hover:text-white">
-        <div>
-          <span class="font-royal font-semibold block text-xs">3. Sneha Produce Arcade</span>
-          <span class="text-[10px] text-zinc-400">Fresh Fruit & Flower Kiosks</span>
-        </div>
-        <span class="text-zinc-500">→</span>
-      </button>
-
-      <button data-scene="jewelry" class="scene-menu-item w-full p-2.5 rounded-xl text-left flex items-center justify-between royal-item text-zinc-300 hover:text-white">
-        <div>
-          <span class="font-royal font-semibold block text-xs">4. Sri Lakshmi Colonnade</span>
-          <span class="text-[10px] text-zinc-400">Jewelry & Silk Textile Shops</span>
-        </div>
-        <span class="text-zinc-500">→</span>
-      </button>
-
-      <button data-scene="treeline" class="scene-menu-item w-full p-2.5 rounded-xl text-left flex items-center justify-between royal-item text-zinc-300 hover:text-white">
-        <div>
-          <span class="font-royal font-semibold block text-xs">5. Heritage Canopy Trees</span>
-          <span class="text-[10px] text-zinc-400">Shaded Pergola & Night Fairies</span>
-        </div>
-        <span class="text-zinc-500">→</span>
-      </button>
-    </div>
-
-    <div class="pt-3 border-t border-white/10 text-[10px] text-zinc-400 font-mono flex items-center justify-between">
-      <span>MONARCHIE.BE SPECIFICATION</span>
-      <span class="text-[#dfb76c]">VR 6DoF</span>
-    </div>
-  </aside>
-
-  <aside id="right-inspector-drawer" class="absolute top-20 right-4 sm:right-8 bottom-24 w-84 sm:w-96 royal-glass-heavy rounded-2xl p-5 z-40 flex flex-col space-y-4 shadow-2xl transition-all duration-400 ease-out border border-[#dfb76c]/30 translate-x-[120%] opacity-0 pointer-events-none">
-    <div class="flex items-center justify-between pb-3 border-b border-white/10">
-      <div class="flex items-center space-x-2">
-        <div class="p-1 rounded-lg bg-[#dfb76c]/15 text-[#dfb76c]">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        </div>
-        <div>
-          <h3 class="font-royal font-bold text-sm tracking-wider text-white">Spatial Controller Suite</h3>
-          <p class="text-[9px] text-[#dfb76c] font-mono">BIM & VR TELEMETRY</p>
+          <h3 class="font-royal font-bold text-sm tracking-wider text-[#F8EDE3]">Spatial Controller Suite</h3>
+          <p class="text-[9px] text-[#EBD8C8] font-mono">VR TELEMETRY & BIM CONTROLS</p>
         </div>
       </div>
-      <button id="btn-close-right-inspector" class="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10">
+      <button id="btn-close-right-inspector" class="p-1.5 rounded-lg text-[#EBD8C8] hover:text-white hover:bg-white/10">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
 
     <div class="flex-1 overflow-y-auto space-y-4 pr-1.5 custom-scroll text-xs">
-      <!-- 1. BUTTONS (Primary & Ghost) -->
+      
+      <!-- 1. BUTTONS (Primary & Ghost/Secondary) -->
       <section class="space-y-1.5">
-        <div class="flex justify-between items-center text-[10px] uppercase tracking-wider text-zinc-400 font-medium">
+        <div class="flex justify-between items-center text-[10px] uppercase tracking-wider text-[#EBD8C8] font-medium">
           <span>1. View Calibration</span>
-          <span class="font-mono text-[#dfb76c]">PRIMARY / GHOST</span>
+          <span class="font-mono text-[#E5988A]">PRIMARY / GHOST</span>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <button id="btn-recenter-primary" class="gold-focus py-2.5 px-3 rounded-xl btn-gold-shimmer font-bold text-center active:scale-95 transition-all text-xs">
+          <button id="btn-recenter-primary" class="py-2.5 px-3 rounded-xl btn-terracotta-shimmer font-bold text-center active:scale-95 transition-all text-xs">
             Recenter View
           </button>
-          <button id="btn-reset-ghost" class="gold-focus py-2.5 px-3 rounded-xl btn-gold-ghost font-medium text-center active:scale-95 transition-all text-xs">
-            Reset EV
+          <button id="btn-reset-ghost" class="py-2.5 px-3 rounded-xl btn-terracotta-ghost font-medium text-center active:scale-95 transition-all text-xs">
+            Reset Exposure
           </button>
         </div>
       </section>
 
-      <!-- 2. DROPDOWN (Native Select Menu for Waypoints) -->
+      <!-- 2. DROPDOWN (Native Select Menu for Zones) -->
       <section class="space-y-1.5">
-        <label for="select-waypoint" class="block text-[10px] uppercase tracking-wider text-zinc-400 font-medium">2. Key Waypoint Coordinates</label>
+        <label for="select-waypoint" class="block text-[10px] uppercase tracking-wider text-[#EBD8C8] font-medium">2. Market Viewpoint (Dropdown)</label>
         <div class="relative">
-          <select id="select-waypoint" class="gold-focus w-full appearance-none bg-zinc-950/80 border border-white/15 text-zinc-200 px-3.5 py-2.5 rounded-xl cursor-pointer pr-9 text-xs">
-            <option value="apex">Drone Horizon Apex (0° Lat, 180° Lon)</option>
-            <option value="citycenter">Metropolitan Center & Civic Quad</option>
-            <option value="marketquad">Poorna Market Spine & Canals</option>
-            <option value="northeast">Residential Valley & Forest Edge</option>
+          <select id="select-waypoint" class="w-full appearance-none bg-[#36100b] border border-[#E5988A]/30 text-[#F8EDE3] px-3.5 py-2.5 rounded-xl cursor-pointer pr-9 text-xs focus:outline-none focus:border-[#E5988A]">
+            <option value="apex">Central Promenade & Water Cascade</option>
+            <option value="kiosks">Sneha Produce Arcade & Fruit Kiosks</option>
+            <option value="jewelry">Sri Lakshmi Jewelry & Textile Arcade</option>
+            <option value="canopy">Heritage Treeline & Shaded Pergolas</option>
           </select>
-          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#dfb76c]">
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#E5988A]">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
         </div>
       </section>
 
-      <!-- 3. SEGMENTED CONTROL (Atmospheric Lighting) -->
+      <!-- 3. SEGMENTED CONTROL (Exclusive Choice: Day / Dusk / Night) -->
       <section class="space-y-1.5">
-        <div class="flex justify-between items-center text-[10px] uppercase tracking-wider text-zinc-400 font-medium">
-          <span>3. Solar & Sky Mode</span>
-          <span class="font-mono text-zinc-500">ENSCAPE SIM</span>
+        <div class="flex justify-between items-center text-[10px] uppercase tracking-wider text-[#EBD8C8] font-medium">
+          <span>3. Lighting Scenario (Segmented Control)</span>
+          <span class="font-mono text-[#E5988A]">ENSCAPE MODE</span>
         </div>
-        <div class="grid grid-cols-3 p-1 rounded-xl bg-zinc-950/80 border border-white/10" id="segmented-lighting">
-          <button data-sky="day" class="seg-sky-btn gold-focus py-1.5 rounded-lg text-xs font-semibold text-black bg-[#dfb76c] transition-all">
-            Daylight
+        <div class="grid grid-cols-3 p-1 rounded-xl bg-[#36100b] border border-[#E5988A]/30" id="segmented-lighting">
+          <button data-sky="day" class="seg-sky-btn py-1.5 rounded-lg text-xs font-semibold text-[#F8EDE3] bg-[#A8473B] transition-all">
+            Day
           </button>
-          <button data-sky="overcast" class="seg-sky-btn gold-focus py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-all">
-            Overcast
+          <button data-sky="dusk" class="seg-sky-btn py-1.5 rounded-lg text-xs font-medium text-[#EBD8C8] hover:text-white transition-all">
+            Dusk
           </button>
-          <button data-sky="sunset" class="seg-sky-btn gold-focus py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-all">
-            Golden
+          <button data-sky="night" class="seg-sky-btn py-1.5 rounded-lg text-xs font-medium text-[#EBD8C8] hover:text-white transition-all">
+            Night
           </button>
         </div>
       </section>
 
-      <!-- 4. SLIDERS WITH LIVE READOUTS (Exposure & FOV) -->
+      <!-- 4. SLIDERS WITH LIVE READOUTS (Exposure EV & Camera FOV) -->
       <section class="space-y-3">
         <div class="space-y-1">
           <div class="flex justify-between items-center text-[10px]">
-            <span class="uppercase tracking-wider text-zinc-400 font-medium">4. Exposure Compensation (EV)</span>
-            <span id="readout-ev" class="font-mono text-[#dfb76c] bg-[#dfb76c]/10 px-2 py-0.5 rounded border border-[#dfb76c]/20">1.05 EV</span>
+            <span class="uppercase tracking-wider text-[#EBD8C8] font-medium">4. Exposure Compensation (EV)</span>
+            <span id="readout-ev" class="font-mono text-[#EBD8C8] bg-[#36100b] px-2 py-0.5 rounded border border-[#E5988A]/30">1.05 EV</span>
           </div>
-          <input type="range" id="slider-ev" min="0.5" max="2.2" step="0.05" value="1.05">
+          <input type="range" id="slider-ev" min="0.4" max="2.0" step="0.05" value="1.05">
         </div>
 
         <div class="space-y-1">
           <div class="flex justify-between items-center text-[10px]">
-            <span class="uppercase tracking-wider text-zinc-400 font-medium">Camera Field of View</span>
-            <span id="readout-fov-side" class="font-mono text-[#dfb76c] bg-[#dfb76c]/10 px-2 py-0.5 rounded border border-[#dfb76c]/20">65° FOV</span>
+            <span class="uppercase tracking-wider text-[#EBD8C8] font-medium">Camera Field of View</span>
+            <span id="readout-fov-side" class="font-mono text-[#EBD8C8] bg-[#36100b] px-2 py-0.5 rounded border border-[#E5988A]/30">65° FOV</span>
           </div>
           <input type="range" id="slider-fov-side" min="40" max="100" step="1" value="65">
         </div>
       </section>
 
-      <!-- 5. STEPPER (Drone Altitude / Anthropometric Height) -->
+      <!-- 5. STEPPER (Numeric Eye-Level Height Input) -->
       <section class="space-y-1.5">
-        <div class="flex justify-between items-center text-[10px] uppercase tracking-wider text-zinc-400 font-medium">
-          <span>5. Observation Altitude</span>
-          <span class="font-mono text-[#dfb76c]">METRIC ELEVATION</span>
+        <div class="flex justify-between items-center text-[10px] uppercase tracking-wider text-[#EBD8C8] font-medium">
+          <span>5. Eye-Level Height (Stepper)</span>
+          <span class="font-mono text-[#E5988A]">METRIC</span>
         </div>
-        <div class="flex items-center justify-between p-1.5 rounded-xl bg-zinc-950/80 border border-white/10">
-          <button id="btn-altitude-sub" class="gold-focus w-9 h-9 rounded-lg flex items-center justify-center bg-white/5 hover:bg-[#dfb76c]/20 text-zinc-300 hover:text-[#dfb76c] font-bold text-lg active:scale-95 transition-all">
+        <div class="flex items-center justify-between p-1.5 rounded-xl bg-[#36100b] border border-[#E5988A]/30">
+          <button id="btn-height-sub" class="w-9 h-9 rounded-lg flex items-center justify-center bg-white/5 hover:bg-[#A8473B]/40 text-[#EBD8C8] hover:text-white font-bold text-lg active:scale-95 transition-all">
             -
           </button>
           <div class="flex items-baseline space-x-1.5">
-            <span id="readout-altitude" class="font-mono text-base font-bold text-[#dfb76c]">120</span>
-            <span class="text-zinc-500 text-xs font-mono">meters</span>
+            <span id="readout-height" class="font-mono text-base font-bold text-[#F8EDE3]">1.65</span>
+            <span class="text-[#EBD8C8] text-xs font-mono">meters</span>
           </div>
-          <button id="btn-altitude-add" class="gold-focus w-9 h-9 rounded-lg flex items-center justify-center bg-white/5 hover:bg-[#dfb76c]/20 text-zinc-300 hover:text-[#dfb76c] font-bold text-lg active:scale-95 transition-all">
+          <button id="btn-height-add" class="w-9 h-9 rounded-lg flex items-center justify-center bg-white/5 hover:bg-[#A8473B]/40 text-[#EBD8C8] hover:text-white font-bold text-lg active:scale-95 transition-all">
             +
           </button>
         </div>
       </section>
 
-      <!-- 6. TOGGLES (On/Off Switches) -->
+      <!-- 6. TOGGLE SWITCH (On/Off Switch) -->
       <section class="space-y-2">
-        <span class="block text-[10px] uppercase tracking-wider text-zinc-400 font-medium">6. Spatial Overlays</span>
-        <div class="flex items-center justify-between p-2.5 rounded-xl royal-item">
+        <span class="block text-[10px] uppercase tracking-wider text-[#EBD8C8] font-medium">6. Overlays (Toggles)</span>
+        <div class="flex items-center justify-between p-2.5 rounded-xl terracotta-item">
           <div>
-            <span class="text-xs font-medium text-zinc-200 block">Spatial Radar Hotspots</span>
-            <span class="text-[10px] text-zinc-400">Architectural info pins in 3D</span>
+            <span class="text-xs font-medium text-[#F8EDE3] block">Spatial Radar Hotspots</span>
+            <span class="text-[10px] text-[#EBD8C8]">Architectural detail pins in 3D</span>
           </div>
-          <button id="toggle-hotspots-switch" role="switch" aria-checked="true" class="gold-focus w-11 h-6 rounded-full bg-[#dfb76c] p-0.5 transition-colors relative flex items-center">
-            <span class="w-5 h-5 rounded-full bg-black shadow-md transform translate-x-5 transition-transform duration-200"></span>
+          <button id="toggle-hotspots-switch" role="switch" aria-checked="true" class="w-11 h-6 rounded-full bg-[#A8473B] p-0.5 transition-colors relative flex items-center">
+            <span class="w-5 h-5 rounded-full bg-[#F8EDE3] shadow-md transform translate-x-5 transition-transform duration-200"></span>
           </button>
         </div>
 
-        <div class="flex items-center justify-between p-2.5 rounded-xl royal-item">
+        <div class="flex items-center justify-between p-2.5 rounded-xl terracotta-item">
           <div>
-            <span class="text-xs font-medium text-zinc-200 block">0° Horizon Datum Ring</span>
-            <span class="text-[10px] text-zinc-400">Level line for elevation gauge</span>
+            <span class="text-xs font-medium text-[#F8EDE3] block">0° Horizon Datum Ring</span>
+            <span class="text-[10px] text-[#EBD8C8]">Eye-level architectural datum</span>
           </div>
-          <button id="toggle-horizon-switch" role="switch" aria-checked="true" class="gold-focus w-11 h-6 rounded-full bg-[#dfb76c] p-0.5 transition-colors relative flex items-center">
-            <span class="w-5 h-5 rounded-full bg-black shadow-md transform translate-x-5 transition-transform duration-200"></span>
+          <button id="toggle-horizon-switch" role="switch" aria-checked="true" class="w-11 h-6 rounded-full bg-[#A8473B] p-0.5 transition-colors relative flex items-center">
+            <span class="w-5 h-5 rounded-full bg-[#F8EDE3] shadow-md transform translate-x-5 transition-transform duration-200"></span>
           </button>
         </div>
       </section>
 
-      <!-- 7. CHECKBOXES (GIS / BIM Layers Multi-Select) -->
+      <!-- 7. CHECKBOXES (Multi-Select BIM Layers) -->
       <section class="space-y-1.5">
-        <span class="block text-[10px] uppercase tracking-wider text-zinc-400 font-medium">7. GIS & Landscape Layers</span>
+        <span class="block text-[10px] uppercase tracking-wider text-[#EBD8C8] font-medium">7. Market Layers (Checkboxes)</span>
         <div class="space-y-1.5">
-          <label class="gold-focus flex items-center space-x-2.5 p-2 rounded-xl royal-item cursor-pointer">
-            <input type="checkbox" id="chk-gis-footprints" checked class="w-4 h-4 rounded text-[#dfb76c] bg-zinc-900 border-zinc-700 focus:ring-[#dfb76c]">
-            <span class="text-xs text-zinc-200">Urban Building Footprints</span>
+          <label class="flex items-center space-x-2.5 p-2 rounded-xl terracotta-item cursor-pointer">
+            <input type="checkbox" id="chk-layer-paving" checked class="w-4 h-4 rounded text-[#A8473B] bg-[#36100b] border-[#E5988A]/40 focus:ring-[#A8473B]">
+            <span class="text-xs text-[#F8EDE3]">Terracotta & Encaustic Paving</span>
           </label>
-          <label class="gold-focus flex items-center space-x-2.5 p-2 rounded-xl royal-item cursor-pointer">
-            <input type="checkbox" id="chk-gis-arterial" checked class="w-4 h-4 rounded text-[#dfb76c] bg-zinc-900 border-zinc-700 focus:ring-[#dfb76c]">
-            <span class="text-xs text-zinc-200">Arterial Roads & Highway Spine</span>
+          <label class="flex items-center space-x-2.5 p-2 rounded-xl terracotta-item cursor-pointer">
+            <input type="checkbox" id="chk-layer-fountains" checked class="w-4 h-4 rounded text-[#A8473B] bg-[#36100b] border-[#E5988A]/40 focus:ring-[#A8473B]">
+            <span class="text-xs text-[#F8EDE3]">Water Fountain Cascades</span>
           </label>
-          <label class="gold-focus flex items-center space-x-2.5 p-2 rounded-xl royal-item cursor-pointer">
-            <input type="checkbox" id="chk-gis-canopy" checked class="w-4 h-4 rounded text-[#dfb76c] bg-zinc-900 border-zinc-700 focus:ring-[#dfb76c]">
-            <span class="text-xs text-zinc-200">Canopy Forest Reserve</span>
+          <label class="flex items-center space-x-2.5 p-2 rounded-xl terracotta-item cursor-pointer">
+            <input type="checkbox" id="chk-layer-canopy" checked class="w-4 h-4 rounded text-[#A8473B] bg-[#36100b] border-[#E5988A]/40 focus:ring-[#A8473B]">
+            <span class="text-xs text-[#F8EDE3]">Tree Canopies & Fairy Lights</span>
           </label>
         </div>
       </section>
 
-      <!-- 8. RADIO GROUP (Headset Texture Fidelity) -->
+      <!-- 8. RADIO GROUP (Single-Select Quality Options) -->
       <section class="space-y-1.5">
-        <span class="block text-[10px] uppercase tracking-wider text-zinc-400 font-medium">8. Headset Target Texture (Radio Group)</span>
+        <span class="block text-[10px] uppercase tracking-wider text-[#EBD8C8] font-medium">8. Headset Fidelity (Radio Group)</span>
         <div class="space-y-1.5">
-          <label class="gold-focus flex items-center justify-between p-2 rounded-xl royal-item cursor-pointer">
+          <label class="flex items-center justify-between p-2 rounded-xl terracotta-item cursor-pointer">
             <div class="flex items-center space-x-2">
-              <input type="radio" name="fidelity" value="quest3" checked class="text-[#dfb76c] bg-zinc-900 border-zinc-700 focus:ring-[#dfb76c]">
-              <span class="text-xs text-zinc-200">Meta Quest 3 (5760×2880)</span>
+              <input type="radio" name="fidelity" value="quest3" checked class="text-[#A8473B] bg-[#36100b] border-[#E5988A]/40 focus:ring-[#A8473B]">
+              <span class="text-xs text-[#F8EDE3]">Meta Quest 3 (4K-6K)</span>
             </div>
-            <span class="text-[9px] font-mono text-emerald-400">Optimum</span>
+            <span class="text-[9px] font-mono text-[#E5988A]">Optimum</span>
           </label>
-          <label class="gold-focus flex items-center justify-between p-2 rounded-xl royal-item cursor-pointer">
+          <label class="flex items-center justify-between p-2 rounded-xl terracotta-item cursor-pointer">
             <div class="flex items-center space-x-2">
-              <input type="radio" name="fidelity" value="quest2" class="text-[#dfb76c] bg-zinc-900 border-zinc-700 focus:ring-[#dfb76c]">
-              <span class="text-xs text-zinc-200">Meta Quest 2 (4K Standard)</span>
+              <input type="radio" name="fidelity" value="quest2" class="text-[#A8473B] bg-[#36100b] border-[#E5988A]/40 focus:ring-[#A8473B]">
+              <span class="text-xs text-[#F8EDE3]">Meta Quest 2 (Standard)</span>
             </div>
-            <span class="text-[9px] font-mono text-zinc-400">Fast</span>
+            <span class="text-[9px] font-mono text-[#EBD8C8]">Fast</span>
           </label>
-          <label class="gold-focus flex items-center justify-between p-2 rounded-xl royal-item cursor-pointer">
+          <label class="flex items-center justify-between p-2 rounded-xl terracotta-item cursor-pointer">
             <div class="flex items-center space-x-2">
-              <input type="radio" name="fidelity" value="raw" class="text-[#dfb76c] bg-zinc-900 border-zinc-700 focus:ring-[#dfb76c]">
-              <span class="text-xs text-zinc-200">Ultra Raw Panorama (8K)</span>
+              <input type="radio" name="fidelity" value="raw" class="text-[#A8473B] bg-[#36100b] border-[#E5988A]/40 focus:ring-[#A8473B]">
+              <span class="text-xs text-[#F8EDE3]">Raw Equirectangular 8K</span>
             </div>
-            <span class="text-[9px] font-mono text-[#dfb76c]">Max Res</span>
+            <span class="text-[9px] font-mono text-[#F8EDE3]">Ultra</span>
           </label>
         </div>
       </section>
-    </div>
 
-    <div class="pt-2 border-t border-white/10 text-[10px] text-zinc-400 font-mono flex items-center justify-between">
-      <span>WEBXR STANDARDS</span>
-      <span class="text-emerald-400">✓ 60FPS READY</span>
     </div>
   </aside>
 
+  <!-- Bottom Krpano / Belgian Royal Palace Navigation Dock -->
   <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none transition-all duration-300" id="main-dock">
-    <!-- Collapsible Scenes Thumbnail Ribbon (Above dock) -->
-    <div id="scenes-ribbon" class="mb-3 royal-glass-heavy rounded-2xl p-2.5 flex items-center space-x-3 pointer-events-auto transition-all duration-300 shadow-2xl opacity-0 scale-95 pointer-events-none transform origin-bottom">
-      <div class="scene-card group cursor-pointer relative rounded-xl overflow-hidden border border-[#dfb76c] w-28 h-16 shrink-0 transition-transform hover:scale-105" data-scene="aerial">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
-        <div class="w-full h-full bg-cover bg-center" style="background-image: url('aerial-drone-panoramic-view-chisinau-moldova.jpg'), radial-gradient(circle, #38bdf8, #0f172a);"></div>
-        <span class="absolute bottom-1 left-1.5 right-1.5 z-20 font-royal font-bold text-[9px] text-white truncate text-center block">Aerial Drone</span>
-      </div>
-
-      <div class="scene-card group cursor-pointer relative rounded-xl overflow-hidden border border-white/20 hover:border-[#dfb76c] w-28 h-16 shrink-0 transition-transform hover:scale-105" data-scene="promenade">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
-        <div class="w-full h-full bg-cover bg-center" style="background-image: url('poorna-market-view.jpg'), radial-gradient(circle, #f59e0b, #451a03);"></div>
-        <span class="absolute bottom-1 left-1.5 right-1.5 z-20 font-royal font-bold text-[9px] text-zinc-300 truncate text-center block">Promenade</span>
-      </div>
-
-      <div class="scene-card group cursor-pointer relative rounded-xl overflow-hidden border border-white/20 hover:border-[#dfb76c] w-28 h-16 shrink-0 transition-transform hover:scale-105" data-scene="kiosks">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
-        <div class="w-full h-full bg-cover bg-center" style="background-image: url('market_panorama.jpg'), radial-gradient(circle, #10b981, #064e3b);"></div>
-        <span class="absolute bottom-1 left-1.5 right-1.5 z-20 font-royal font-bold text-[9px] text-zinc-300 truncate text-center block">Sneha Kiosks</span>
-      </div>
-
-      <div class="scene-card group cursor-pointer relative rounded-xl overflow-hidden border border-white/20 hover:border-[#dfb76c] w-28 h-16 shrink-0 transition-transform hover:scale-105" data-scene="treeline">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
-        <div class="w-full h-full bg-cover bg-center" style="background-image: url('luca-iaconelli-x-d3XHS23oc-unsplash.jpg'), radial-gradient(circle, #6366f1, #1e1b4b);"></div>
-        <span class="absolute bottom-1 left-1.5 right-1.5 z-20 font-royal font-bold text-[9px] text-zinc-300 truncate text-center block">Star Canopy</span>
-      </div>
-    </div>
-
-    <!-- The Belgian Royal Palace Dock Capsule -->
-    <div class="royal-glass rounded-full px-4 py-2 flex items-center space-x-1.5 sm:space-x-2 pointer-events-auto shadow-2xl">
+    <div class="terracotta-glass rounded-full px-4 py-2 flex items-center space-x-1.5 sm:space-x-2 pointer-events-auto shadow-2xl">
       <!-- Zoom Out -->
-      <button id="dock-btn-zoom-out" class="gold-focus w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-[#dfb76c] hover:bg-white/10 active:scale-95 transition-all" title="Zoom Out (-)">
+      <button id="dock-btn-zoom-out" class="w-8 h-8 rounded-full flex items-center justify-center text-[#EBD8C8] hover:text-white hover:bg-white/10 active:scale-95 transition-all" title="Zoom Out (-)">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
       </button>
 
       <!-- Zoom Readout Display -->
-      <div id="dock-zoom-readout" class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-[#dfb76c] tracking-wider border-x border-white/10 select-none">
+      <div id="dock-zoom-readout" class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-[#EBD8C8] tracking-wider border-x border-white/10 select-none">
         Zoom 100%
       </div>
 
       <!-- Zoom In -->
-      <button id="dock-btn-zoom-in" class="gold-focus w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-[#dfb76c] hover:bg-white/10 active:scale-95 transition-all" title="Zoom In (+)">
+      <button id="dock-btn-zoom-in" class="w-8 h-8 rounded-full flex items-center justify-center text-[#EBD8C8] hover:text-white hover:bg-white/10 active:scale-95 transition-all" title="Zoom In (+)">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
       </button>
 
       <div class="h-4 w-px bg-white/15 mx-0.5"></div>
 
-      <!-- Pan Left -->
-      <button id="dock-btn-pan-left" class="gold-focus w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-[#dfb76c] hover:bg-white/10 active:scale-95 transition-all" title="Pan Left">
+      <!-- Pan Controls -->
+      <button id="dock-btn-pan-left" class="w-8 h-8 rounded-full flex items-center justify-center text-[#EBD8C8] hover:text-white hover:bg-white/10 active:scale-95 transition-all" title="Pan Left">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
       </button>
-
-      <!-- Pan Up -->
-      <button id="dock-btn-pan-up" class="gold-focus w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-[#dfb76c] hover:bg-white/10 active:scale-95 transition-all" title="Tilt Up">
+      <button id="dock-btn-pan-up" class="w-8 h-8 rounded-full flex items-center justify-center text-[#EBD8C8] hover:text-white hover:bg-white/10 active:scale-95 transition-all" title="Tilt Up">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
       </button>
-
-      <!-- Pan Down -->
-      <button id="dock-btn-pan-down" class="gold-focus w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-[#dfb76c] hover:bg-white/10 active:scale-95 transition-all" title="Tilt Down">
+      <button id="dock-btn-pan-down" class="w-8 h-8 rounded-full flex items-center justify-center text-[#EBD8C8] hover:text-white hover:bg-white/10 active:scale-95 transition-all" title="Tilt Down">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
       </button>
-
-      <!-- Pan Right -->
-      <button id="dock-btn-pan-right" class="gold-focus w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-[#dfb76c] hover:bg-white/10 active:scale-95 transition-all" title="Pan Right">
+      <button id="dock-btn-pan-right" class="w-8 h-8 rounded-full flex items-center justify-center text-[#EBD8C8] hover:text-white hover:bg-white/10 active:scale-95 transition-all" title="Pan Right">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       </button>
 
       <div class="h-4 w-px bg-white/15 mx-0.5"></div>
 
       <!-- Auto Rotate Toggle -->
-      <button id="dock-btn-autorotate" class="gold-focus w-8 h-8 rounded-full flex items-center justify-center text-[#dfb76c] hover:bg-[#dfb76c]/15 active:scale-95 transition-all" title="Toggle Auto-Rotation">
-        <svg class="w-4 h-4 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      <button id="dock-btn-autorotate" class="w-8 h-8 rounded-full flex items-center justify-center text-[#E5988A] hover:bg-[#E5988A]/20 active:scale-95 transition-all" title="Toggle Auto-Rotation">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       </button>
 
-      <!-- Hotspots Radar Toggle -->
-      <button id="dock-btn-hotspots" class="gold-focus w-8 h-8 rounded-full flex items-center justify-center text-[#dfb76c] hover:bg-[#dfb76c]/15 active:scale-95 transition-all" title="Toggle Hotspots Radar">
+      <!-- Hotspots Toggle -->
+      <button id="dock-btn-hotspots" class="w-8 h-8 rounded-full flex items-center justify-center text-[#E5988A] hover:bg-[#E5988A]/20 active:scale-95 transition-all" title="Toggle Hotspots">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       </button>
 
-      <!-- Scenes Drawer Trigger -->
-      <button id="dock-btn-scenes" class="gold-focus flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-[#dfb76c]/20 text-zinc-200 hover:text-[#dfb76c] transition-all text-xs font-royal font-semibold tracking-wider">
-        <span>SCENES</span>
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+      <!-- Recenter View -->
+      <button id="dock-btn-recenter" class="w-8 h-8 rounded-full flex items-center justify-center text-[#EBD8C8] hover:text-white hover:bg-white/10 active:scale-95 transition-all" title="Recenter View">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       </button>
 
       <!-- Fullscreen Toggle -->
-      <button id="dock-btn-fullscreen" class="gold-focus w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all" title="Toggle Fullscreen">
+      <button id="dock-btn-fullscreen" class="w-8 h-8 rounded-full flex items-center justify-center text-[#EBD8C8] hover:text-white hover:bg-white/10 active:scale-95 transition-all" title="Toggle Fullscreen">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
       </button>
     </div>
   </div>
 
-  <div id="welcome-modal-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-opacity duration-700">
-    <div class="relative w-full max-w-lg royal-glass-heavy rounded-3xl p-8 sm:p-10 border border-[#dfb76c]/50 shadow-[0_0_80px_rgba(223,183,108,0.25)] text-center space-y-6">
-
-      <!-- Multilingual Selector in Modal Header -->
-      <div class="flex justify-center space-x-2 pb-2">
-        <button class="modal-lang-pill px-3 py-1 rounded-full text-xs font-medium text-zinc-400 hover:text-white transition-colors" data-lang="nl">Nederlands</button>
-        <button class="modal-lang-pill px-3 py-1 rounded-full text-xs font-medium text-zinc-400 hover:text-white transition-colors" data-lang="fr">Français</button>
-        <button class="modal-lang-pill px-3 py-1 rounded-full text-xs font-medium text-zinc-400 hover:text-white transition-colors" data-lang="de">Deutsch</button>
-        <button class="modal-lang-pill px-3 py-1 rounded-full text-xs font-bold text-black bg-[#dfb76c]" data-lang="en">English</button>
-      </div>
-
-      <!-- Royal Palace Crest Emblem -->
-      <div class="flex justify-center">
-        <div class="w-16 h-16 rounded-full border-2 border-[#dfb76c] flex items-center justify-center bg-black/50 shadow-inner">
-          <span class="text-3xl text-[#dfb76c]">👑</span>
-        </div>
-      </div>
-
-      <!-- Welcome Headings -->
-      <div class="space-y-2">
-        <span class="text-xs font-royal tracking-[0.3em] uppercase text-[#dfb76c] block" id="modal-eyebrow">
-          VIRTUAL TOUR
-        </span>
-        <h1 class="text-2xl sm:text-3xl font-royal font-bold text-white tracking-widest uppercase" id="modal-heading">
-          AERIAL PANORAMIC VIEW
-        </h1>
-        <div class="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#dfb76c] to-transparent mx-auto mt-3"></div>
-      </div>
-
-      <!-- Narrative Text -->
-      <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed font-light px-2" id="modal-body-text">
-        Discover the architectural urban masterplan and panoramic landscape in 360° virtual reality. Experience high-resolution equirectangular rendering with spatial navigation inspired by the Royal Palace of Brussels.
-      </p>
-
-      <!-- Key Specifications Pill tags -->
-      <div class="grid grid-cols-3 gap-2 py-2 text-[10px] font-mono border-y border-white/10">
-        <div><span class="text-zinc-500 block">RESOLUTION</span><span class="text-[#dfb76c] font-bold">8K EQUIR</span></div>
-        <div><span class="text-zinc-500 block">PERSPECTIVE</span><span class="text-white font-bold">120M DRONE</span></div>
-        <div><span class="text-zinc-500 block">IMMERSION</span><span class="text-emerald-400 font-bold">WEBXR 6DoF</span></div>
-      </div>
-
-      <!-- START EXPLORING Button -->
-      <div class="pt-2">
-        <button id="btn-start-tour" class="gold-focus w-full py-3.5 px-8 rounded-2xl btn-gold-shimmer font-royal font-bold text-sm tracking-[0.2em] uppercase shadow-xl shadow-[#dfb76c]/30 transform hover:-translate-y-0.5 active:scale-98 transition-all">
-          <span id="modal-btn-label">START TOUR</span>
-        </button>
-      </div>
-
-      <p class="text-[10px] text-zinc-500 font-mono tracking-tight">
-        COMPATIBLE WITH META QUEST 2/3 BROWSER, DESKTOP & MOBILE
-      </p>
-    </div>
-  </div>
-
-  <div id="hotspot-dialog" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="w-full max-w-md royal-glass-heavy rounded-2xl p-6 border border-[#dfb76c]/60 shadow-2xl scale-95 transition-transform duration-300" id="hotspot-dialog-card">
-      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+  <!-- Hotspot Details Modal Card -->
+  <div id="hotspot-dialog" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="w-full max-w-md terracotta-glass rounded-2xl p-6 border border-[#E5988A]/50 shadow-2xl scale-95 transition-transform duration-300" id="hotspot-dialog-card">
+      <div class="flex items-center justify-between pb-3 border-b border-[#E5988A]/20">
         <div class="flex items-center space-x-2.5">
-          <span class="w-3 h-3 rounded-full bg-[#dfb76c] pulse-radar"></span>
-          <h3 id="hs-title" class="font-royal font-bold text-base text-white">Urban Arterial Spine</h3>
+          <span class="w-3 h-3 rounded-full bg-[#E5988A] pulse-radar"></span>
+          <h3 id="hs-title" class="font-royal font-bold text-base text-[#F8EDE3]">Central Water Cascade Spine</h3>
         </div>
-        <button id="btn-close-hotspot-dialog" class="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10">
+        <button id="btn-close-hotspot-dialog" class="p-1 rounded-lg text-[#EBD8C8] hover:text-white hover:bg-white/10">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
-      <div class="py-4 space-y-3 text-xs text-zinc-300 leading-relaxed">
-        <p id="hs-desc">Detailed architectural notes will appear here.</p>
-        <div class="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-black/50 border border-white/5 font-mono text-[10px]">
-          <div><span class="text-zinc-500">ZONE:</span> <span id="hs-zone" class="text-[#dfb76c]">Metropolitan Grid</span></div>
-          <div><span class="text-zinc-500">CANOPY RATIO:</span> <span id="hs-metric" class="text-emerald-400">42% Permeability</span></div>
+      <div class="py-4 space-y-3 text-xs text-[#EBD8C8] leading-relaxed">
+        <p id="hs-desc">Pedestrian corridor featuring evaporative cooling pools and terracotta carpet tiles.</p>
+        <div class="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-[#36100b] border border-[#E5988A]/20 font-mono text-[10px]">
+          <div><span class="text-[#E5988A]">ZONE:</span> <span id="hs-zone" class="text-[#F8EDE3]">Promenade</span></div>
+          <div><span class="text-[#E5988A]">MATERIAL:</span> <span id="hs-metric" class="text-[#EBD8C8]">Terracotta Tile</span></div>
         </div>
       </div>
       <div class="flex justify-end">
-        <button id="btn-dismiss-hotspot" class="px-5 py-2 rounded-xl btn-gold-shimmer font-royal font-semibold text-xs tracking-wider uppercase text-black">
-          Return to 360 View
+        <button id="btn-dismiss-hotspot" class="px-5 py-2 rounded-xl btn-terracotta-shimmer font-royal font-semibold text-xs tracking-wider uppercase">
+          Back to Tour
         </button>
       </div>
     </div>
   </div>
 
+  <!-- JavaScript Application Engine -->
   <script>
-    // Internationalization Text Dictionary (Royal Palace Multilingual replica)
-    const I18N = {
-      en: {
-        eyebrow: "VIRTUAL TOUR",
-        heading: "AERIAL PANORAMIC VIEW",
-        body: "Discover the architectural urban masterplan and panoramic landscape in 360° virtual reality. Experience high-resolution equirectangular rendering with spatial navigation inspired by the Royal Palace of Brussels.",
-        btn: "START TOUR",
-        currentView: "Aerial Drone Panoramic View"
-      },
-      nl: {
-        eyebrow: "VIRTUELE TOUR",
-        heading: "PANORAMISCH LUCHTGEZICHT",
-        body: "Ontdek het architecturale stedelijke masterplan en het weidse landschap in 360° virtuele realiteit. Ervaar hoogwaardige equirectangulaire beelden geïnspireerd op het Koninklijk Paleis te Brussel.",
-        btn: "START DE TOUR",
-        currentView: "Panoramisch Luchtgezicht"
-      },
-      fr: {
-        eyebrow: "VISITE VIRTUELLE",
-        heading: "VUE PANORAMIQUE AÉRIENNE",
-        body: "Découvrez le schéma directeur architectural et le paysage urbain en réalité virtuelle 360°. Profitez d'un rendu équirectangulaire haute définition inspiré du Palais Royal de Bruxelles.",
-        btn: "COMMENCER LA VISITE",
-        currentView: "Vue Panoramique Aérienne"
-      },
-      de: {
-        eyebrow: "VIRTUELLE TOUR",
-        heading: "PANORAMA-LUFTAUFNAHME",
-        body: "Erkunden Sie den architektonischen städtischen Masterplan und das Landschaftspanorama in 360° Virtual Reality mit intuitiver räumlicher Steuerung wie im Königlichen Palast von Brüssel.",
-        btn: "TOUR STARTEN",
-        currentView: "Panorama-Luftaufnahme"
-      }
-    };
-
-    // Hotspots data for the Aerial Drone view
-    const AERIAL_HOTSPOTS = [
+    // Hotspots data positioned across the market panorama
+    const MARKET_HOTSPOTS = [
       {
-        id: 'hs-core',
-        lat: -10,
+        id: 'hs-fountain',
+        lat: -12,
         lon: 180,
-        title: 'Central City Arterial Spine',
-        desc: 'Broad boulevard connection providing multi-modal transit links between the historic central district and surrounding garden suburbs.',
-        zone: 'Metropolitan Corridor',
-        metric: '55m Right of Way'
+        title: 'Central Fountain Cascade Spine',
+        desc: 'Linear water feature running through the center of Sardar Vallabhbhai Patel Market, providing passive evaporative cooling and ambient acoustic buffer.',
+        zone: 'Central Promenade',
+        metric: 'Granite & Water Jets'
+      },
+      {
+        id: 'hs-paving',
+        lat: -28,
+        lon: 195,
+        title: 'Terracotta Paving & Floor Inlays',
+        desc: 'Geometric paving patterns crafted from local terracotta and natural stone, guiding pedestrian flow along the central market axis.',
+        zone: 'Artisan Floorway',
+        metric: 'Encaustic Terracotta'
+      },
+      {
+        id: 'hs-kiosks',
+        lat: -4,
+        lon: 215,
+        title: 'Produce & Flower Kiosks',
+        desc: 'Timber-framed shaded fruit and vegetable market stalls with modular canopy overhangs designed for optimal airflow.',
+        zone: 'Produce Arcade',
+        metric: 'Teak Wood & Fabric'
       },
       {
         id: 'hs-canopy',
-        lat: -22,
-        lon: 235,
-        title: 'Dense Canopy Forest Reserve',
-        desc: 'Protected woodland green lung generating passive urban cooling, stormwater infiltration, and recreational biophilic connectivity.',
-        zone: 'Ecological Greenbelt',
-        metric: '68% Vegetation Cover'
-      },
-      {
-        id: 'hs-market',
-        lat: -15,
-        lon: 130,
-        title: 'Poorna Market Commercial Zone',
-        desc: 'Historic trade marketplace featuring artisan stalls, continuous pedestrian colonnades, and water fountain spines.',
-        zone: 'Commercial Heritage',
-        metric: '18,500 m² Footprint'
-      },
-      {
-        id: 'hs-zenith',
-        lat: 38,
-        lon: 180,
-        title: 'Atmospheric Cloud Layer & Sky Horizon',
-        desc: 'Dynamic cumulus cloud ceiling at 1,200m altitude providing diffuse ambient sunlight and natural glare mitigation.',
-        zone: 'Atmospheric Envelope',
-        metric: '2,800 Lux Daylight'
+        lat: 25,
+        lon: 175,
+        title: 'Illuminated Canopy Trees',
+        desc: 'Lush tree canopy equipped with integrated low-voltage warm fairy lighting, offering daytime shade and evening festival ambiance.',
+        zone: 'Tree Colonnade',
+        metric: 'Living Bio-Canopy'
       }
     ];
 
-    // Core Three.js references
     let scene, camera, renderer, sphereMesh, horizonRing, raycaster, mouse;
     let isUserInteracting = false;
     let onPointerDownMouseX = 0, onPointerDownMouseY = 0;
     let lon = 180, onPointerDownLon = 0;
-    let lat = -5, onPointerDownLat = 0;
+    let lat = 0, onPointerDownLat = 0;
     let phi = 0, theta = 0;
     let autoRotate = true;
     let xrSession = null;
     let hotspots = [];
-    let currentAltitude = 120;
+    let currentHeight = 1.65;
     const container = document.getElementById('canvas-container');
 
-    function generateAerialPanoramaCanvas(mode = 'day') {
+    // Procedural Fallback Panorama rendered in the palette
+    function generateTerracottaMarketPanorama(mode = 'day') {
       const canvas = document.createElement('canvas');
       canvas.width = 2048;
       canvas.height = 1024;
@@ -730,60 +546,76 @@
       const w = canvas.width;
       const h = canvas.height;
 
-      // Atmospheric Sky Gradient
-      let skyTop, skyMid, groundHaze;
-      if (mode === 'sunset') {
-        skyTop = '#1e1b4b'; skyMid = '#f97316'; groundHaze = '#451a03';
-      } else if (mode === 'overcast') {
-        skyTop = '#334155'; skyMid = '#64748b'; groundHaze = '#1e293b';
+      // Sky gradient according to mode
+      let skyTop, skyBottom;
+      if (mode === 'dusk') {
+        skyTop = '#581C14';
+        skyBottom = '#E5988A';
+      } else if (mode === 'night') {
+        skyTop = '#1a0705';
+        skyBottom = '#581C14';
       } else {
-        skyTop = '#0284c7'; skyMid = '#93c5fd'; groundHaze = '#292524';
+        skyTop = '#7a281d';
+        skyBottom = '#EBD8C8';
       }
 
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.52);
       skyGrad.addColorStop(0, skyTop);
-      skyGrad.addColorStop(0.48, skyMid);
-      skyGrad.addColorStop(0.51, '#1e293b');
-      skyGrad.addColorStop(0.55, '#166534');
-      skyGrad.addColorStop(1, '#052e16');
+      skyGrad.addColorStop(1, skyBottom);
       ctx.fillStyle = skyGrad;
-      ctx.fillRect(0, 0, w, h);
+      ctx.fillRect(0, 0, w, h * 0.52);
 
-      // Cloud formations along the horizon
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
-      for (let i = 0; i < 28; i++) {
-        const cx = (i * 90) % w;
-        const cy = 120 + (i * 35) % (h * 0.35);
+      // Floor & Market Paving (Terracotta / Crimson palette)
+      const floorGrad = ctx.createLinearGradient(0, h * 0.52, 0, h);
+      floorGrad.addColorStop(0, '#A8473B');
+      floorGrad.addColorStop(0.5, '#581C14');
+      floorGrad.addColorStop(1, '#240a07');
+      ctx.fillStyle = floorGrad;
+      ctx.fillRect(0, h * 0.52, w, h * 0.48);
+
+      // Geometric Market Paving Pattern
+      ctx.strokeStyle = 'rgba(235, 216, 200, 0.25)';
+      ctx.lineWidth = 2;
+      for (let y = h * 0.54; y < h; y += 28) {
         ctx.beginPath();
-        ctx.arc(cx, cy, 65 + (i % 4) * 20, 0, Math.PI * 2);
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+      for (let x = 0; x < w; x += 44) {
+        ctx.beginPath();
+        ctx.moveTo(x, h * 0.52);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+
+      // Central water reflection spine
+      ctx.fillStyle = 'rgba(229, 152, 138, 0.35)';
+      ctx.fillRect(w * 0.42, h * 0.53, w * 0.16, h * 0.45);
+
+      // Shaded tree canopy silhouettes & warm fairy lights
+      ctx.fillStyle = '#36100b';
+      for (let i = 0; i < 24; i++) {
+        const tx = (i * 90) % w;
+        ctx.beginPath();
+        ctx.arc(tx, h * 0.45, 60 + (i % 3) * 15, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Urban sprawl pattern (dots and parcels)
-      ctx.fillStyle = '#dc2626';
-      for (let x = 0; x < w; x += 18) {
-        for (let y = h * 0.53; y < h; y += 14) {
-          if (Math.sin(x * y) > 0.3) {
-            ctx.fillStyle = (x % 36 === 0) ? '#ea580c' : '#78350f';
-            ctx.fillRect(x + Math.sin(y) * 4, y, 7, 5);
-          }
-        }
-      }
-
-      // Forest canopy clusters
-      ctx.fillStyle = '#14532d';
-      for (let i = 0; i < 40; i++) {
-        const fx = (i * 120) % w;
-        const fy = h * 0.55 + (i * 22) % (h * 0.4);
+      // Fairy lights in the canopy
+      ctx.fillStyle = '#F8EDE3';
+      for (let i = 0; i < 120; i++) {
+        const lx = (i * 27) % w;
+        const ly = h * 0.38 + (i * 13) % (h * 0.15);
         ctx.beginPath();
-        ctx.arc(fx, fy, 45, 0, Math.PI * 2);
+        ctx.arc(lx, ly, 2.5, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Horizon Title overlay
-      ctx.fillStyle = 'rgba(223, 183, 108, 0.9)';
-      ctx.font = 'bold 22px "Cinzel", Georgia, serif';
-      ctx.fillText('BELGIAN ROYAL PALACE // CHISINAU AERIAL DRONE SURVEY [NORTH]', 80, h * 0.50);
+      // Ambient market title
+      ctx.fillStyle = 'rgba(248, 237, 227, 0.85)';
+      ctx.font = 'bold 24px "Cinzel", Georgia, serif';
+      ctx.fillText('SARDAR VALLABHBHAI PATEL MARKET — 360° ARCHITECTURAL SURVEY', 60, h * 0.50);
 
       const texture = new THREE.CanvasTexture(canvas);
       texture.wrapS = THREE.RepeatWrapping;
@@ -791,6 +623,7 @@
       return texture;
     }
 
+    // Initialize the Three.js Environment
     function initThreeScene() {
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -805,7 +638,7 @@
       renderer.xr.enabled = true;
       container.appendChild(renderer.domElement);
 
-      // Inverted 360 Sphere
+      // Inverted 360 sphere
       const geometry = new THREE.SphereGeometry(500, 96, 64);
       geometry.scale(-1, 1, 1);
 
@@ -813,20 +646,19 @@
       sphereMesh = new THREE.Mesh(geometry, sphereMaterial);
       scene.add(sphereMesh);
 
-      // Load user's aerial drone image with multiple candidate fallbacks
+      // Candidate renders to auto-load in order
       const candidateRenders = [
-        './aerial-drone-panoramic-view-chisinau-moldova.jpg',
-        './aerial-view.jpg',
+        './market.png',
         './poorna-market-view.jpg',
-        './market_panorama.jpg'
+        './market_panorama.jpg',
+        './aerial-drone-panoramic-view-chisinau-moldova.jpg',
+        './luca-iaconelli-x-d3XHS23oc-unsplash.jpg'
       ];
 
       const textureLoader = new THREE.TextureLoader();
       function tryLoadPanorama(index) {
         if (index >= candidateRenders.length) {
-          // Use high quality procedural panorama canvas
-          const procTex = generateAerialPanoramaCanvas('day');
-          sphereMesh.material.map = procTex;
+          sphereMesh.material.map = generateTerracottaMarketPanorama('day');
           sphereMesh.material.needsUpdate = true;
           return;
         }
@@ -842,7 +674,6 @@
             texture.generateMipmaps = false;
             sphereMesh.material.map = texture;
             sphereMesh.material.needsUpdate = true;
-            document.getElementById('current-view-badge').textContent = "Aerial Drone View (Loaded)";
           },
           undefined,
           () => {
@@ -852,39 +683,36 @@
       }
       tryLoadPanorama(0);
 
-      // 0° Eye-level Horizon Datum Ring (Royal Palace elevation gauge)
+      // Horizon Ring in Terracotta Palette
       const ringGeo = new THREE.RingGeometry(488, 490, 96);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0xdfb76c, side: THREE.DoubleSide, transparent: true, opacity: 0.35 });
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xE5988A, side: THREE.DoubleSide, transparent: true, opacity: 0.35 });
       horizonRing = new THREE.Mesh(ringGeo, ringMat);
       horizonRing.rotation.x = Math.PI / 2;
       scene.add(horizonRing);
 
-      // 3D Spatial Radar Hotspots
+      // Hotspots setup
       setupHotspots();
 
-      // Interaction Event Listeners
+      // Navigation & interaction listeners
       container.addEventListener('pointerdown', onPointerDown);
       document.addEventListener('pointermove', onPointerMove);
       document.addEventListener('pointerup', onPointerUp);
       container.addEventListener('wheel', onDocumentMouseWheel, { passive: true });
       window.addEventListener('resize', onWindowResize);
 
-      // Raycaster for 3D Hotspot selection
+      // Hotspot click raycasting
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
       container.addEventListener('click', onCanvasClick);
 
-      // WebXR and Device Orientation
       setupWebXRSupport();
-      setupGyroControls();
-
-      // Begin animation loop
       renderer.setAnimationLoop(animateScene);
     }
 
+    // Hotspots Setup
     function setupHotspots() {
       hotspots = [];
-      AERIAL_HOTSPOTS.forEach((data) => {
+      MARKET_HOTSPOTS.forEach((data) => {
         const p = THREE.MathUtils.degToRad(90 - data.lat);
         const t = THREE.MathUtils.degToRad(data.lon);
         const r = 460;
@@ -897,13 +725,12 @@
         group.position.set(x, y, z);
         group.lookAt(0, 0, 0);
 
-        // Concentric radar rings (Royal Palace style)
         const outerRingGeo = new THREE.RingGeometry(10, 15, 32);
-        const outerRingMat = new THREE.MeshBasicMaterial({ color: 0xdfb76c, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
+        const outerRingMat = new THREE.MeshBasicMaterial({ color: 0xE5988A, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
         const outerRing = new THREE.Mesh(outerRingGeo, outerRingMat);
 
         const innerDotGeo = new THREE.CircleGeometry(5, 32);
-        const innerDotMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+        const innerDotMat = new THREE.MeshBasicMaterial({ color: 0xF8EDE3, side: THREE.DoubleSide });
         const innerDot = new THREE.Mesh(innerDotGeo, innerDotMat);
 
         group.add(outerRing);
@@ -915,8 +742,9 @@
       });
     }
 
+    // Pointer Interaction Handlers
     function onPointerDown(e) {
-      if (e.target.closest('#main-dock') || e.target.closest('#main-header') || e.target.closest('#left-directory-drawer') || e.target.closest('#right-inspector-drawer')) return;
+      if (e.target.closest('#main-dock') || e.target.closest('#main-header') || e.target.closest('#right-inspector-drawer')) return;
       isUserInteracting = true;
       onPointerDownMouseX = e.clientX;
       onPointerDownMouseY = e.clientY;
@@ -942,7 +770,6 @@
       camera.fov = THREE.MathUtils.clamp(camera.fov + delta, 35, 100);
       camera.updateProjectionMatrix();
 
-      // Convert FOV to zoom percentage (standard 65° = 100%)
       const zoomPct = Math.round((65 / camera.fov) * 100);
       document.getElementById('dock-zoom-readout').textContent = `Zoom ${zoomPct}%`;
       document.getElementById('slider-fov-side').value = Math.round(camera.fov);
@@ -993,10 +820,9 @@
       card.classList.add('scale-95');
     }
 
+    // WebXR Integration for Meta Quest
     function setupWebXRSupport() {
       const vrBtn = document.getElementById('btn-enter-webxr');
-      const vrLabel = document.getElementById('vr-status-label');
-
       if ('xr' in navigator) {
         navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
           if (supported) {
@@ -1026,7 +852,6 @@
             document.getElementById('vr-status-label').textContent = 'ENTER VR';
           });
         } catch (err) {
-          console.warn("VR request failed:", err);
           toggleFullScreen();
         }
       } else {
@@ -1042,53 +867,15 @@
       }
     }
 
-    function setupGyroControls() {
-      if (window.DeviceOrientationEvent && 'ontouchstart' in window) {
-        window.addEventListener('deviceorientation', (e) => {
-          if (!isUserInteracting && e.alpha !== null && e.beta !== null) {
-            lon = (lon + (e.gamma * 0.04)) % 360;
-          }
-        });
-      }
-    }
-
+    // UI Event Handlers
     function bindAllUIEvents() {
-      // 1. Welcome Modal Dismissal (virtualtour.monarchie.be START flow)
-      const welcomeOverlay = document.getElementById('welcome-modal-overlay');
-      document.getElementById('btn-start-tour').addEventListener('click', () => {
-        welcomeOverlay.classList.add('opacity-0', 'pointer-events-none');
+      // Welcome Screen Dismissal: Clicking START reveals the full experience
+      const welcomeScreen = document.getElementById('welcome-screen');
+      document.getElementById('btn-start').addEventListener('click', () => {
+        welcomeScreen.classList.add('opacity-0', 'pointer-events-none');
       });
 
-      // Header INFO Button re-opens welcome modal
-      document.getElementById('btn-open-info').addEventListener('click', () => {
-        welcomeOverlay.classList.remove('opacity-0', 'pointer-events-none');
-      });
-
-      // Multilingual Tab Handlers (both in header and welcome modal)
-      function setLanguage(lang) {
-        const data = I18N[lang] || I18N.en;
-        document.getElementById('modal-eyebrow').textContent = data.eyebrow;
-        document.getElementById('modal-heading').textContent = data.heading;
-        document.getElementById('modal-body-text').textContent = data.body;
-        document.getElementById('modal-btn-label').textContent = data.btn;
-        document.getElementById('current-view-badge').textContent = data.currentView;
-
-        document.querySelectorAll('.lang-tab, .modal-lang-pill').forEach(btn => {
-          if (btn.getAttribute('data-lang') === lang) {
-            btn.classList.add('bg-[#dfb76c]', 'text-black', 'font-bold');
-            btn.classList.remove('text-zinc-400');
-          } else {
-            btn.classList.remove('bg-[#dfb76c]', 'text-black', 'font-bold');
-            btn.classList.add('text-zinc-400');
-          }
-        });
-      }
-
-      document.querySelectorAll('.lang-tab, .modal-lang-pill').forEach(btn => {
-        btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang')));
-      });
-
-      // 2. Poppr/krpano Bottom Dock Controls
+      // Bottom Dock Controls
       document.getElementById('dock-btn-zoom-in').addEventListener('click', () => adjustZoom(-6));
       document.getElementById('dock-btn-zoom-out').addEventListener('click', () => adjustZoom(6));
       document.getElementById('dock-btn-pan-left').addEventListener('click', () => lon -= 25);
@@ -1100,8 +887,8 @@
       const autoRotateBtn = document.getElementById('dock-btn-autorotate');
       autoRotateBtn.addEventListener('click', () => {
         autoRotate = !autoRotate;
-        autoRotateBtn.classList.toggle('text-[#dfb76c]', autoRotate);
-        autoRotateBtn.classList.toggle('text-zinc-400', !autoRotate);
+        autoRotateBtn.classList.toggle('text-[#E5988A]', autoRotate);
+        autoRotateBtn.classList.toggle('text-[#EBD8C8]', !autoRotate);
       });
 
       // Hotspots toggle button
@@ -1109,39 +896,27 @@
       hotspotsBtn.addEventListener('click', () => {
         const visible = !hotspots[0].visible;
         hotspots.forEach(h => h.visible = visible);
-        hotspotsBtn.classList.toggle('text-[#dfb76c]', visible);
-        hotspotsBtn.classList.toggle('text-zinc-500', !visible);
+        hotspotsBtn.classList.toggle('text-[#E5988A]', visible);
+        hotspotsBtn.classList.toggle('text-[#EBD8C8]', !visible);
 
         const sw = document.getElementById('toggle-hotspots-switch');
         sw.setAttribute('aria-checked', visible);
         sw.querySelector('span').classList.toggle('translate-x-5', visible);
       });
 
-      // Collapsible Scenes Ribbon
-      const scenesBtn = document.getElementById('dock-btn-scenes');
-      const scenesRibbon = document.getElementById('scenes-ribbon');
-      scenesBtn.addEventListener('click', () => {
-        const isHidden = scenesRibbon.classList.contains('opacity-0');
-        if (isHidden) {
-          scenesRibbon.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-        } else {
-          scenesRibbon.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-        }
+      // Recenter button
+      document.getElementById('dock-btn-recenter').addEventListener('click', () => {
+        lon = 180; lat = 0;
+        camera.fov = 65;
+        camera.updateProjectionMatrix();
+        document.getElementById('slider-fov-side').value = 65;
+        document.getElementById('readout-fov-side').textContent = '65° FOV';
+        document.getElementById('dock-zoom-readout').textContent = 'Zoom 100%';
       });
 
       document.getElementById('dock-btn-fullscreen').addEventListener('click', toggleFullScreen);
 
-      // 3. Drawers (Left Tour Directory & Right Spatial Inspector)
-      const leftDrawer = document.getElementById('left-directory-drawer');
-      document.getElementById('btn-toggle-left-menu').addEventListener('click', () => {
-        leftDrawer.classList.toggle('-translate-x-[120%]');
-        leftDrawer.classList.toggle('opacity-0');
-        leftDrawer.classList.toggle('pointer-events-none');
-      });
-      document.getElementById('btn-close-left-menu').addEventListener('click', () => {
-        leftDrawer.classList.add('-translate-x-[120%]', 'opacity-0', 'pointer-events-none');
-      });
-
+      // Drawer toggle
       const rightDrawer = document.getElementById('right-inspector-drawer');
       document.getElementById('btn-toggle-inspector').addEventListener('click', () => {
         rightDrawer.classList.toggle('translate-x-[120%]');
@@ -1152,9 +927,9 @@
         rightDrawer.classList.add('translate-x-[120%]', 'opacity-0', 'pointer-events-none');
       });
 
-      // 4. Primary & Ghost Buttons
+      // Primary & Ghost Buttons
       document.getElementById('btn-recenter-primary').addEventListener('click', () => {
-        lon = 180; lat = -5;
+        lon = 180; lat = 0;
         camera.fov = 65;
         camera.updateProjectionMatrix();
         document.getElementById('slider-fov-side').value = 65;
@@ -1168,33 +943,32 @@
         document.getElementById('readout-ev').textContent = '1.05 EV';
       });
 
-      // 5. Waypoints Dropdown
+      // Dropdown Viewpoint Selector
       document.getElementById('select-waypoint').addEventListener('change', (e) => {
         const val = e.target.value;
-        if (val === 'apex') { lon = 180; lat = -5; }
-        else if (val === 'citycenter') { lon = 235; lat = -22; }
-        else if (val === 'marketquad') { lon = 130; lat = -15; }
-        else if (val === 'northeast') { lon = 85; lat = 10; }
+        if (val === 'apex') { lon = 180; lat = 0; }
+        else if (val === 'kiosks') { lon = 215; lat = -4; }
+        else if (val === 'jewelry') { lon = 140; lat = -8; }
+        else if (val === 'canopy') { lon = 175; lat = 25; }
       });
 
-      // 6. Segmented Solar & Sky Control
+      // Segmented Control (Day / Dusk / Night)
       document.querySelectorAll('#segmented-lighting .seg-sky-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('#segmented-lighting .seg-sky-btn').forEach(b => {
-            b.classList.remove('bg-[#dfb76c]', 'text-black', 'font-semibold');
-            b.classList.add('text-zinc-400');
+            b.classList.remove('bg-[#A8473B]', 'text-[#F8EDE3]', 'font-semibold');
+            b.classList.add('text-[#EBD8C8]');
           });
-          btn.classList.add('bg-[#dfb76c]', 'text-black', 'font-semibold');
-          btn.classList.remove('text-zinc-400');
+          btn.classList.add('bg-[#A8473B]', 'text-[#F8EDE3]', 'font-semibold');
+          btn.classList.remove('text-[#EBD8C8]');
 
           const mode = btn.getAttribute('data-sky');
-          const procTex = generateAerialPanoramaCanvas(mode);
-          sphereMesh.material.map = procTex;
+          sphereMesh.material.map = generateTerracottaMarketPanorama(mode);
           sphereMesh.material.needsUpdate = true;
         });
       });
 
-      // 7. Sliders (Exposure & FOV)
+      // Live Readout Sliders
       const sliderEv = document.getElementById('slider-ev');
       sliderEv.addEventListener('input', (e) => {
         const ev = parseFloat(e.target.value);
@@ -1211,17 +985,17 @@
         document.getElementById('dock-zoom-readout').textContent = `Zoom ${zoomPct}%`;
       });
 
-      // 8. Stepper (Observation Altitude)
-      document.getElementById('btn-altitude-add').addEventListener('click', () => {
-        currentAltitude = Math.min(300, currentAltitude + 25);
-        document.getElementById('readout-altitude').textContent = currentAltitude;
+      // Stepper
+      document.getElementById('btn-height-add').addEventListener('click', () => {
+        currentHeight = Math.min(2.40, currentHeight + 0.05);
+        document.getElementById('readout-height').textContent = currentHeight.toFixed(2);
       });
-      document.getElementById('btn-altitude-sub').addEventListener('click', () => {
-        currentAltitude = Math.max(10, currentAltitude - 25);
-        document.getElementById('readout-altitude').textContent = currentAltitude;
+      document.getElementById('btn-height-sub').addEventListener('click', () => {
+        currentHeight = Math.max(1.20, currentHeight - 0.05);
+        document.getElementById('readout-height').textContent = currentHeight.toFixed(2);
       });
 
-      // 9. Toggles
+      // Toggles
       const toggleHorizonSwitch = document.getElementById('toggle-horizon-switch');
       toggleHorizonSwitch.addEventListener('click', () => {
         const checked = toggleHorizonSwitch.getAttribute('aria-checked') === 'true';
@@ -1238,7 +1012,7 @@
         toggleHotspotsSwitch.querySelector('span').classList.toggle('translate-x-5', !checked);
       });
 
-      // 10. Local File Upload Picker (Direct 360 panorama upload)
+      // Local 360 Panorama File Uploader
       const filePicker = document.getElementById('local-file-picker');
       filePicker.addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -1259,7 +1033,6 @@
               sphereMesh.material.map.dispose();
               sphereMesh.material.map = uploadedTex;
               sphereMesh.material.needsUpdate = true;
-              document.getElementById('current-view-badge').textContent = file.name.slice(0, 24);
             };
             img.src = evt.target.result;
           };
@@ -1267,11 +1040,12 @@
         }
       });
 
-      // Hotspot Dismissal
+      // Hotspot Dismissal Handlers
       document.getElementById('btn-close-hotspot-dialog').addEventListener('click', dismissHotspotCard);
       document.getElementById('btn-dismiss-hotspot').addEventListener('click', dismissHotspotCard);
     }
 
+    // Animation & Render Loop
     function animateScene() {
       if (autoRotate && !isUserInteracting && !renderer.xr.isPresenting) {
         lon += 0.035;
@@ -1290,7 +1064,7 @@
         camera.lookAt(camera.target);
       }
 
-      // Hotspot concentric radar ring pulsation
+      // Hotspot radar animation
       const time = performance.now() * 0.003;
       hotspots.forEach((hs, idx) => {
         const ring = hs.children[0];
@@ -1303,7 +1077,6 @@
       renderer.render(scene, camera);
     }
 
-    // Initialize application on window load
     window.addEventListener('load', () => {
       initThreeScene();
       bindAllUIEvents();
