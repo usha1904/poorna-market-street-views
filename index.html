@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sardar Vallabhbhai Patel (Poorna) Market - 360 Interactive Tour</title>
+  <title>Sardar Vallabhbhai Patel Market - Architectural Interactive Tour</title>
 
-  <!-- Pannellum 360 Viewer -->
+  <!-- Pannellum 360 Panorama Library -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
   <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
 
@@ -14,6 +14,7 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      user-select: none;
       font-family: 'Georgia', 'Times New Roman', serif;
     }
 
@@ -21,97 +22,129 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #060b13;
+      background: #000;
       color: #fff;
     }
 
-    /* 360 WebGL Viewport */
-    #panorama-viewport {
-      position: absolute;
-      inset: 0;
+    /* MAIN VIEWPORT */
+    #viewport-container {
       width: 100vw;
       height: 100vh;
+      position: absolute;
+      inset: 0;
       z-index: 1;
+      overflow: hidden;
+      background: #0a0a0a;
     }
 
-    /* Second Interface: Top Navigation Bar */
-    #top-nav {
+    #panorama-viewport {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+    }
+
+    #perspective-view-image {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      object-fit: cover;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #perspective-view-image.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* PAGE 2 HUD */
+    #nav-header {
       position: absolute;
       top: 24px;
       left: 24px;
-      right: 24px;
-      z-index: 100;
+      z-index: 120;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 14px;
+      opacity: 0;
       pointer-events: none;
+      transition: opacity 0.4s ease;
     }
 
-    .title-plate {
-      background: rgba(8, 14, 24, 0.88);
-      backdrop-filter: blur(12px);
-      padding: 12px 24px;
-      border: 1px solid rgba(212, 175, 55, 0.5);
-      border-radius: 4px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    #nav-header.visible {
+      opacity: 1;
       pointer-events: auto;
     }
 
-    .title-plate h1 {
-      font-size: 1.1rem;
+    .icon-back-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(10, 20, 36, 0.88);
+      border: 1.5px solid rgba(212, 175, 55, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+      transition: transform 0.2s, background 0.2s, border-color 0.2s;
+    }
+
+    .icon-back-btn:hover {
+      background: rgba(212, 175, 55, 0.3);
+      border-color: #fff;
+      transform: scale(1.08);
+    }
+
+    .icon-back-btn svg {
+      width: 22px;
+      height: 22px;
+      stroke: #f7e7c4;
+      stroke-width: 2.2;
+      fill: none;
+    }
+
+    .hud-title-card {
+      background: rgba(10, 20, 36, 0.88);
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      padding: 9px 18px;
+      border-radius: 6px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+    }
+
+    .hud-title-card h2 {
+      font-size: 1rem;
+      font-weight: 600;
       letter-spacing: 1px;
       color: #f7e7c4;
       text-transform: uppercase;
-      font-weight: 500;
     }
 
-    .title-plate span {
-      display: block;
-      font-size: 0.78rem;
+    .hud-title-card span {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #a8b3cf;
-      margin-top: 3px;
+      font-size: 0.76rem;
+      color: #b5c2d4;
+      display: block;
+      margin-top: 2px;
     }
 
-    /* Back Button */
-    .back-btn {
-      pointer-events: auto;
-      background: rgba(8, 14, 24, 0.9);
-      border: 1px solid rgba(212, 175, 55, 0.6);
-      color: #f7e7c4;
-      padding: 10px 22px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      border-radius: 4px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.25s ease;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-    }
-
-    .back-btn:hover {
-      background: rgba(212, 175, 55, 0.25);
-      border-color: #fff;
-      color: #fff;
-      transform: translateY(-1px);
-    }
-
-    /* Locked Royal Splash Screen */
+    /* PAGE 1 ROYAL LOCKED SCREEN */
     #start-screen {
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at center, rgba(14, 30, 54, 0.85) 0%, rgba(6, 13, 23, 0.97) 100%);
-      backdrop-filter: blur(14px);
       z-index: 500;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 30px;
-      transition: opacity 0.5s ease, visibility 0.5s ease;
+      background: #091626;
+      transition: opacity 0.6s ease, visibility 0.6s;
     }
 
     #start-screen.hidden {
@@ -120,172 +153,210 @@
       pointer-events: none;
     }
 
-    /* Decorative Gold Outer Border */
+    .splash-bg {
+      position: absolute;
+      inset: 0;
+      background: url('Screenshot 2026-09-26 162252.jpg') center/cover no-repeat;
+      filter: brightness(0.65) saturate(1.15);
+      z-index: 1;
+    }
+
+    .splash-overlay-gradient {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(14, 30, 52, 0.65) 0%, rgba(5, 12, 24, 0.94) 85%);
+      z-index: 2;
+    }
+
     .royal-border {
       position: absolute;
-      inset: 22px;
-      border: 1px solid rgba(212, 175, 55, 0.45);
+      inset: 24px;
+      border: 1px solid rgba(214, 185, 120, 0.65);
+      z-index: 3;
       pointer-events: none;
     }
 
-    .splash-container {
-      max-width: 860px;
-      text-align: center;
+    .royal-container {
+      position: relative;
       z-index: 10;
+      max-width: 900px;
+      width: 90%;
+      text-align: center;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    /* Architectural Line Drawing Crest */
-    .crest-container {
-      margin-bottom: 14px;
-      opacity: 0.9;
+    .crest-drawing {
+      width: 140px;
+      height: 50px;
+      margin-bottom: 12px;
+      opacity: 0.95;
     }
 
-    .crest-svg {
-      width: 150px;
-      height: 48px;
-      stroke: #d4af37;
-      fill: none;
-      stroke-width: 1.2;
+    .heritage-tag {
+      font-size: 0.82rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #ebd39f;
+      margin-bottom: 18px;
+      font-weight: 600;
+    }
+
+    .splash-main-title {
+      font-size: 2.1rem;
+      font-weight: normal;
+      color: #ffffff;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.8);
     }
 
     .splash-subtitle {
-      font-size: 0.9rem;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: #d4af37;
-      margin-bottom: 8px;
-    }
-
-    .splash-title {
-      font-size: 2.1rem;
-      font-weight: 400;
-      color: #ffffff;
-      letter-spacing: 1.5px;
-      margin-bottom: 18px;
+      font-size: 1.05rem;
+      color: #dfcaa2;
+      font-style: italic;
+      margin-bottom: 14px;
     }
 
     .splash-description {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 0.84rem;
-      line-height: 1.8;
-      color: #d1d8e6;
-      max-height: 180px;
+      font-size: 0.83rem;
+      line-height: 1.65;
+      color: #d1dced;
+      max-height: 140px;
       overflow-y: auto;
-      padding: 0 15px;
-      margin-bottom: 30px;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(212, 175, 55, 0.4) transparent;
+      padding: 0 16px;
+      margin-bottom: 28px;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
     }
 
-    /* Diamond START Button */
-    .diamond-wrapper {
+    .splash-description::-webkit-scrollbar {
+      width: 4px;
+    }
+    .splash-description::-webkit-scrollbar-thumb {
+      background: rgba(214, 185, 120, 0.4);
+      border-radius: 4px;
+    }
+
+    /* Diamond Start Button */
+    .diamond-btn-wrapper {
       position: relative;
-      width: 100px;
-      height: 100px;
-      margin: 10px 0 35px 0;
+      width: 105px;
+      height: 105px;
+      margin-bottom: 20px;
       cursor: pointer;
     }
 
     .diamond-box {
       width: 100%;
       height: 100%;
-      border: 2px solid #ffffff;
-      background: rgba(9, 20, 36, 0.7);
+      border: 2.5px solid #ffffff;
+      background: rgba(14, 28, 48, 0.72);
+      backdrop-filter: blur(8px);
       transform: rotate(45deg);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 18px rgba(255, 255, 255, 0.25), inset 0 0 10px rgba(0, 0, 0, 0.6);
-      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.1);
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s, border-color 0.3s;
     }
 
-    .diamond-text {
+    .diamond-box:hover {
+      transform: rotate(45deg) scale(1.08);
+      background: rgba(25, 45, 75, 0.9);
+      border-color: #ebd39f;
+      box-shadow: 0 0 30px rgba(235, 211, 159, 0.45);
+    }
+
+    .diamond-label {
       transform: rotate(-45deg);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 1.05rem;
+      font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: 2px;
       color: #ffffff;
-      user-select: none;
     }
 
-    .diamond-wrapper:hover .diamond-box {
-      transform: rotate(45deg) scale(1.08);
-      background: rgba(212, 175, 55, 0.25);
-      border-color: #d4af37;
-      box-shadow: 0 0 25px rgba(212, 175, 55, 0.7);
-    }
-
-    /* Footer Trilingual Links */
-    .lang-footer {
+    /* Footer: ENGLISH ◇ TELUGU ◇ HINDI */
+    .lang-bar {
       position: absolute;
-      bottom: 34px;
+      bottom: 40px;
+      z-index: 10;
       display: flex;
       align-items: center;
       gap: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 0.78rem;
-      letter-spacing: 1.5px;
-      color: #8fa0ba;
+      font-size: 0.82rem;
+      letter-spacing: 2px;
     }
 
-    .lang-btn {
+    .lang-item {
       background: none;
       border: none;
-      color: #9bb0cd;
-      font-size: 0.78rem;
+      color: #a8b8cc;
       cursor: pointer;
-      font-weight: 600;
+      font-size: 0.82rem;
+      letter-spacing: 2px;
       transition: color 0.2s ease;
-      letter-spacing: 1.2px;
     }
 
-    .lang-btn:hover, .lang-btn.active {
+    .lang-item.active, .lang-item:hover {
       color: #ffffff;
-      text-decoration: underline;
-      text-underline-offset: 4px;
+      font-weight: bold;
     }
 
-    /* Left Bottom Aerial Plan Minimap */
-    #minimap-wrapper {
+    .diamond-sep {
+      color: #dfcaa2;
+      font-size: 0.65rem;
+    }
+
+    /* BOTTOM LEFT AERIAL PLAN */
+    #minimap-card {
       position: absolute;
       bottom: 24px;
       left: 24px;
-      width: 310px;
-      background: rgba(8, 14, 24, 0.94);
-      border: 1px solid rgba(212, 175, 55, 0.5);
-      border-radius: 6px;
+      width: 290px;
+      background: rgba(8, 16, 28, 0.92);
+      border: 1px solid rgba(214, 185, 120, 0.5);
+      border-radius: 8px;
       padding: 10px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85);
       z-index: 100;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease 0.2s;
     }
 
-    #minimap-header {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: #d4af37;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
+    #minimap-card.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .plan-header {
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+      color: #ebd39f;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-weight: bold;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    #plan-container {
+    #plan-viewport {
       position: relative;
       width: 100%;
-      height: 250px;
-      overflow: hidden;
+      height: 240px;
+      background: #111;
       border-radius: 4px;
-      background: #181c24;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    #plan-img {
+    #plan-viewport img {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -293,63 +364,65 @@
       pointer-events: none;
     }
 
-    /* Hotspot Pins */
-    .plan-pin {
+    /* Clean Dots (No numbers inside) */
+    .plan-dot {
       position: absolute;
       width: 13px;
       height: 13px;
-      background: #e63946;
-      border: 2px solid #ffffff;
       border-radius: 50%;
+      background: #dc3545;
+      border: 2px solid #ffffff;
       transform: translate(-50%, -50%);
       cursor: pointer;
       z-index: 10;
-      transition: transform 0.2s ease, background 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+      transition: transform 0.2s, background 0.2s, border-color 0.2s;
     }
 
-    .plan-pin::after {
+    .plan-dot::after {
       content: '';
       position: absolute;
       inset: -5px;
       border-radius: 50%;
-      border: 2px solid rgba(230, 57, 70, 0.7);
-      animation: pinPulse 1.6s infinite cubic-bezier(0.25, 1, 0.5, 1);
+      border: 1.5px solid rgba(220, 53, 69, 0.85);
+      animation: dot-pulse 1.8s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
-    @keyframes pinPulse {
+    @keyframes dot-pulse {
       0% { transform: scale(0.6); opacity: 1; }
-      100% { transform: scale(2); opacity: 0; }
+      100% { transform: scale(2.1); opacity: 0; }
     }
 
-    .plan-pin:hover, .plan-pin.active {
-      background: #f4a261;
-      transform: translate(-50%, -50%) scale(1.35);
-      z-index: 20;
+    .plan-dot:hover, .plan-dot.active {
+      background: #d4af37;
+      border-color: #ffffff;
+      transform: translate(-50%, -50%) scale(1.4);
+      z-index: 30;
     }
 
-    /* Tooltip */
-    .pin-tooltip {
+    /* Tooltips on Hover */
+    .dot-tooltip {
       position: absolute;
-      bottom: 22px;
+      bottom: 24px;
       left: 50%;
       transform: translateX(-50%) translateY(4px);
       background: rgba(6, 12, 22, 0.95);
-      border: 1px solid rgba(212, 175, 55, 0.6);
-      color: #fff;
+      border: 1px solid rgba(214, 185, 120, 0.6);
+      color: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 0.7rem;
       font-weight: 500;
       white-space: nowrap;
       padding: 4px 8px;
-      border-radius: 3px;
+      border-radius: 4px;
       pointer-events: none;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+      transition: opacity 0.2s, transform 0.2s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
     }
 
-    .plan-pin:hover .pin-tooltip {
+    .plan-dot:hover .dot-tooltip {
       opacity: 1;
       visibility: visible;
       transform: translateX(-50%) translateY(0);
@@ -358,90 +431,98 @@
 </head>
 <body>
 
-  <!-- Pannellum WebGL 360 Viewer -->
-  <div id="panorama-viewport"></div>
-
-  <!-- Second Face: Top Navigation Header with Back Button -->
-  <div id="top-nav">
-    <div class="title-plate">
-      <h1 id="market-title">Sardar Vallabhbhai Patel Market</h1>
-      <span id="active-spot-label">Amphitheatre & Central Steps — Drag to explore 360°</span>
-    </div>
-    <button class="back-btn" id="back-btn">
-      ← BACK TO OVERVIEW
-    </button>
+  <!-- VIEWPORT: 360 Pannellum + 2D Renders -->
+  <div id="viewport-container">
+    <div id="panorama-viewport"></div>
+    <img id="perspective-view-image" src="" alt="Active Space Render" />
   </div>
 
-  <!-- Royal Start Screen Overlay -->
-  <div id="start-screen">
+  <!-- PAGE 2: Active Navigation Header -->
+  <header id="nav-header">
+    <button class="icon-back-btn" id="back-to-start-btn" title="Back to Overview">
+      <svg viewBox="0 0 24 24">
+        <path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="hud-title-card">
+      <h2>Sardar Vallabhbhai Patel Market</h2>
+      <span id="hud-vantage-name">Pedestrian Promenade (360° Drag to View)</span>
+    </div>
+  </header>
+
+  <!-- PAGE 1: Royal Locked Splash Screen -->
+  <section id="start-screen">
+    <div class="splash-bg"></div>
+    <div class="splash-overlay-gradient"></div>
     <div class="royal-border"></div>
 
-    <div class="splash-container">
-      <!-- Architectural Line Drawing -->
-      <div class="crest-container">
-        <svg class="crest-svg" viewBox="0 0 160 50">
-          <!-- Colonnade & Central Pediment Line Art -->
-          <path d="M 10 42 L 150 42" stroke="#d4af37" stroke-width="1.2"/>
-          <path d="M 20 42 L 20 22 L 140 22 L 140 42" stroke="#d4af37" stroke-width="1"/>
-          <!-- Pediment Triangle -->
-          <path d="M 60 22 L 80 8 L 100 22 Z" stroke="#d4af37" stroke-width="1.2" fill="none"/>
-          <!-- Heritage Clock Tower Spire -->
-          <line x1="80" y1="8" x2="80" y2="2" stroke="#d4af37" stroke-width="1.5"/>
-          <circle cx="80" cy="16" r="2.5" stroke="#d4af37" stroke-width="0.8"/>
-          <!-- Colonnade Pillars -->
-          <line x1="30" y1="22" x2="30" y2="42" stroke="#d4af37" stroke-width="0.9"/>
-          <line x1="45" y1="22" x2="45" y2="42" stroke="#d4af37" stroke-width="0.9"/>
-          <line x1="65" y1="22" x2="65" y2="42" stroke="#d4af37" stroke-width="0.9"/>
-          <line x1="95" y1="22" x2="95" y2="42" stroke="#d4af37" stroke-width="0.9"/>
-          <line x1="115" y1="22" x2="115" y2="42" stroke="#d4af37" stroke-width="0.9"/>
-          <line x1="130" y1="22" x2="130" y2="42" stroke="#d4af37" stroke-width="0.9"/>
-        </svg>
-      </div>
+    <div class="royal-container">
+      <!-- Colonnaded Heritage Line Drawing -->
+      <svg class="crest-drawing" viewBox="0 0 200 60" fill="none" stroke="#ebd39f" stroke-width="1.2">
+        <path d="M 85 58 L 85 24 L 94 14 L 100 8 L 106 14 L 115 24 L 115 58" />
+        <circle cx="100" cy="22" r="5" />
+        <line x1="100" y1="8" x2="100" y2="4" />
+        <line x1="97" y1="4" x2="103" y2="4" />
+        <path d="M 85 30 L 25 30 L 25 58" />
+        <path d="M 115 30 L 175 30 L 175 58" />
+        <line x1="38" y1="30" x2="38" y2="58" />
+        <line x1="52" y1="30" x2="52" y2="58" />
+        <line x1="66" y1="30" x2="66" y2="58" />
+        <line x1="134" y1="30" x2="134" y2="58" />
+        <line x1="148" y1="30" x2="148" y2="58" />
+        <line x1="162" y1="30" x2="162" y2="58" />
+        <path d="M 20 30 L 55 18 L 85 30" />
+        <path d="M 115 30 L 145 18 L 180 30" />
+        <line x1="10" y1="58" x2="190" y2="58" stroke-width="1.5" />
+      </svg>
 
-      <div class="splash-subtitle" id="content-subtitle">360° Architectural Tour</div>
-      <h1 class="splash-title" id="content-title">Sardar Vallabhbhai Patel (Poorna) Market</h1>
+      <div class="heritage-tag">ARCHITECTURAL HERITAGE</div>
 
-      <p class="splash-description" id="content-desc">
+      <h1 class="splash-main-title" id="dyn-title">Sardar Vallabhbhai Patel Market</h1>
+      <h2 class="splash-subtitle" id="dyn-subtitle">The Royal Palace in 360°</h2>
+      
+      <p class="splash-description" id="dyn-desc">
         The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist.
       </p>
 
-      <!-- Diamond Start Button -->
-      <div class="diamond-wrapper" id="start-btn">
+      <!-- Diamond START Button -->
+      <div class="diamond-btn-wrapper" id="start-tour-btn">
         <div class="diamond-box">
-          <span class="diamond-text">START</span>
+          <span class="diamond-label">START</span>
         </div>
       </div>
     </div>
 
-    <!-- Bottom Footer Trilingual Switcher -->
-    <div class="lang-footer">
-      <button class="lang-btn active" onclick="setLanguage('en')">ENGLISH</button>
-      <span>◇</span>
-      <button class="lang-btn" onclick="setLanguage('te')">TELUGU</button>
-      <span>◇</span>
-      <button class="lang-btn" onclick="setLanguage('hi')">HINDI</button>
-    </div>
-  </div>
+    <!-- Trilingual Switcher -->
+    <footer class="lang-bar">
+      <button class="lang-item active" onclick="switchLanguage('en')">ENGLISH</button>
+      <span class="diamond-sep">◇</span>
+      <button class="lang-item" onclick="switchLanguage('te')">TELUGU</button>
+      <span class="diamond-sep">◇</span>
+      <button class="lang-item" onclick="switchLanguage('hi')">HINDI</button>
+    </footer>
+  </section>
 
-  <!-- Left Bottom Corner: Master Plan Minimap -->
-  <div id="minimap-wrapper">
-    <div id="minimap-header">
-      <span>Master Plan</span>
-      <span>Click Point To Teleport</span>
+  <!-- Left Side Bottom Corner Aerial Plan -->
+  <aside id="minimap-card">
+    <div class="plan-header">
+      <span>Aerial Master Plan</span>
+      <span>Click Point to View</span>
     </div>
-    <div id="plan-container">
-      <img id="plan-img" src="aerial-plan.jpg" alt="Aerial Plan View" />
-      <div id="pins-container"></div>
+    <div id="plan-viewport">
+      <!-- Axonometric plan drawing -->
+      <img src="aerial-plan.jpg" alt="Aerial Plan of Market" id="master-plan-img" />
+      <div id="plan-dots-container"></div>
     </div>
-  </div>
+  </aside>
 
   <script>
-    // Multilingual Content
-    const contentData = {
+    // Trilingual Content
+    const translations = {
       en: {
         title: "Sardar Vallabhbhai Patel (Poorna) Market",
         subtitle: "360° Architectural Tour",
-        desc: "The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist."
+        desc: "The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist. The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist."
       },
       te: {
         title: "సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్",
@@ -455,102 +536,132 @@
       }
     };
 
-    function setLanguage(lang) {
-      document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+    function switchLanguage(lang) {
+      document.querySelectorAll('.lang-item').forEach(el => el.classList.remove('active'));
       event.target.classList.add('active');
 
-      document.getElementById('content-title').textContent = contentData[lang].title;
-      document.getElementById('content-subtitle').textContent = contentData[lang].subtitle;
-      document.getElementById('content-desc').textContent = contentData[lang].desc;
+      document.getElementById('dyn-title').textContent = translations[lang].title;
+      document.getElementById('dyn-subtitle').textContent = translations[lang].subtitle;
+      document.getElementById('dyn-desc').textContent = translations[lang].desc;
     }
 
-    // Points inside the isometric plan
-    const hotspotPoints = [
+    // Hotspot points mapped to the 5 perspective images + 360 panorama
+    const marketVantages = [
       {
-        id: 'amphitheatre',
-        name: 'Step Amphitheatre Plaza',
-        x: 48,
-        y: 56,
-        panorama: 'https://pannellum.org/images/alma.jpg'
+        id: "boulevard-360",
+        name: "Tree-Lined Artisan Promenade (360° Drag View)",
+        x: 52,
+        y: 64,
+        type: "360",
+        src: "Gemini_Generated_Image_yqbmbdyqbmbdyqbm.png"
       },
       {
-        id: 'pavilion',
-        name: 'Terraced Red Pavilion',
-        x: 75,
-        y: 28,
-        panorama: 'https://pannellum.org/images/cerro-toco-0.jpg'
+        id: "curved-terrace",
+        name: "Rooftop Garden & Deck Seating",
+        x: 68,
+        y: 24,
+        type: "2d",
+        src: "1.jpg"
       },
       {
-        id: 'west-arcade',
-        name: 'Commercial Arcade & Shaded Lane',
+        id: "courtyard-garden",
+        name: "Multi-Tier Timber Courtyard & Greenery",
+        x: 78,
+        y: 38,
+        type: "2d",
+        src: "2.jpg"
+      },
+      {
+        id: "stepped-atrium",
+        name: "Angular Stepped Atrium & Skylight",
+        x: 36,
+        y: 46,
+        type: "2d",
+        src: "3.jpg"
+      },
+      {
+        id: "wooden-amphitheatre",
+        name: "Double-Height Library Amphitheatre",
         x: 22,
-        y: 65,
-        panorama: 'https://pannellum.org/images/bma-0.jpg'
+        y: 68,
+        type: "2d",
+        src: "4.jpg"
       },
       {
-        id: 'entry-steps',
-        name: 'Public Contour Steps',
-        x: 39,
-        y: 44,
-        panorama: 'https://pannellum.org/images/alma.jpg'
+        id: "terracotta-steps",
+        name: "Terracotta Curved Contour Steps & Ramp",
+        x: 48,
+        y: 54,
+        type: "2d",
+        src: "5.jpg"
       }
     ];
 
-    // Initialize 360 Viewer
-    let currentViewer = pannellum.viewer('panorama-viewport', {
-      type: 'equirectangular',
-      panorama: hotspotPoints[0].panorama,
-      autoLoad: true,
-      autoRotate: -1.2,
-      compass: false,
-      mouseZoom: true
-    });
+    let pannellumInstance = null;
+    const perspectiveImg = document.getElementById('perspective-view-image');
+    const hudVantageName = document.getElementById('hud-vantage-name');
 
-    function loadPanorama(url) {
-      if (currentViewer) {
-        currentViewer.destroy();
+    function loadVantage(vantage) {
+      hudVantageName.textContent = vantage.name;
+
+      if (vantage.type === "360") {
+        perspectiveImg.classList.remove('active');
+        if (pannellumInstance) pannellumInstance.destroy();
+        pannellumInstance = pannellum.viewer('panorama-viewport', {
+          type: 'equirectangular',
+          panorama: vantage.src,
+          autoLoad: true,
+          autoRotate: -1.5,
+          mouseZoom: true
+        });
+      } else {
+        // Show 2D Perspective Render smoothly
+        perspectiveImg.src = vantage.src;
+        perspectiveImg.classList.add('active');
+        if (pannellumInstance) {
+          pannellumInstance.destroy();
+          pannellumInstance = null;
+        }
       }
-      currentViewer = pannellum.viewer('panorama-viewport', {
-        type: 'equirectangular',
-        panorama: url,
-        autoLoad: true,
-        autoRotate: -1.2,
-        compass: false,
-        mouseZoom: true
-      });
     }
 
-    // Build Hotspot Pins
-    const pinsContainer = document.getElementById('pins-container');
-    hotspotPoints.forEach((point, index) => {
-      const pin = document.createElement('div');
-      pin.className = 'plan-pin' + (index === 0 ? ' active' : '');
-      pin.style.left = `${point.x}%`;
-      pin.style.top = `${point.y}%`;
+    // Populate Dots on the Plan
+    const dotsContainer = document.getElementById('plan-dots-container');
+    marketVantages.forEach((vantage, index) => {
+      const dot = document.createElement('div');
+      dot.className = 'plan-dot' + (index === 0 ? ' active' : '');
+      dot.style.left = `${vantage.x}%`;
+      dot.style.top = `${vantage.y}%`;
 
+      // Tooltip appears only on cursor hover
       const tip = document.createElement('div');
-      tip.className = 'pin-tooltip';
-      tip.textContent = point.name;
-      pin.appendChild(tip);
+      tip.className = 'dot-tooltip';
+      tip.textContent = vantage.name;
+      dot.appendChild(tip);
 
-      pin.addEventListener('click', () => {
-        document.querySelectorAll('.plan-pin').forEach(p => p.classList.remove('active'));
-        pin.classList.add('active');
-        document.getElementById('active-spot-label').textContent = `${point.name} — Drag to explore 360°`;
-        loadPanorama(point.panorama);
+      dot.addEventListener('click', () => {
+        document.querySelectorAll('.plan-dot').forEach(d => d.classList.remove('active'));
+        dot.classList.add('active');
+        loadVantage(vantage);
       });
 
-      pinsContainer.appendChild(pin);
+      dotsContainer.appendChild(dot);
     });
 
-    // Start Button: Opens second face
-    document.getElementById('start-btn').addEventListener('click', () => {
+    // START button action
+    document.getElementById('start-tour-btn').addEventListener('click', () => {
       document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('nav-header').classList.add('visible');
+      document.getElementById('minimap-card').classList.add('visible');
+      // Load initial 360 panorama on start
+      loadVantage(marketVantages[0]);
     });
 
-    // Back Button: Returns to initial locked screen
-    document.getElementById('back-btn').addEventListener('click', () => {
+    // Back Symbol button action
+    document.getElementById('back-to-start-btn').addEventListener('click', () => {
       document.getElementById('start-screen').classList.remove('hidden');
+      document.getElementById('nav-header').classList.remove('visible');
+      document.getElementById('minimap-card').classList.remove('visible');
     });
   </script>
 </body>
