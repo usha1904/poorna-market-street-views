@@ -3,330 +3,1103 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sardar Vallabhbhai Patel Market - Interactive Tour</title>
+  <title>Sardar Vallabhbhai Patel (Poorna) Market - 360° Architectural Experience</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Cinzel Decorative, Cormorant Garamond, Inter, Noto Sans Telugu & Devanagari -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            royal: ['Cinzel', 'serif'],
+            serifBody: ['"Cormorant Garamond"', 'serif'],
+            telugu: ['"Noto Sans Telugu"', 'sans-serif'],
+            hindi: ['"Noto Sans Devanagari"', 'sans-serif'],
+            sans: ['Inter', 'sans-serif'],
+            mono: ['"Space Grotesk"', 'monospace'],
+          },
+          colors: {
+            gold: {
+              100: '#FDF7E2',
+              200: '#F9ECC1',
+              300: '#EBD08B',
+              400: '#DEBA64',
+              500: '#CBA043',
+              600: '#B0842F',
+            },
+            royalNavy: '#071626',
+            terracotta: '#8C3838'
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* Custom Gold Framed Layout matching Royal Belgian reference */
+    .royal-frame {
+      border: 1px solid rgba(222, 186, 100, 0.45);
+      box-shadow: 
+        inset 0 0 40px rgba(7, 22, 38, 0.9),
+        0 0 25px rgba(0, 0, 0, 0.8);
     }
 
-    body, html {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #121212;
-      color: #fff;
-    }
-
-    /* Main Viewport Container */
-    #viewer-container {
+    /* Diamond START button styling */
+    .diamond-btn-container {
       position: relative;
-      width: 100vw;
-      height: 100vh;
+      width: 96px;
+      height: 96px;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #1a1a1a;
     }
 
-    #main-view-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: opacity 0.4s ease-in-out;
-    }
-
-    /* Top Left Header */
-    #title-bar {
+    .diamond-shape {
       position: absolute;
-      top: 24px;
-      left: 24px;
-      z-index: 100;
-      background: rgba(18, 18, 18, 0.82);
-      backdrop-filter: blur(12px);
-      padding: 12px 22px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      width: 70px;
+      height: 70px;
+      transform: rotate(45deg);
+      border: 2px solid rgba(255, 255, 255, 0.85);
+      background: rgba(7, 22, 38, 0.45);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 0 20px rgba(222, 186, 100, 0.25), inset 0 0 15px rgba(255, 255, 255, 0.1);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    #title-bar h1 {
-      font-size: 1.15rem;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      color: #ffffff;
-      text-transform: uppercase;
+    .diamond-btn-container:hover .diamond-shape {
+      border-color: #DEBA64;
+      background: rgba(18, 38, 62, 0.7);
+      transform: rotate(45deg) scale(1.1);
+      box-shadow: 0 0 35px rgba(222, 186, 100, 0.65), inset 0 0 20px rgba(222, 186, 100, 0.3);
     }
 
-    #title-bar span {
-      font-size: 0.8rem;
-      color: #a8a8a8;
-      display: block;
-      margin-top: 3px;
+    .diamond-btn-container:active .diamond-shape {
+      transform: rotate(45deg) scale(0.96);
     }
 
-    /* Start Splash Overlay */
-    #start-screen {
-      position: absolute;
-      inset: 0;
-      background: rgba(15, 15, 17, 0.92);
-      backdrop-filter: blur(16px);
-      z-index: 500;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.5s ease;
+    /* Subtle pulse animation for the diamond */
+    @keyframes diamondPulse {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(222, 186, 100, 0.25);
+      }
+      50% {
+        box-shadow: 0 0 35px rgba(222, 186, 100, 0.55);
+      }
+    }
+    .diamond-glow {
+      animation: diamondPulse 3s infinite ease-in-out;
     }
 
-    #start-screen.hidden {
-      opacity: 0;
-      pointer-events: none;
+    /* Hotspot radar animation */
+    @keyframes radarPing {
+      0% {
+        transform: scale(0.6);
+        opacity: 0.95;
+      }
+      80% {
+        transform: scale(2.4);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(2.6);
+        opacity: 0;
+      }
+    }
+    .radar-pulse {
+      animation: radarPing 2.2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
     }
 
-    #start-btn {
-      padding: 14px 36px;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #fff;
-      background: #8b3a3a;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      box-shadow: 0 6px 20px rgba(139, 58, 58, 0.4);
-      transition: transform 0.2s, background 0.2s;
+    /* Glass Panels */
+    .glass-dark {
+      background: rgba(11, 15, 22, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
-    #start-btn:hover {
-      background: #a34444;
-      transform: translateY(-2px);
+    /* Vignette shading */
+    .royal-vignette {
+      background: radial-gradient(circle at center, rgba(10, 31, 54, 0.55) 0%, rgba(5, 15, 26, 0.92) 80%, rgba(2, 7, 13, 0.98) 100%);
     }
 
-    /* Aerial Plan Mini-Map (Bottom-Left) */
-    #minimap-wrapper {
-      position: absolute;
-      bottom: 24px;
-      left: 24px;
-      width: 290px;
-      background: rgba(18, 18, 18, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 10px;
-      padding: 10px;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
-      z-index: 100;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Smooth text transitions */
+    .lang-fade {
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
-    #minimap-header {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #b0b0b0;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
+    /* Hide scrollbars */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
     }
-
-    #plan-container {
-      position: relative;
-      width: 100%;
-      height: 250px;
-      overflow: hidden;
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: #2a2a2a;
-    }
-
-    #plan-container img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      pointer-events: none;
-    }
-
-    /* Hotspot Points on the Plan */
-    .plan-pin {
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      background: #c84e4e;
-      border: 2px solid #ffffff;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      cursor: pointer;
-      z-index: 10;
-      transition: transform 0.2s ease, background 0.2s ease;
-    }
-
-    .plan-pin::after {
-      content: '';
-      position: absolute;
-      inset: -6px;
-      border-radius: 50%;
-      border: 2px solid rgba(200, 78, 78, 0.6);
-      animation: pulse 1.8s infinite cubic-bezier(0.25, 1, 0.5, 1);
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(0.6); opacity: 1; }
-      100% { transform: scale(1.9); opacity: 0; }
-    }
-
-    .plan-pin:hover,
-    .plan-pin.active {
-      background: #ff5252;
-      transform: translate(-50%, -50%) scale(1.3);
-      z-index: 20;
-    }
-
-    /* Tooltip on Pin Hover */
-    .pin-tooltip {
-      position: absolute;
-      bottom: 22px;
-      left: 50%;
-      transform: translateX(-50%) translateY(4px);
-      background: rgba(10, 10, 10, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #fff;
-      font-size: 0.72rem;
-      font-weight: 500;
-      white-space: nowrap;
-      padding: 4px 9px;
-      border-radius: 4px;
-      pointer-events: none;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-
-    .plan-pin:hover .pin-tooltip {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) translateY(0);
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
   </style>
 </head>
-<body>
+<body class="bg-black text-gray-100 font-sans h-screen w-screen overflow-hidden select-none">
 
-  <!-- Start Overlay -->
-  <div id="start-screen">
-    <button id="start-btn">START EXPLORATION</button>
-  </div>
-
-  <!-- Main Viewport -->
-  <div id="viewer-container">
-    <div id="title-bar">
-      <h1 id="market-title">Poorna Market</h1>
-      <span id="active-spot-label">Overview</span>
+  <!-- ========================================================================= -->
+  <!-- LOCKED ROYAL SPLASH INTERFACE (Matching Reference Screenshot)              -->
+  <!-- ========================================================================= -->
+  <div id="locked-royal-screen" class="fixed inset-0 z-50 flex items-center justify-center transition-all duration-1000">
+    <!-- Cinematic Panoramic Background Image with Blur -->
+    <div class="absolute inset-0 bg-cover bg-center transition-transform duration-1000 scale-105" 
+         style="background-image: url('https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?auto=format&fit=crop&w=2400&q=85');">
     </div>
 
-    <!-- Active Perspective Image -->
-    <img id="main-view-image" src="aerial-plan.jpg" alt="Active View" />
+    <!-- Royal Navy Cinematic Vignette Overlay -->
+    <div class="absolute inset-0 royal-vignette backdrop-blur-[5px]"></div>
 
-    <!-- Aerial Plan Mini-Map (Bottom-Left) -->
-    <div id="minimap-wrapper">
-      <div id="minimap-header">
-        <span>Aerial Site Plan</span>
-        <span>Click pin to view</span>
+    <!-- Gold Ornamental Thin Border (Inset 24px) -->
+    <div class="royal-frame absolute inset-4 sm:inset-6 md:inset-8 pointer-events-none rounded-[2px] transition-all">
+      <!-- Ornamental Corner Accents -->
+      <div class="absolute -top-[1px] -left-[1px] w-4 h-4 border-t-2 border-l-2 border-gold-400"></div>
+      <div class="absolute -top-[1px] -right-[1px] w-4 h-4 border-t-2 border-r-2 border-gold-400"></div>
+      <div class="absolute -bottom-[1px] -left-[1px] w-4 h-4 border-b-2 border-l-2 border-gold-400"></div>
+      <div class="absolute -bottom-[1px] -right-[1px] w-4 h-4 border-b-2 border-r-2 border-gold-400"></div>
+    </div>
+
+    <!-- Centered Modal Content Layout -->
+    <div class="relative z-10 w-full h-full max-w-5xl mx-auto flex flex-col justify-between items-center px-6 py-8 sm:py-12 text-center pointer-events-auto">
+      
+      <!-- Top Royal Crest & Header Motif -->
+      <div class="flex flex-col items-center pt-2 sm:pt-4">
+        <!-- Heritage Pavilion / Architectural Crest SVG -->
+        <div class="w-24 h-10 mb-2 flex items-center justify-center text-gold-300 opacity-90">
+          <svg viewBox="0 0 140 40" class="w-full h-full fill-none stroke-current" stroke-width="1.2">
+            <path d="M 10,24 L 70,6 L 130,24" />
+            <path d="M 25,24 L 25,36 M 45,20 L 45,36 M 70,16 L 70,36 M 95,20 L 95,36 M 115,24 L 115,36" stroke-width="1" />
+            <line x1="5" y1="36" x2="135" y2="36" stroke-width="1.5"/>
+            <polygon points="66,6 74,6 70,1" fill="#DEBA64" />
+            <!-- Centered Clock Motif on Crest -->
+            <circle cx="70" cy="18" r="4" fill="#DEBA64" stroke="none" />
+          </svg>
+        </div>
+
+        <div class="relative flex items-center justify-center gap-3">
+          <div class="h-[1px] w-12 sm:w-20 bg-gradient-to-r from-transparent to-gold-400/80"></div>
+          <h2 class="font-royal text-xs sm:text-sm md:text-base tracking-[0.32em] uppercase text-gold-200 font-medium">
+            HERITAGE REDEVELOPMENT
+          </h2>
+          <div class="h-[1px] w-12 sm:w-20 bg-gradient-to-l from-transparent to-gold-400/80"></div>
+        </div>
       </div>
-      <div id="plan-container">
-        <!-- Replace src with your uploaded market aerial axonometric plan -->
-        <img id="plan-img" src="aerial-plan.jpg" alt="Aerial Plan" />
+
+      <!-- Center Text Section (Dynamic by Language) -->
+      <div class="my-auto max-w-3xl flex flex-col items-center px-4">
+        <h1 id="splash-main-title" class="font-royal text-2xl sm:text-3xl md:text-5xl font-bold tracking-wide text-white drop-shadow-md lang-fade leading-tight">
+          Sardar Vallabhbhai Patel Market
+        </h1>
         
-        <!-- Hotspots are populated dynamically via JavaScript -->
-        <div id="pins-container"></div>
+        <h3 id="splash-subtitle" class="font-serifBody italic text-lg sm:text-xl md:text-2xl text-gold-300 mt-2 mb-4 font-normal tracking-wide lang-fade">
+          360° Render Perspectives
+        </h3>
+
+        <div class="max-h-[160px] sm:max-h-[190px] overflow-y-auto no-scrollbar pr-1">
+          <p id="splash-description" class="font-serifBody text-base sm:text-lg md:text-xl text-gray-200 leading-relaxed font-light text-center max-w-2xl lang-fade drop-shadow">
+            The revitalized Sardar Vallabhbhai Patel (Poorna) Market seamlessly blends colonial-era heritage with forward-looking sustainable design. The restored clock tower and landmark facade anchor the urban precinct, replacing congested lanes with shaded pedestrian promenades, modular weather-resilient vendor stalls, an open-air stepped amphitheatre, and landscaped civic plazas that harmonize past culture with contemporary civic life.
+          </p>
+        </div>
+
+        <!-- Diamond START Button -->
+        <div class="mt-8 sm:mt-10 flex flex-col items-center">
+          <div id="royal-start-trigger" class="diamond-btn-container group" role="button" aria-label="Start Exploration">
+            <div class="diamond-shape diamond-glow"></div>
+            <span class="relative z-10 font-royal font-bold text-xs sm:text-sm tracking-[0.25em] text-white group-hover:text-gold-200 transition-colors uppercase pl-1">
+              START
+            </span>
+          </div>
+          <span class="text-[11px] font-mono tracking-widest text-gold-300/70 mt-3 uppercase">Click to enter precinct</span>
+        </div>
       </div>
+
+      <!-- Bottom Footer: Language Switcher with Diamond Separators (Matching Reference) -->
+      <footer class="w-full pb-2 sm:pb-3 flex items-center justify-center">
+        <nav class="flex items-center gap-3 sm:gap-6 font-royal text-xs sm:text-sm tracking-[0.25em] uppercase text-gray-400">
+          
+          <!-- English Button -->
+          <button id="lang-btn-en" class="lang-selector transition-all duration-300 hover:text-white text-gold-300 font-semibold border-b border-gold-400 pb-0.5">
+            ENGLISH
+          </button>
+          
+          <span class="text-gold-400/80 text-[10px] transform rotate-45 select-none">◇</span>
+          
+          <!-- Telugu Button -->
+          <button id="lang-btn-te" class="lang-selector transition-all duration-300 hover:text-white text-gray-400">
+            TELUGU
+          </button>
+          
+          <span class="text-gold-400/80 text-[10px] transform rotate-45 select-none">◇</span>
+          
+          <!-- Hindi Button -->
+          <button id="lang-btn-hi" class="lang-selector transition-all duration-300 hover:text-white text-gray-400">
+            HINDI
+          </button>
+        </nav>
+      </footer>
+
     </div>
   </div>
 
+
+  <!-- ========================================================================= -->
+  <!-- MAIN INTERACTIVE ARCHITECTURAL VIEWPORT                                  -->
+  <!-- ========================================================================= -->
+  <div id="main-viewport-container" class="relative w-full h-full flex items-center justify-center bg-[#070a0e] overflow-hidden">
+    
+    <!-- Perspective Render Viewport / 360 Scene -->
+    <div id="scene-renderer" class="absolute inset-0 w-full h-full">
+      <svg id="stage-svg" class="w-full h-full object-cover transition-opacity duration-500" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+        <!-- Rendered dynamically -->
+      </svg>
+    </div>
+
+    <!-- HUD Header Bar: Top Left & Right Elements -->
+    <header class="absolute top-6 left-6 right-6 flex items-start justify-between pointer-events-none z-30">
+      
+      <!-- Top Left Dynamic Market Name Block -->
+      <div class="pointer-events-auto glass-dark px-5 py-3.5 rounded-xl flex items-center gap-4 shadow-2xl border border-white/10 transition-all">
+        <div class="w-1.5 h-10 bg-gold-400 rounded-full shadow-lg shadow-gold-500/40"></div>
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 id="hud-market-name" class="text-base sm:text-lg font-bold uppercase tracking-wider text-white font-mono">
+              Poorna Market
+            </h1>
+            <span id="hud-status-badge" class="text-[10px] px-2 py-0.5 rounded bg-amber-900/40 text-amber-300 border border-amber-600/30 font-mono">
+              INITIALIZING
+            </span>
+          </div>
+          <p id="hud-view-name" class="text-xs text-gray-300 font-sans mt-0.5 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="hud-view-name-text">Central Step Amphitheatre (Plaza Level)</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Top Right Controls (Lock Screen Return & Audio & Fullscreen) -->
+      <div class="pointer-events-auto flex items-center gap-2">
+        <!-- Ambient Sound Toggle -->
+        <button id="audio-toggle-btn" class="glass-dark p-3 rounded-xl text-gray-300 hover:text-white hover:border-gold-400/50 transition shadow-lg" title="Toggle Ambient Soundscape">
+          <svg id="audio-icon-on" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+          <svg id="audio-icon-off" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+        </button>
+
+        <!-- Lock Return Button (Takes user back to the royal splash screen) -->
+        <button id="lock-screen-btn" class="glass-dark px-3.5 py-2.5 rounded-xl text-xs font-mono text-gold-300 hover:text-white hover:border-gold-400 transition shadow-lg flex items-center gap-2" title="Lock & Return to Royal Overview">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span class="hidden sm:inline">OVERVIEW</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Bottom Left Dock: Interactive Aerial Plan with Point Hotspots -->
+    <aside id="aerial-plan-widget" class="absolute bottom-6 left-6 z-40 transition-all duration-300">
+      <div class="glass-dark rounded-2xl p-3.5 shadow-2xl border border-white/15 w-[330px] sm:w-[380px] flex flex-col gap-2.5">
+        
+        <!-- Widget Bar Header -->
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-sm bg-terracotta rotate-45"></span>
+            <span id="plan-panel-title" class="text-xs font-mono font-bold uppercase tracking-wider text-gray-200">
+              AERIAL MASTERPLAN
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <!-- Swap custom plan image file -->
+            <label for="plan-file-input" class="cursor-pointer text-[10px] text-gold-300 hover:text-white px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition font-mono flex items-center gap-1 border border-white/10">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              Swap File
+            </label>
+            <input type="file" id="plan-file-input" accept="image/*" class="hidden" />
+
+            <!-- Collapse widget -->
+            <button id="toggle-plan-size-btn" class="text-gray-400 hover:text-white text-xs px-2 py-0.5 rounded hover:bg-white/10 transition" title="Toggle Size">
+              −
+            </button>
+          </div>
+        </div>
+
+        <!-- The Axonometric Drawing Box with Points Placed on Coordinates -->
+        <div id="plan-canvas-container" class="relative w-full h-[270px] sm:h-[300px] rounded-xl overflow-hidden bg-[#15171d] border border-white/10">
+          
+          <!-- Base Plan Image Container (Vector Architectural Representation matching User's Drawing) -->
+          <div id="plan-graphics-container" class="absolute inset-0 w-full h-full">
+            <svg id="aerial-axonometric-svg" viewBox="0 0 500 500" class="w-full h-full object-cover">
+              <defs>
+                <linearGradient id="terracotta-fade" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#9C3E3E" />
+                  <stop offset="100%" stop-color="#732B2B" />
+                </linearGradient>
+                <linearGradient id="terracotta-roof" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#B24B4B" />
+                  <stop offset="100%" stop-color="#883333" />
+                </linearGradient>
+                <pattern id="timber-pergola-grid" width="12" height="12" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                  <line x1="0" y1="0" x2="0" y2="12" stroke="#4a1919" stroke-width="3" />
+                </pattern>
+              </defs>
+
+              <!-- Axonometric Ground Plate & Contours -->
+              <rect width="500" height="500" fill="#17181c" />
+              <path d="M 0,330 L 170,225 L 290,260 L 410,165 L 500,205 L 500,500 L 0,500 Z" fill="#202228" />
+
+              <!-- Neighboring contextual urban buildings (White and light gray faceted blocks) -->
+              <!-- Top Left Volume -->
+              <polygon points="15,120 75,80 130,110 70,150" fill="#383d47" />
+              <polygon points="15,120 70,150 70,240 15,210" fill="#282b33" />
+              <polygon points="70,150 130,110 130,200 70,240" fill="#2f333c" />
+
+              <!-- Top Center Curving Building Block -->
+              <path d="M 260,70 C 290,50 320,60 340,80 L 340,140 C 320,120 290,110 260,130 Z" fill="#323640" />
+              <path d="M 260,130 C 290,110 320,120 340,140 L 340,160 L 260,150 Z" fill="#252830" />
+
+              <!-- Bottom Left Commercial Facade Block (with window array) -->
+              <g transform="translate(12, 235)">
+                <polygon points="10,95 85,48 142,80 68,125" fill="#4a505e" />
+                <polygon points="10,95 68,125 68,195 10,165" fill="#2c3039" />
+                <polygon points="68,125 142,80 142,150 68,195" fill="#383d49" />
+                <!-- Window perforations -->
+                <rect x="24" y="112" width="8" height="9" fill="#13151a" />
+                <rect x="42" y="122" width="8" height="9" fill="#13151a" />
+                <rect x="24" y="132" width="8" height="9" fill="#13151a" />
+                <rect x="42" y="142" width="8" height="9" fill="#13151a" />
+                <rect x="85" y="96" width="8" height="10" fill="#13151a" />
+                <rect x="105" y="84" width="8" height="10" fill="#13151a" />
+                <rect x="85" y="115" width="8" height="10" fill="#13151a" />
+                <rect x="105" y="103" width="8" height="10" fill="#13151a" />
+              </g>
+
+              <!-- Central Circular Sunken Step Amphitheatre -->
+              <g transform="translate(235, 285)">
+                <path d="M -65,22 A 75,44 0 0,1 65,22" stroke="#524a4d" stroke-width="7" fill="none" />
+                <path d="M -54,14 A 62,35 0 0,1 54,14" stroke="#685c60" stroke-width="6" fill="none" />
+                <path d="M -43,6 A 49,26 0 0,1 43,6" stroke="#7e6f74" stroke-width="6" fill="none" />
+                <path d="M -32,-2 A 36,18 0 0,1 32,-2" stroke="#96838a" stroke-width="5" fill="none" />
+                <!-- Sunken Arena Forum Core -->
+                <ellipse cx="0" cy="18" rx="27" ry="15" fill="#b0969d" opacity="0.65" />
+              </g>
+
+              <!-- South-West Foreground Geometric Angular Volume -->
+              <g transform="translate(155, 300)">
+                <polygon points="20,95 85,55 175,90 110,132" fill="#464b57" />
+                <polygon points="20,95 110,132 110,195 20,158" fill="#2d3038" />
+                <polygon points="110,132 175,90 175,150 110,195" fill="#383d47" />
+                <polygon points="70,85 125,65 145,76 92,97" fill="#585f6e" />
+              </g>
+
+              <!-- Iconic Red Terracotta Building Complex with Pergola Terraces (Matching Image) -->
+              <g transform="translate(275, 55)">
+                <!-- Back Connecting Bridge / Gallery -->
+                <polygon points="130,42 190,12 225,28 165,58" fill="#b24b4b" />
+                <polygon points="130,42 165,58 165,115 130,100" fill="url(#terracotta-fade)" />
+                <polygon points="165,58 225,28 225,85 165,115" fill="#6d2525" />
+
+                <!-- Transverse Bridge Volume -->
+                <polygon points="45,85 145,35 168,46 68,96" fill="#9e3d3d" />
+
+                <!-- Upper Timber Pergola -->
+                <polygon points="12,82 74,52 116,72 54,103" fill="url(#timber-pergola-grid)" stroke="#8e3333" />
+                <!-- Shading beams -->
+                <line x1="22" y1="77" x2="38" y2="108" stroke="#471414" stroke-width="2.2"/>
+                <line x1="38" y1="69" x2="54" y2="100" stroke="#471414" stroke-width="2.2"/>
+                <line x1="54" y1="62" x2="70" y2="92" stroke="#471414" stroke-width="2.2"/>
+                <line x1="70" y1="54" x2="86" y2="85" stroke="#471414" stroke-width="2.2"/>
+                <line x1="86" y1="46" x2="102" y2="77" stroke="#471414" stroke-width="2.2"/>
+
+                <!-- Main Terracotta Tower Block -->
+                <polygon points="22,94 94,58 135,78 63,114" fill="url(#terracotta-roof)" />
+                <polygon points="22,94 63,114 63,196 22,174" fill="#7d2b2b" />
+                <polygon points="63,114 135,78 135,160 63,196" fill="#581d1d" />
+
+                <!-- Lower Attached Pergola Wing -->
+                <polygon points="95,140 156,108 188,124 126,155" fill="url(#timber-pergola-grid)" stroke="#8e3333" />
+                <polygon points="95,155 156,124 156,196 95,226" fill="#752727" />
+              </g>
+
+              <!-- Trees & Softscape Foliage Canopy -->
+              <g fill="#423b40" opacity="0.85">
+                <circle cx="150" cy="225" r="15" />
+                <circle cx="172" cy="212" r="13" />
+                <circle cx="195" cy="240" r="17" />
+                <circle cx="218" cy="220" r="14" />
+                <circle cx="275" cy="214" r="15" />
+                <circle cx="300" cy="235" r="19" />
+                <circle cx="348" cy="295" r="16" />
+                <circle cx="365" cy="275" r="17" />
+              </g>
+            </svg>
+
+            <!-- User Uploaded Custom Plan Image (falls back if user loads personal file) -->
+            <img id="user-custom-plan" class="hidden absolute inset-0 w-full h-full object-cover" alt="Custom Plan View" />
+          </div>
+
+          <!-- Hotspot Points Layer (Dynamically Placed Points) -->
+          <div id="plan-hotspots-container" class="absolute inset-0 pointer-events-auto"></div>
+
+          <!-- Compass Rose on Plan -->
+          <div class="absolute top-2 right-2 flex flex-col items-center pointer-events-none opacity-70">
+            <svg class="w-5 h-5 text-gold-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polygon points="12 2 15 9 12 7 9 9 12 2" fill="currentColor"></polygon>
+              <polygon points="12 22 9 15 12 17 15 15 12 22" fill="#555"></polygon>
+            </svg>
+            <span class="text-[9px] font-mono font-bold text-gold-300">N</span>
+          </div>
+        </div>
+
+        <!-- Hotspot Quick Description Card -->
+        <div id="active-space-card" class="bg-black/50 rounded-xl p-2.5 border border-white/5 flex items-center justify-between">
+          <div class="truncate mr-2">
+            <span id="card-tagline" class="text-[10px] uppercase font-mono tracking-wider text-gold-300 block">SELECTED VANTAGE</span>
+            <h4 id="card-title" class="text-xs font-semibold text-white truncate">Central Step Amphitheatre</h4>
+          </div>
+          <span id="card-elevation" class="text-[10px] font-mono px-2 py-1 rounded bg-white/10 text-gray-300 shrink-0">
+            +0.00m
+          </span>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Bottom Navigation Bar: Quick Node Switchers -->
+    <nav class="absolute bottom-6 right-6 z-30 hidden lg:flex items-center gap-2 glass-dark p-2 rounded-xl border border-white/10">
+      <span class="text-[11px] font-mono text-gray-400 pl-2 pr-1 uppercase">Vantages:</span>
+      <div id="dock-pills-container" class="flex items-center gap-1.5">
+        <!-- Rendered dynamically -->
+      </div>
+    </nav>
+
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT LOGIC & STATE ENGINE                                          -->
+  <!-- ========================================================================= -->
   <script>
-    // 1. Data configuration for points inside the plan (percentages define exact pin coordinates)
-    const marketNodes = [
-      {
-        id: 'amphitheatre',
-        name: 'Step Amphitheatre & Plaza',
-        x: 48, // % from left of plan
-        y: 56, // % from top of plan
-        viewImage: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1800&q=80'
+    /* 1. Trilingual Translations and Descriptions */
+    const I18N_DATA = {
+      en: {
+        marketTitle: 'Sardar Vallabhbhai Patel Market',
+        subtitle: '360° Render Perspectives',
+        description: 'The revitalized Sardar Vallabhbhai Patel (Poorna) Market seamlessly blends colonial-era heritage with forward-looking sustainable design. The restored clock tower and landmark facade anchor the urban precinct, replacing congested lanes with shaded pedestrian promenades, modular weather-resilient vendor stalls, an open-air stepped amphitheatre, and landscaped civic plazas that harmonize past culture with contemporary civic life.',
+        statusActive: 'ACTIVE VANTAGE',
+        nodes: [
+          {
+            id: 'node-amphi',
+            code: 'V-01',
+            name: 'Central Step Amphitheatre',
+            category: 'Civic Cultural Forum',
+            elevation: '+0.00m',
+            description: 'Concentric tier seating connecting market plazas with open event performance spaces.'
+          },
+          {
+            id: 'node-pergola',
+            code: 'V-02',
+            name: 'Upper Terraced Wooden Pergola',
+            category: 'Elevated Shaded Deck',
+            elevation: '+11.80m',
+            description: 'Terracotta louvered rooftop deck offering panoramic market views and passive cooling.'
+          },
+          {
+            id: 'node-arcade',
+            code: 'V-03',
+            name: 'Covered Retail Arcade & Stalls',
+            category: 'Commercial Corridor',
+            elevation: '+4.20m',
+            description: 'Continuous shaded bazaar promenade with modular stalls and weatherproofing.'
+          },
+          {
+            id: 'node-west-block',
+            code: 'V-04',
+            name: 'Multi-Storey Commercial Block',
+            category: 'Administration & Cold Storage',
+            elevation: '+14.50m',
+            description: 'Civic hub managing merchant logistics, digital weighing scales, and financial facilities.'
+          },
+          {
+            id: 'node-promenade',
+            code: 'V-05',
+            name: 'South Entry Contour Walk',
+            category: 'Primary Pedestrian Ingress',
+            elevation: '+2.10m',
+            description: 'Stepped terrace gardens guiding visitor flow smoothly into the sunken amphitheater.'
+          }
+        ]
       },
-      {
-        id: 'terrace-pavilion',
-        name: 'Upper Terraced Pavilion',
-        x: 75,
-        y: 28,
-        viewImage: 'https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?auto=format&fit=crop&w=1800&q=80'
+      te: {
+        marketTitle: 'సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్',
+        subtitle: '360° రెండర్ దృశ్యాలు',
+        description: 'పునరుద్ధరించబడిన సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్, వలస పాలన నాటి వారసత్వాన్ని ఆధునిక డిజైన్‌తో అద్భుతంగా మిళితం చేస్తుంది. పునరుద్ధరించిన గడియార స్తంభం (క్లాక్ టవర్) మరియు అసలు ముఖద్వారం ఈ ప్రాంగణానికి ప్రధాన ఆకర్షణగా నిలుస్తాయి; పాత ఇరుకైన, రద్దీగా ఉండే సందుల స్థానంలో ఇప్పుడు పాదచారులకు అనుకూలమైన, నీడనిచ్చే చెట్లతో కూడిన మార్గాలు ఏర్పాటు చేయబడ్డాయి. సాంప్రదాయ దుకాణాలు తమ ప్రత్యేకతను నిలుపుకుంటూనే, మెరుగైన వెలుతురుతో పాటు వాతావరణ పరిస్థితులను తట్టుకునే ఆధునిక \'మాడ్యులర్\' హంగులను సంతరించుకున్నాయి. పైకప్పుతో కూడిన బహిరంగ ప్రదేశం (ప్లాజా), డిజిటల్ దిశానిర్దేశక వ్యవస్థ మరియు క్రమబద్ధమైన పార్కింగ్ వంటి సౌకర్యాలు ఇందులో సున్నితంగా జోడించబడ్డాయి. రాత్రివేళల్లో వారసత్వ శైలి లైటింగ్ ఆధునిక పైకప్పులతో (కానోపీలతో) కలిసిపోయి, చరిత్ర మరియు ఆధునిక అవసరాలు కలిసి సాగే ఒక సుస్థిరమైన ప్రాంగణాన్ని సృష్టిస్తాయి.',
+        statusActive: 'ప్రత్యక్ష దృశ్యం',
+        nodes: [
+          {
+            id: 'node-amphi',
+            code: 'V-01',
+            name: 'స్టెప్ యాంఫిథియేటర్ & సెంట్రల్ ప్లాజా',
+            category: 'సాంస్కృతిక బహిరంగ వేదిక',
+            elevation: '+0.00m',
+            description: 'ప్రజా ఉత్సవాలు మరియు విశ్రాంతి కోసం రూపొందించబడిన విశాలమైన మెట్ల వేదిక.'
+          },
+          {
+            id: 'node-pergola',
+            code: 'V-02',
+            name: 'పై అంతస్తు పెర్గోలా & పెవిలియన్',
+            category: 'నీడ కల్పించే పైకప్పు డెక్',
+            elevation: '+11.80m',
+            description: 'మార్కెట్ వీక్షణ మరియు చల్లని గాలిని అందించే ఆధునిక కలప పైకప్పు అంతస్తు.'
+          },
+          {
+            id: 'node-arcade',
+            code: 'V-03',
+            name: 'దుకాణాల ఆర్కేడ్ & కవర్డ్ నడక మార్గం',
+            category: 'వాణిజ్య సముదాయం',
+            elevation: '+4.20m',
+            description: 'వాతావరణ పరిస్థితులను తట్టుకునే ఆధునిక దుకాణాల కారిడార్.'
+          },
+          {
+            id: 'node-west-block',
+            code: 'V-04',
+            name: 'బహుళ అంతస్తుల వాణిజ్య భవనం',
+            category: 'పరిపాలన & శీతల గిడ్డంగి',
+            elevation: '+14.50m',
+            description: 'వ్యాపారుల సౌకర్యాలు మరియు మార్కెట్ పరిపాలనా కార్యాలయాలు.'
+          },
+          {
+            id: 'node-promenade',
+            code: 'V-05',
+            name: 'దక్షిణ ముఖద్వార ప్రవేశ మార్గం',
+            category: 'ప్రధాన పాదచారుల దారి',
+            elevation: '+2.10m',
+            description: 'ప్రధాన రహదారి నుండి మార్కెట్ ప్రాంగణంలోకి సులభంగా ప్రవేశించే మార్గం.'
+          }
+        ]
       },
-      {
-        id: 'market-lane',
-        name: 'Covered Walkway & Stalls',
-        x: 82,
-        y: 44,
-        viewImage: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1800&q=80'
-      },
-      {
-        id: 'west-block',
-        name: 'Commercial Facade Block',
-        x: 20,
-        y: 65,
-        viewImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1800&q=80'
-      },
-      {
-        id: 'entry-stairs',
-        name: 'Primary Contour Steps',
-        x: 38,
-        y: 45,
-        viewImage: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1800&q=80'
+      hi: {
+        marketTitle: 'सरदार वल्लभभाई पटेल मार्केट',
+        subtitle: '360° रेंडर व्यूज़',
+        description: 'नए सिरे से तैयार सरदार वल्लभभाई पटेल (पूर्णा) मार्केट में औपनिवेशिक दौर की विरासत और आधुनिक डिज़ाइन का मेल दिखता है। ठीक किया गया क्लॉक टावर और पुरानी इमारत का सामने का हिस्सा इस जगह की मुख्य पहचान हैं। इसके चारों ओर पैदल चलने वालों के लिए रास्ते और छायादार हरियाली है, जिसने पुरानी भीड़-भाड़ वाली गलियों की जगह ले ली है। पारंपरिक स्टॉल अपनी जीवंत पहचान बनाए रखते हैं, लेकिन उन्हें बेहतर लाइटिंग के साथ मॉड्यूलर और मौसम से सुरक्षित अपग्रेड मिला है। यहाँ एक ढका हुआ प्लाज़ा, डिजिटल वे-फाइंडिंग और व्यवस्थित पार्किंग की सुविधा भी दी गई है। रात में हेरिटेज लाइटिंग आधुनिक कैनोपी के साथ मिलकर एक ऐसी टिकाऊ जगह बनाती है जहाँ इतिहास और आधुनिक कामकाज साथ-साथ चलते हैं।',
+        statusActive: 'लाइव दृश्य',
+        nodes: [
+          {
+            id: 'node-amphi',
+            code: 'V-01',
+            name: 'स्टेप एम्फीथिएटर और सेंट्रल प्लाज़ा',
+            category: 'नागरिक सांस्कृतिक केंद्र',
+            elevation: '+0.00m',
+            description: 'सार्वजनिक बैठकों और सांस्कृतिक कार्यक्रमों के लिए सीढ़ीदार मंच।'
+          },
+          {
+            id: 'node-pergola',
+            code: 'V-02',
+            name: 'ऊपरी टेरेस्ड वुडन परगोला',
+            category: 'छायादार रूफटॉप डेक',
+            elevation: '+11.80m',
+            description: 'प्राकृतिक हवा और धूप से बचाव के लिए आधुनिक लकड़ी की छतरी।'
+          },
+          {
+            id: 'node-arcade',
+            code: 'V-03',
+            name: 'कवर्ड रिटेल आर्केड और स्टॉल',
+            category: 'व्यापारिक गलियारा',
+            elevation: '+4.20m',
+            description: 'मौसम से सुरक्षित आधुनिक दुकानें और सुगम पैदल मार्ग।'
+          },
+          {
+            id: 'node-west-block',
+            code: 'V-04',
+            name: 'बहुमंजिला वाणिज्यिक ब्लॉक',
+            category: 'प्रशासन एवं कोल्ड स्टोरेज',
+            elevation: '+14.50m',
+            description: 'बाज़ार प्रबंधन और व्यापारी सुविधाओं के लिए प्रशासनिक भवन।'
+          },
+          {
+            id: 'node-promenade',
+            code: 'V-05',
+            name: 'दक्षिणी प्रवेश मार्ग एवं सीढ़ियाँ',
+            category: 'मुख्य पैदल प्रवेश',
+            elevation: '+2.10m',
+            description: 'मुख्य मार्ग से एम्फीथिएटर की ओर उतरने वाला हरा-भरा पैदल रास्ता।'
+          }
+        ]
       }
+    };
+
+    /* Plan Coordinate Placement for Hotspot Pins */
+    const HOTSPOT_PINS_DATA = [
+      { id: 'node-amphi', x: 47, y: 58 },
+      { id: 'node-pergola', x: 67, y: 24 },
+      { id: 'node-arcade', x: 79, y: 46 },
+      { id: 'node-west-block', x: 23, y: 72 },
+      { id: 'node-promenade', x: 37, y: 52 }
     ];
 
-    const startBtn = document.getElementById('start-btn');
-    const startScreen = document.getElementById('start-screen');
-    const marketTitle = document.getElementById('market-title');
-    const activeSpotLabel = document.getElementById('active-spot-label');
-    const mainViewImage = document.getElementById('main-view-image');
-    const pinsContainer = document.getElementById('pins-container');
+    /* State Variables */
+    let currentLang = 'en';
+    let activeVantageIndex = 0;
+    let isLocked = true;
+    let audioPlaying = false;
+    let audioCtx = null;
 
-    // 2. Start Button Click Handler: Renames to Sardar Vallabhbhai Patel Market
-    startBtn.addEventListener('click', () => {
-      startScreen.classList.add('hidden');
-      marketTitle.textContent = 'Sardar Vallabhbhai Patel Market';
-      activeSpotLabel.textContent = 'Interactive Mode Active';
-    });
+    /* DOM References */
+    const lockedRoyalScreen = document.getElementById('locked-royal-screen');
+    const splashMainTitle = document.getElementById('splash-main-title');
+    const splashSubtitle = document.getElementById('splash-subtitle');
+    const splashDescription = document.getElementById('splash-description');
+    const royalStartTrigger = document.getElementById('royal-start-trigger');
+    const langBtnEn = document.getElementById('lang-btn-en');
+    const langBtnTe = document.getElementById('lang-btn-te');
+    const langBtnHi = document.getElementById('lang-btn-hi');
+    const lockScreenBtn = document.getElementById('lock-screen-btn');
 
-    // 3. Render Pins and Set Up Click / Hover Events
-    marketNodes.forEach((node) => {
-      const pin = document.createElement('div');
-      pin.className = 'plan-pin';
-      pin.style.left = `${node.x}%`;
-      pin.style.top = `${node.y}%`;
+    const hudMarketName = document.getElementById('hud-market-name');
+    const hudStatusBadge = document.getElementById('hud-status-badge');
+    const hudViewNameText = document.getElementById('hud-view-name-text');
+    const cardTitle = document.getElementById('card-title');
+    const cardTagline = document.getElementById('card-tagline');
+    const cardElevation = document.getElementById('card-elevation');
+    const planHotspotsContainer = document.getElementById('plan-hotspots-container');
+    const dockPillsContainer = document.getElementById('dock-pills-container');
+    const stageSvg = document.getElementById('stage-svg');
 
-      // Tooltip element (pops up on hover)
-      const tooltip = document.createElement('div');
-      tooltip.className = 'pin-tooltip';
-      tooltip.textContent = node.name;
-      pin.appendChild(tooltip);
+    const planFileInput = document.getElementById('plan-file-input');
+    const userCustomPlan = document.getElementById('user-custom-plan');
+    const aerialAxonometricSvg = document.getElementById('aerial-axonometric-svg');
+    const togglePlanSizeBtn = document.getElementById('toggle-plan-size-btn');
+    const planCanvasContainer = document.getElementById('plan-canvas-container');
 
-      // Click to transition view
-      pin.addEventListener('click', () => {
-        document.querySelectorAll('.plan-pin').forEach(p => p.classList.remove('active'));
-        pin.classList.add('active');
+    const audioToggleBtn = document.getElementById('audio-toggle-btn');
+    const audioIconOn = document.getElementById('audio-icon-on');
+    const audioIconOff = document.getElementById('audio-icon-off');
 
-        // Smooth image switch
-        mainViewImage.style.opacity = '0';
-        setTimeout(() => {
-          mainViewImage.src = node.viewImage;
-          mainViewImage.style.opacity = '1';
-          activeSpotLabel.textContent = node.name;
-        }, 200);
+    /* 2. Language Switcher Engine */
+    function setLanguage(lang) {
+      currentLang = lang;
+      const data = I18N_DATA[lang];
+
+      // Update button styling matching the royal aesthetic
+      [langBtnEn, langBtnTe, langBtnHi].forEach(btn => {
+        btn.className = 'lang-selector transition-all duration-300 hover:text-white text-gray-400 font-normal';
       });
 
-      pinsContainer.appendChild(pin);
+      if (lang === 'en') {
+        langBtnEn.className = 'lang-selector transition-all duration-300 text-gold-300 font-semibold border-b border-gold-400 pb-0.5';
+        splashMainTitle.className = 'font-royal text-2xl sm:text-3xl md:text-5xl font-bold tracking-wide text-white drop-shadow-md lang-fade leading-tight';
+      } else if (lang === 'te') {
+        langBtnTe.className = 'lang-selector transition-all duration-300 text-gold-300 font-semibold border-b border-gold-400 pb-0.5';
+        splashMainTitle.className = 'font-telugu text-2xl sm:text-3xl md:text-4xl font-bold tracking-normal text-white drop-shadow-md lang-fade leading-tight';
+      } else if (lang === 'hi') {
+        langBtnHi.className = 'lang-selector transition-all duration-300 text-gold-300 font-semibold border-b border-gold-400 pb-0.5';
+        splashMainTitle.className = 'font-hindi text-2xl sm:text-3xl md:text-4xl font-bold tracking-normal text-white drop-shadow-md lang-fade leading-tight';
+      }
+
+      // Smooth text swap
+      [splashMainTitle, splashSubtitle, splashDescription].forEach(el => el.style.opacity = '0');
+      
+      setTimeout(() => {
+        splashMainTitle.textContent = data.marketTitle;
+        splashSubtitle.textContent = data.subtitle;
+        splashDescription.textContent = data.description;
+        [splashMainTitle, splashSubtitle, splashDescription].forEach(el => el.style.opacity = '1');
+      }, 200);
+
+      // If unlocked, update the active HUD bar title as well
+      if (!isLocked) {
+        hudMarketName.textContent = data.marketTitle;
+        updateHotspotTooltips();
+        updateActiveSpaceHUD();
+      }
+    }
+
+    langBtnEn.addEventListener('click', () => setLanguage('en'));
+    langBtnTe.addEventListener('click', () => setLanguage('te'));
+    langBtnHi.addEventListener('click', () => setLanguage('hi'));
+
+    /* 3. Unlock and Start Action */
+    royalStartTrigger.addEventListener('click', () => {
+      unlockViewer();
     });
+
+    function unlockViewer() {
+      isLocked = false;
+
+      // Animate locked screen out with royal dissolve
+      lockedRoyalScreen.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+      setTimeout(() => {
+        lockedRoyalScreen.classList.add('hidden');
+      }, 1000);
+
+      // Update HUD Market Name to Sardar Vallabhbhai Patel Market
+      const data = I18N_DATA[currentLang];
+      hudMarketName.textContent = data.marketTitle;
+      hudMarketName.classList.add('text-gold-200');
+
+      hudStatusBadge.textContent = data.statusActive;
+      hudStatusBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 font-mono';
+
+      // Load initial node view
+      activateVantage(0);
+    }
+
+    /* Lock Screen Return Button */
+    lockScreenBtn.addEventListener('click', () => {
+      isLocked = true;
+      lockedRoyalScreen.classList.remove('hidden');
+      setTimeout(() => {
+        lockedRoyalScreen.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+      }, 20);
+    });
+
+    /* 4. Render Pins and Interactive Hotspots */
+    function initializeHotspots() {
+      planHotspotsContainer.innerHTML = '';
+      dockPillsContainer.innerHTML = '';
+
+      HOTSPOT_PINS_DATA.forEach((pin, index) => {
+        const nodeInfo = I18N_DATA[currentLang].nodes[index];
+
+        // 1. Hotspot DOM Node
+        const pinEl = document.createElement('div');
+        pinEl.className = 'absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group z-20';
+        pinEl.style.left = `${pin.x}%`;
+        pinEl.style.top = `${pin.y}%`;
+        pinEl.setAttribute('data-index', index);
+
+        pinEl.innerHTML = `
+          <!-- Pulsing Radar Animation -->
+          <div class="radar-circle hidden absolute -inset-2.5 rounded-full border-2 border-gold-400 radar-pulse pointer-events-none"></div>
+
+          <!-- Pin Core -->
+          <div class="pin-body relative w-4 h-4 rounded-full bg-[#0d121b] border-2 border-white flex items-center justify-center shadow-lg transition-transform duration-200 group-hover:scale-125">
+            <div class="w-1.5 h-1.5 rounded-full bg-gold-400 pin-dot transition-colors"></div>
+          </div>
+
+          <!-- Tooltip on Hover (pops up with space name & category) -->
+          <div class="hotspot-tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 -translate-y-1 group-hover:translate-y-0 z-50">
+            <div class="bg-gray-950/95 backdrop-blur-md text-white text-[11px] font-sans px-3 py-1.5 rounded-md shadow-2xl border border-gold-400/40 whitespace-nowrap">
+              <span class="tooltip-cat text-[9px] font-mono text-gold-300 uppercase tracking-widest block">${nodeInfo.category}</span>
+              <p class="tooltip-name font-semibold text-white">${nodeInfo.name}</p>
+              <span class="text-[10px] text-gray-400 font-mono">${nodeInfo.elevation}</span>
+            </div>
+            <div class="w-2 h-2 bg-gray-950 rotate-45 mx-auto -mt-1 border-r border-b border-gold-400/40"></div>
+          </div>
+        `;
+
+        // Click Event: Change viewpoint
+        pinEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          activateVantage(index);
+        });
+
+        planHotspotsContainer.appendChild(pinEl);
+
+        // 2. Navigation Pill in Bottom Right Dock
+        const pill = document.createElement('button');
+        pill.className = 'dock-pill px-2.5 py-1 rounded text-[11px] font-mono text-gray-400 hover:text-white hover:bg-white/10 transition';
+        pill.textContent = nodeInfo.code;
+        pill.title = nodeInfo.name;
+        pill.addEventListener('click', () => activateVantage(index));
+        dockPillsContainer.appendChild(pill);
+      });
+    }
+
+    /* Update tooltips upon language toggle */
+    function updateHotspotTooltips() {
+      const currentNodes = I18N_DATA[currentLang].nodes;
+      document.querySelectorAll('#plan-hotspots-container > div').forEach((pinEl, idx) => {
+        const node = currentNodes[idx];
+        const catEl = pinEl.querySelector('.tooltip-cat');
+        const nameEl = pinEl.querySelector('.tooltip-name');
+        if (catEl && nameEl) {
+          catEl.textContent = node.category;
+          nameEl.textContent = node.name;
+        }
+      });
+    }
+
+    /* 5. Activate Selected Vantage Perspective */
+    function activateVantage(index) {
+      activeVantageIndex = index;
+      const node = I18N_DATA[currentLang].nodes[index];
+
+      // Update Top HUD View info
+      hudViewNameText.textContent = `${node.name} (${node.elevation})`;
+      
+      // Update Mini-Card
+      cardTitle.textContent = node.name;
+      cardTagline.textContent = node.category;
+      cardElevation.textContent = node.elevation;
+
+      // Update Pin Highlights
+      document.querySelectorAll('#plan-hotspots-container > div').forEach((pinEl, idx) => {
+        const radar = pinEl.querySelector('.radar-circle');
+        const body = pinEl.querySelector('.pin-body');
+        const dot = pinEl.querySelector('.pin-dot');
+
+        if (idx === index) {
+          radar.classList.remove('hidden');
+          body.classList.add('border-gold-400', 'scale-125');
+          dot.className = 'w-2 h-2 rounded-full bg-gold-400 shadow-sm shadow-gold-500';
+          pinEl.classList.add('z-30');
+        } else {
+          radar.classList.add('hidden');
+          body.classList.remove('border-gold-400', 'scale-125');
+          dot.className = 'w-1.5 h-1.5 rounded-full bg-gray-300';
+          pinEl.classList.remove('z-30');
+        }
+      });
+
+      // Update Navigation Pills
+      document.querySelectorAll('.dock-pill').forEach((btn, idx) => {
+        if (idx === index) {
+          btn.className = 'dock-pill px-2.5 py-1 rounded text-[11px] font-mono bg-gold-500 text-royalNavy font-bold shadow-md';
+        } else {
+          btn.className = 'dock-pill px-2.5 py-1 rounded text-[11px] font-mono text-gray-400 hover:text-white hover:bg-white/10 transition';
+        }
+      });
+
+      // Draw Main Stage Perspective Render
+      drawStageRender(index);
+    }
+
+    function updateActiveSpaceHUD() {
+      const node = I18N_DATA[currentLang].nodes[activeVantageIndex];
+      hudViewNameText.textContent = `${node.name} (${node.elevation})`;
+      cardTitle.textContent = node.name;
+      cardTagline.textContent = node.category;
+    }
+
+    /* 6. Dynamic Architectural Viewport Rendering Engine */
+    function drawStageRender(index) {
+      stageSvg.style.opacity = '0.15';
+
+      setTimeout(() => {
+        let markup = '';
+
+        if (index === 0) {
+          // View 01: Central Step Amphitheatre
+          markup = `
+            <defs>
+              <linearGradient id="v1-sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0a1828"/>
+                <stop offset="60%" stop-color="#19283a"/>
+                <stop offset="100%" stop-color="#2d2226"/>
+              </linearGradient>
+            </defs>
+            <rect width="1920" height="1080" fill="url(#v1-sky)"/>
+            
+            <!-- Restored Colonial Clock Tower Silhouette in distance -->
+            <polygon points="940,240 980,240 980,500 940,500" fill="#1b1c24" />
+            <polygon points="930,240 990,240 960,180" fill="#2d2427" />
+            <circle cx="960" cy="270" r="10" fill="#DEBA64" opacity="0.8"/>
+
+            <!-- Terracotta Upper Pavilion Building Block -->
+            <polygon points="1050,300 1680,220 1880,310 1880,700 1050,680" fill="#6d2b2b" />
+            <polygon points="1050,300 1480,240 1480,560 1050,620" fill="#9e3d3d" />
+
+            <!-- Pergola Overhead Slats -->
+            <g stroke="#3a1414" stroke-width="4">
+              <line x1="1100" y1="280" x2="1450" y2="230"/>
+              <line x1="1100" y1="305" x2="1450" y2="255"/>
+              <line x1="1100" y1="330" x2="1450" y2="280"/>
+            </g>
+
+            <!-- Curving Amphitheater Concentric Stone Tiers -->
+            <path d="M -50,1100 C 400,680 1520,680 1970,1100" stroke="#5c4a4e" stroke-width="90" fill="none"/>
+            <path d="M 80,1030 C 500,660 1420,660 1840,1030" stroke="#483a3d" stroke-width="70" fill="none"/>
+            <path d="M 210,960 C 600,640 1320,640 1710,960" stroke="#382d30" stroke-width="50" fill="none"/>
+            <path d="M 340,900 C 700,630 1220,630 1580,900" stroke="#2c2225" stroke-width="40" fill="none"/>
+            
+            <!-- Sunken Circular Plaza Arena -->
+            <ellipse cx="960" cy="740" rx="280" ry="70" fill="#8e7378" opacity="0.6"/>
+
+            <!-- Trees & Warm Plaza Accent Lighting -->
+            <circle cx="480" cy="580" r="80" fill="#1b241c" opacity="0.7"/>
+            <circle cx="1450" cy="590" r="95" fill="#1b241c" opacity="0.7"/>
+          `;
+        } else if (index === 1) {
+          // View 02: Upper Terraced Pergola Deck
+          markup = `
+            <rect width="1920" height="1080" fill="#0d1117"/>
+            <!-- Overhead Angled Timber Pergola Slats -->
+            <g stroke="#9e3d3d" stroke-width="9">
+              <line x1="100" y1="0" x2="1700" y2="380"/>
+              <line x1="300" y1="0" x2="1900" y2="380"/>
+              <line x1="0" y1="120" x2="1400" y2="460"/>
+              <line x1="0" y1="240" x2="1200" y2="520"/>
+            </g>
+            <g stroke="#4f1b1b" stroke-width="5">
+              <line x1="500" y1="80" x2="320" y2="320"/>
+              <line x1="750" y1="140" x2="570" y2="380"/>
+              <line x1="1000" y1="200" x2="820" y2="440"/>
+              <line x1="1250" y1="260" x2="1070" y2="500"/>
+            </g>
+            <!-- Deck Planks -->
+            <polygon points="0,640 1920,520 1920,1080 0,1080" fill="#2d1c1e"/>
+            <line x1="0" y1="740" x2="1920" y2="620" stroke="#1c1112" stroke-width="5"/>
+            <line x1="0" y1="850" x2="1920" y2="730" stroke="#1c1112" stroke-width="5"/>
+            <line x1="0" y1="970" x2="1920" y2="850" stroke="#1c1112" stroke-width="5"/>
+            <!-- Structural Columns -->
+            <rect x="240" y="240" width="40" height="700" fill="#692525"/>
+            <rect x="1560" y="160" width="40" height="700" fill="#692525"/>
+          `;
+        } else if (index === 2) {
+          // View 03: Covered Retail Arcade Promenade
+          markup = `
+            <rect width="1920" height="1080" fill="#0d1117"/>
+            <!-- Colonaded Pedestrian Stalls & Modular Bays -->
+            <g fill="#883333">
+              <polygon points="240,120 340,120 340,1080 240,1080" />
+              <polygon points="620,250 690,250 690,1080 620,1080" fill="#6d2828" />
+              <polygon points="940,340 990,340 990,1000 940,1000" fill="#571e1e" />
+              <polygon points="1200,400 1240,400 1240,950 1200,950" fill="#421616" />
+            </g>
+            <!-- Cantilever Shading Canopy -->
+            <polygon points="0,0 1480,440 1480,510 0,220" fill="#aa4242" opacity="0.88"/>
+            <polygon points="0,850 1920,850 1920,1080 0,1080" fill="#1f222b"/>
+            <!-- Reflected Polished Paver Accents -->
+            <line x1="0" y1="850" x2="1920" y2="850" stroke="#DEBA64" stroke-width="3" opacity="0.5"/>
+          `;
+        } else if (index === 3) {
+          // View 04: Commercial Administration Block
+          markup = `
+            <rect width="1920" height="1080" fill="#141820"/>
+            <polygon points="0,400 960,180 1920,400 1920,1080 0,1080" fill="#252a36"/>
+            <!-- Administrative Block Geometric Facets -->
+            <polygon points="350,300 780,180 890,270 460,400" fill="#3c4354"/>
+            <polygon points="350,300 460,400 460,850 350,750" fill="#262b37"/>
+            <polygon points="460,400 890,270 890,720 460,850" fill="#313747"/>
+            <!-- Window Glazing Matrix -->
+            <g fill="#DEBA64" opacity="0.6">
+              <rect x="490" y="440" width="24" height="35" />
+              <rect x="540" y="420" width="24" height="35" />
+              <rect x="590" y="400" width="24" height="35" />
+              <rect x="640" y="380" width="24" height="35" />
+              <rect x="490" y="520" width="24" height="35" />
+              <rect x="540" y="500" width="24" height="35" />
+              <rect x="590" y="480" width="24" height="35" />
+              <rect x="640" y="460" width="24" height="35" />
+            </g>
+          `;
+        } else {
+          // View 05: South Entry Contour Walk
+          markup = `
+            <rect width="1920" height="1080" fill="#10141c"/>
+            <polygon points="0,450 960,250 1920,450 1920,1080 0,1080" fill="#1b202a"/>
+            <!-- Tiered Ramps and Planters -->
+            <path d="M 0,900 Q 960,650 1920,900" stroke="#756166" stroke-width="45" fill="none"/>
+            <path d="M 0,980 Q 960,730 1920,980" stroke="#5a494d" stroke-width="50" fill="none"/>
+            <!-- Tree canopies and landscaped buffer -->
+            <circle cx="350" cy="520" r="110" fill="#2d382e" opacity="0.8"/>
+            <circle cx="700" cy="460" r="130" fill="#3a473b" opacity="0.7"/>
+            <circle cx="1250" cy="480" r="120" fill="#3a473b" opacity="0.7"/>
+            <circle cx="1600" cy="540" r="100" fill="#2d382e" opacity="0.8"/>
+          `;
+        }
+
+        // Add vantage architectural stamp watermark
+        const node = I18N_DATA[currentLang].nodes[index];
+        markup += `
+          <g transform="translate(80, 940)">
+            <text x="0" y="0" font-family="'Cinzel', serif" font-size="34" fill="#ffffff" font-weight="700" letter-spacing="2">${node.name.toUpperCase()}</text>
+            <text x="0" y="40" font-family="'Space Grotesk', monospace" font-size="16" fill="#DEBA64" letter-spacing="1.5">${node.category.toUpperCase()} // DATUM: ${node.elevation}</text>
+          </g>
+        `;
+
+        stageSvg.innerHTML = markup;
+        stageSvg.style.opacity = '1';
+      }, 200);
+    }
+
+    /* 7. Image Upload Swap for Custom Aerial Plan File */
+    planFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          userCustomPlan.src = event.target.result;
+          userCustomPlan.classList.remove('hidden');
+          aerialAxonometricSvg.classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    /* Toggle Plan Box Minimization */
+    let planMinimized = false;
+    togglePlanSizeBtn.addEventListener('click', () => {
+      planMinimized = !planMinimized;
+      if (planMinimized) {
+        planCanvasContainer.classList.add('hidden');
+        togglePlanSizeBtn.textContent = '+';
+      } else {
+        planCanvasContainer.classList.remove('hidden');
+        togglePlanSizeBtn.textContent = '−';
+      }
+    });
+
+    /* 8. Web Audio API Ambient Sound Synthesizer */
+    audioToggleBtn.addEventListener('click', () => {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      audioPlaying = !audioPlaying;
+
+      if (audioPlaying) {
+        audioIconOn.classList.remove('hidden');
+        audioIconOff.classList.add('hidden');
+        playWarmAtmosphere(audioCtx);
+      } else {
+        audioIconOn.classList.add('hidden');
+        audioIconOff.classList.remove('hidden');
+        if (ambientGain) ambientGain.gain.setValueAtTime(0, audioCtx.currentTime);
+      }
+    });
+
+    let ambientGain = null;
+    function playWarmAtmosphere(ctx) {
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      ambientGain = ctx.createGain();
+
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(110, ctx.currentTime); // A2 warm harmonic
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(165, ctx.currentTime); // E3 fifth
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(320, ctx.currentTime);
+
+      ambientGain.gain.setValueAtTime(0.01, ctx.currentTime);
+      ambientGain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 3);
+
+      osc1.connect(filter);
+      osc2.connect(filter);
+      filter.connect(ambientGain);
+      ambientGain.connect(ctx.destination);
+
+      osc1.start();
+      osc2.start();
+    }
+
+    // Initialize application default language & hotspot pins
+    setLanguage('en');
+    initializeHotspots();
   </script>
 </body>
 </html>
