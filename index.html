@@ -1,218 +1,1540 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
   <title>Sardar Vallabhbhai Patel Market | 360 VR Experience</title>
 
+
+
   <!-- Typography: Royal Serif + Multilingual Google Fonts -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;600;700&display=swap" rel="stylesheet">
 
+
+
   <!-- Three.js for Equirectangular WebGL and WebXR rendering -->
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
+
+
   <style>
+
     :root {
+
       --gold-line: rgba(223, 183, 108, 0.75);
+
       --gold-accent: #dfb76c;
+
       --gold-glow: rgba(223, 183, 108, 0.45);
+
       --terracotta-red: #8B3A3A;
+
       --terracotta-burgundy: #581C14;
+
       --terracotta-rust: #A8473B;
+
       --text-ivory: #fcf9f2;
+
       --text-muted: #e4d7c5;
-      --bg-glass: rgba(14, 18, 24, 0.88);
-      --bg-glass-card: rgba(45, 14, 10, 0.92);
+
+      --bg-glass: rgba(14, 18, 24, 0.84);
+
+      --bg-glass-card: rgba(45, 14, 10, 0.88);
+
       --border-accent: rgba(229, 152, 138, 0.35);
+
     }
+
+
 
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
     body, html { width: 100%; height: 100%; overflow: hidden; background: #080a0e; font-family: 'Inter', sans-serif; color: var(--text-ivory); }
+
     #webgl-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
 
-    /* ==========================================================================
-       HERITAGE INTERACTIVE WELCOME SCREEN
-       ========================================================================== */
+
+
     #welcome-screen {
+
       position: absolute; inset: 0; z-index: 50;
+
       display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-      padding: clamp(14px, 3vw, 36px);
-      background: radial-gradient(circle at center, rgba(14, 18, 24, 0.35) 0%, rgba(6, 8, 12, 0.82) 100%);
+
+      padding: clamp(16px, 3.5vw, 42px);
+
+      background: radial-gradient(circle at center, rgba(14, 18, 24, 0.32) 0%, rgba(6, 8, 12, 0.78) 100%);
+
       transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
+
       pointer-events: auto;
+
     }
+
     #welcome-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
+
+
+    /* Outer Thin Inset Perimeter Frame */
+
     .outer-border-frame {
+
       position: absolute;
-      top: clamp(12px, 2.4vw, 28px);
-      bottom: clamp(12px, 2.4vw, 28px);
-      left: clamp(12px, 2.4vw, 28px);
-      right: clamp(12px, 2.4vw, 28px);
+
+      top: clamp(14px, 2.8vw, 32px);
+
+      bottom: clamp(14px, 2.8vw, 32px);
+
+      left: clamp(14px, 2.8vw, 32px);
+
+      right: clamp(14px, 2.8vw, 32px);
+
       border: 1px solid var(--gold-line);
+
       pointer-events: none;
+
       box-shadow: inset 0 0 24px rgba(0,0,0,0.6), 0 0 16px rgba(223, 183, 108, 0.15);
+
     }
+
+
+
+    /* Top Architectural Line Sketch & Brand */
 
     .welcome-top {
+
       position: relative; z-index: 2;
+
       display: flex; flex-direction: column; align-items: center; text-align: center;
-      margin-top: 6px;
+
+      margin-top: 8px;
+
     }
+
+
 
     .market-sketch {
-      width: clamp(88px, 8.5vw, 125px); height: auto; margin-bottom: 6px;
+
+      width: clamp(95px, 9.5vw, 135px); height: auto; margin-bottom: 8px;
+
       filter: drop-shadow(0 2px 8px rgba(0,0,0,0.9));
+
     }
+
     .market-sketch path, .market-sketch rect, .market-sketch line, .market-sketch circle, .market-sketch polygon {
+
       stroke: var(--gold-line); fill: none; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
+
     }
+
+
 
     .monarchy-brand-label {
-      font-family: 'Cinzel', serif; font-size: clamp(10px, 1.1vw, 13px);
+
+      font-family: 'Cinzel', serif; font-size: clamp(11px, 1.2vw, 14px);
+
       letter-spacing: clamp(3px, 0.4vw, 5px); color: var(--gold-line); text-transform: uppercase;
+
       font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+
     }
+
+
+
+    /* Welcome Center Content */
 
     .welcome-center {
+
       position: relative; z-index: 2;
-      max-width: 900px; width: 100%; text-align: center;
+
+      max-width: 880px; width: 100%; text-align: center;
+
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 0 16px;
+
+      padding: 0 20px;
+
     }
+
+
 
     .tour-title {
-      font-family: 'Cinzel', serif; font-size: clamp(20px, 3vw, 36px);
+
+      font-family: 'Cinzel', serif; font-size: clamp(22px, 3.2vw, 38px);
+
       font-weight: 700; letter-spacing: 2px; color: #ffffff;
+
       text-shadow: 0 2px 14px rgba(0,0,0,0.95), 0 0 25px rgba(0,0,0,0.85);
-      margin-bottom: 4px; line-height: 1.25;
+
+      margin-bottom: 6px; line-height: 1.25;
+
     }
+
+
 
     .tour-subtitle {
-      font-family: 'Cinzel', serif; font-size: clamp(11px, 1.4vw, 15px);
+
+      font-family: 'Cinzel', serif; font-size: clamp(12px, 1.5vw, 16px);
+
       font-weight: 600; letter-spacing: 4px; color: var(--gold-line);
+
       text-transform: uppercase; text-shadow: 0 2px 10px rgba(0,0,0,0.9);
-      margin-bottom: 14px;
+
+      margin-bottom: 20px;
+
     }
 
-    /* Interactive Heritage Story Badges */
-    .heritage-tags {
-      display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; justify-content: center;
-    }
-    .heritage-badge {
-      background: rgba(88, 28, 20, 0.45); border: 1px solid var(--border-accent);
-      padding: 4px 12px; border-radius: 20px; font-size: 10px; letter-spacing: 1.2px;
-      text-transform: uppercase; color: var(--gold-accent); cursor: pointer;
-      backdrop-filter: blur(10px); transition: all 0.25s;
-    }
-    .heritage-badge:hover, .heritage-badge.active {
-      background: var(--terracotta-rust); color: #fff; border-color: var(--gold-line);
-      box-shadow: 0 0 14px rgba(223, 183, 108, 0.4);
-    }
+
 
     .tour-description {
-      font-size: clamp(11.5px, 1.05vw, 14px); line-height: 1.74;
+
+      font-size: clamp(12px, 1.1vw, 14.5px); line-height: 1.78;
+
       color: var(--text-ivory); font-weight: 300; max-width: 820px;
-      margin-bottom: 26px; text-shadow: 0 2px 10px rgba(0,0,0,0.95);
-      text-wrap: balance; transition: all 0.3s ease;
+
+      margin-bottom: 34px; text-shadow: 0 2px 10px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.9);
+
+      text-wrap: balance;
+
     }
+
+
+
+    /* Language Typography Override */
 
     .lang-te .tour-title, .lang-te .tour-subtitle, .lang-te .tour-description, .lang-te .diamond-label {
+
       font-family: 'Noto Sans Telugu', sans-serif !important; letter-spacing: 0.5px !important;
+
     }
+
     .lang-hi .tour-title, .lang-hi .tour-subtitle, .lang-hi .tour-description, .lang-hi .diamond-label {
+
       font-family: 'Noto Sans Devanagari', sans-serif !important; letter-spacing: 0.5px !important;
+
     }
+
+
 
     .diamond-btn-container {
-      position: relative; width: 105px; height: 105px;
+
+      position: relative; width: 110px; height: 110px;
+
       display: flex; align-items: center; justify-content: center;
+
       cursor: pointer; background: transparent; border: none; outline: none;
+
     }
+
     .diamond-bg {
+
       position: absolute; inset: 12px;
-      background: rgba(14, 18, 24, 0.75);
+
+      background: rgba(14, 18, 24, 0.72);
+
       border: 1.5px solid var(--gold-line);
+
       transform: rotate(45deg);
+
       backdrop-filter: blur(10px);
+
       transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
       box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+
     }
+
     .diamond-btn-container:hover .diamond-bg {
+
       transform: rotate(45deg) scale(1.12);
+
       border-color: #ffffff;
+
       background: rgba(223, 183, 108, 0.35);
+
       box-shadow: 0 0 28px rgba(223, 183, 108, 0.75);
+
     }
+
     .diamond-pulse-ring {
+
       position: absolute; inset: 4px;
+
       border: 1px solid var(--gold-line);
+
       transform: rotate(45deg);
+
       animation: diamondPulse 2.4s infinite cubic-bezier(0.25, 1, 0.5, 1);
+
       pointer-events: none;
+
     }
+
     @keyframes diamondPulse {
+
       0% { transform: rotate(45deg) scale(0.9); opacity: 0.9; }
+
       100% { transform: rotate(45deg) scale(1.45); opacity: 0; }
+
     }
+
     .diamond-label {
+
       position: relative; z-index: 2;
-      font-family: 'Cinzel', serif; font-size: 10.5px; font-weight: 700;
+
+      font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700;
+
       letter-spacing: 1.8px; color: #ffffff; text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+
       text-align: center; line-height: 1.25; text-transform: uppercase;
-      pointer-events: none; padding: 0 6px;
+
+      pointer-events: none; padding: 0 8px;
+
     }
+
+
+
+    /* Bottom Language Switcher Ribbon */
 
     .welcome-bottom {
-      position: relative; z-index: 2; margin-bottom: 4px;
+
+      position: relative; z-index: 2; margin-bottom: 8px;
+
     }
+
     .language-bar {
+
       display: flex; align-items: center; justify-content: center;
-      gap: 16px; font-size: clamp(10.5px, 1.05vw, 12.5px); letter-spacing: 2.5px;
+
+      gap: 16px; font-size: clamp(11px, 1.1vw, 13px); letter-spacing: 2.5px;
+
       color: var(--text-muted); text-transform: uppercase;
+
     }
+
     .lang-btn {
+
       cursor: pointer; transition: all 0.25s; padding: 4px 6px;
+
       text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+
     }
+
     .lang-btn:hover { color: #ffffff; text-shadow: 0 0 8px var(--gold-line); }
+
     .lang-btn.active {
+
       color: var(--gold-line); font-weight: 700; border-bottom: 1.5px solid var(--gold-line);
+
     }
+
     .lang-sep { color: var(--gold-line); opacity: 0.6; font-size: 9px; }
 
-    /* ==========================================================================
-       TOP ARCHITECTURAL HUD
-       ========================================================================== */
+
+
     .top-hud {
+
       position: absolute; top: 0; left: 0; right: 0; height: 68px;
+
       display: flex; align-items: center; justify-content: space-between;
+
       padding: 0 24px; z-index: 20;
+
       background: linear-gradient(180deg, rgba(7,9,13,0.9) 0%, rgba(7,9,13,0) 100%);
-      pointer-events: none; opacity: 0; visibility: hidden;
+
+      pointer-events: none;
+
+      opacity: 0; visibility: hidden;
+
       transition: opacity 0.5s ease, visibility 0.5s;
+
     }
+
     .top-hud.visible { opacity: 1; visibility: visible; }
+
     .top-hud > * { pointer-events: auto; }
+
     .hud-brand { font-family: 'Cinzel', serif; font-size: 14.5px; letter-spacing: 2px; color: var(--gold-line); font-weight: 700; }
+
     .hud-sub { font-size: 10px; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; }
 
+
+
     .hud-actions { display: flex; gap: 10px; align-items: center; }
+
     .btn-action {
+
       background: rgba(14, 18, 24, 0.75); border: 1px solid var(--gold-line);
+
       color: var(--text-ivory); padding: 7px 16px; border-radius: 30px;
+
       font-size: 11px; font-weight: 600; cursor: pointer; letter-spacing: 1px;
+
       backdrop-filter: blur(14px); transition: all 0.2s;
-    }
-    .btn-action:hover { border-color: #ffffff; color: var(--gold-line); }
-    .btn-vr-trigger {
-      background: linear-gradient(135deg, #dfb76c, #996e00);
-      border: 1px solid #ffe89e; color: #000; font-weight: 700;
+
     }
 
-    /* ==========================================================================
-       CORNER MINI-MAP (BOTTOM-LEFT)
-       ========================================================================== */
-    .map-widget-
+    .btn-action:hover { border-color: #ffffff; color: var(--gold-line); }
+
+    .btn-vr-trigger {
+
+      background: linear-gradient(135deg, #dfb76c, #996e00);
+
+      border: 1px solid #ffe89e; color: #000; font-weight: 700;
+
+    }
+
+
+
+    .map-widget-container {
+
+      position: absolute; bottom: 24px; left: 24px; z-index: 25;
+
+      display: flex; flex-direction: column; align-items: flex-start;
+
+      opacity: 0; visibility: hidden; pointer-events: none;
+
+      transition: opacity 0.6s ease, visibility 0.6s;
+
+    }
+
+    .map-widget-container.visible {
+
+      opacity: 1; visibility: visible; pointer-events: auto;
+
+    }
+
+
+
+    .map-card {
+
+      position: relative; width: 270px; height: 230px;
+
+      background: var(--bg-glass);
+
+      border: 1.5px solid var(--gold-line);
+
+      border-radius: 14px; overflow: hidden;
+
+      backdrop-filter: blur(18px);
+
+      box-shadow: 0 14px 38px rgba(0, 0, 0, 0.8);
+
+      transition: height 0.3s ease, width 0.3s ease;
+
+    }
+
+    .map-card.minimized {
+
+      height: 40px; width: 175px;
+
+    }
+
+
+
+    .map-header {
+
+      height: 38px; width: 100%;
+
+      display: flex; align-items: center; justify-content: space-between;
+
+      padding: 0 12px; background: rgba(88, 28, 20, 0.55);
+
+      border-bottom: 1px solid rgba(223, 183, 108, 0.3);
+
+      cursor: pointer;
+
+    }
+
+    .map-title {
+
+      font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700;
+
+      color: var(--gold-accent); letter-spacing: 1px;
+
+    }
+
+    .map-toggle-icon {
+
+      font-size: 13px; color: var(--text-muted); transition: transform 0.25s;
+
+    }
+
+    .map-card.minimized .map-toggle-icon { transform: rotate(180deg); }
+
+
+
+    .map-viewport {
+
+      position: relative; width: 100%; height: calc(100% - 38px);
+
+      overflow: hidden; background: #161a22;
+
+    }
+
+    .map-bg-img {
+
+      position: absolute; inset: 0; width: 100%; height: 100%;
+
+      object-fit: cover; opacity: 0.88; filter: contrast(1.08) brightness(0.92);
+
+    }
+
+
+
+    /* Fallback Axonometric Drawing */
+
+    .map-svg-drawing {
+
+      position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;
+
+    }
+
+
+
+    /* Interactive Radar Waypoint Pins */
+
+    .map-pin {
+
+      position: absolute; width: 18px; height: 18px;
+
+      transform: translate(-50%, -50%);
+
+      cursor: pointer; z-index: 10;
+
+    }
+
+    .pin-core {
+
+      position: absolute; inset: 3px; border-radius: 50%;
+
+      background: var(--gold-accent); border: 1.5px solid #fff;
+
+      box-shadow: 0 0 10px rgba(223, 183, 108, 0.9);
+
+      transition: transform 0.2s, background 0.2s;
+
+    }
+
+    .map-pin:hover .pin-core, .map-pin.active .pin-core {
+
+      transform: scale(1.35); background: #ff4757;
+
+    }
+
+    .pin-radar-ring {
+
+      position: absolute; inset: -4px; border-radius: 50%;
+
+      border: 1px solid var(--gold-accent); opacity: 0.8;
+
+      animation: pinRadar 2.2s infinite ease-out;
+
+      pointer-events: none;
+
+    }
+
+    @keyframes pinRadar {
+
+      0% { transform: scale(0.6); opacity: 0.9; }
+
+      100% { transform: scale(2.2); opacity: 0; }
+
+    }
+
+
+
+    /* Dynamic Camera Radar Cone */
+
+    .pin-fov-cone {
+
+      position: absolute; top: 9px; left: 9px; width: 0; height: 0;
+
+      border-left: 18px solid transparent; border-right: 18px solid transparent;
+
+      border-bottom: 38px solid rgba(223, 183, 108, 0.45);
+
+      transform-origin: 0% 0%; pointer-events: none;
+
+      display: none; z-index: 5;
+
+    }
+
+    .map-pin.active .pin-fov-cone { display: block; }
+
+
+
+    /* Tooltip Popup on Hover */
+
+    .map-tooltip {
+
+      position: absolute; bottom: calc(100% + 8px); left: 50%;
+
+      transform: translateX(-50%);
+
+      background: rgba(10, 14, 20, 0.95);
+
+      border: 1px solid var(--gold-line);
+
+      padding: 6px 10px; border-radius: 6px;
+
+      white-space: nowrap; font-size: 10px;
+
+      color: var(--text-ivory); pointer-events: none;
+
+      opacity: 0; visibility: hidden; transition: opacity 0.2s, transform 0.2s;
+
+      box-shadow: 0 6px 18px rgba(0,0,0,0.8);
+
+      z-index: 30; font-weight: 500;
+
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+
+    }
+
+    .map-tooltip-title { font-weight: 700; color: var(--gold-accent); }
+
+    .map-tooltip-sub { font-size: 8.5px; color: var(--text-muted); }
+
+    .map-tooltip::after {
+
+      content: ''; position: absolute; top: 100%; left: 50%;
+
+      transform: translateX(-50%); border-width: 4px; border-style: solid;
+
+      border-color: var(--gold-line) transparent transparent transparent;
+
+    }
+
+    .map-pin:hover .map-tooltip {
+
+      opacity: 1; visibility: visible; transform: translateX(-50%) translateY(-2px);
+
+    }
+
+
+
+    .bottom-dock {
+
+      position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+
+      display: none; align-items: center; gap: 8px; z-index: 20;
+
+      background: var(--bg-glass); border: 1px solid var(--gold-line);
+
+      padding: 6px 14px; border-radius: 40px; backdrop-filter: blur(20px);
+
+      box-shadow: 0 10px 30px rgba(0,0,0,0.65);
+
+      opacity: 0; transition: opacity 0.6s ease;
+
+    }
+
+    .bottom-dock.visible {
+
+      display: flex; opacity: 1;
+
+    }
+
+    .dock-btn {
+
+      background: transparent; border: none; color: var(--text-ivory);
+
+      width: 36px; height: 36px; border-radius: 50%; display: flex;
+
+      align-items: center; justify-content: center; font-size: 15px;
+
+      cursor: pointer; transition: all 0.2s;
+
+    }
+
+    .dock-btn:hover { background: rgba(223, 183, 108, 0.2); color: var(--gold-line); }
+
+    .dock-zoom-readout {
+
+      font-size: 11px; font-family: monospace; color: var(--gold-line);
+
+      padding: 0 8px; border-left: 1px solid rgba(255,255,255,0.12);
+
+      border-right: 1px solid rgba(255,255,255,0.12);
+
+    }
+
+
+
+    #file-input { display: none; }
+
+  </style>
+
+</head>
+
+<body>
+
+  <canvas id="webgl-canvas"></canvas>
+
+
+
+  <div id="welcome-screen">
+
+    <div class="outer-border-frame"></div>
+
+
+
+    <!-- Top Architectural Line Sketch & Branding -->
+
+    <div class="welcome-top">
+
+      <svg class="market-sketch" viewBox="0 0 140 68">
+
+        <line x1="6" y1="62" x2="134" y2="62" stroke-width="1.8"/>
+
+        <!-- Restored Clock Tower -->
+
+        <rect x="58" y="16" width="24" height="46"/>
+
+        <polygon points="56,16 70,3 84,16" stroke-width="1.5"/>
+
+        <circle cx="70" cy="27" r="5" stroke-width="1.2"/>
+
+        <line x1="70" y1="27" x2="70" y2="24"/>
+
+        <line x1="70" y1="27" x2="73" y2="27"/>
+
+        <rect x="65" y="44" width="10" height="18"/>
+
+        <!-- Colonnade Arches -->
+
+        <line x1="16" y1="36" x2="58" y2="36"/>
+
+        <path d="M 22,62 A 6,6 0 0,1 34,62" />
+
+        <path d="M 38,62 A 6,6 0 0,1 50,62" />
+
+        <line x1="22" y1="36" x2="22" y2="62"/>
+
+        <line x1="34" y1="36" x2="34" y2="62"/>
+
+        <line x1="50" y1="36" x2="50" y2="62"/>
+
+        <!-- Modular Kiosks & Pergolas -->
+
+        <line x1="82" y1="36" x2="124" y2="36"/>
+
+        <path d="M 90,62 A 6,6 0 0,1 102,62" />
+
+        <path d="M 106,62 A 6,6 0 0,1 118,62" />
+
+        <line x1="90" y1="36" x2="90" y2="62"/>
+
+        <line x1="102" y1="36" x2="102" y2="62"/>
+
+        <line x1="118" y1="36" x2="118" y2="62"/>
+
+      </svg>
+
+      <div class="monarchy-brand-label">ARCHITECTURAL HERITAGE</div>
+
+    </div>
+
+
+
+    <!-- Center Content -->
+
+    <div class="welcome-center" id="welcome-text-container">
+
+      <h1 class="tour-title" id="tour-title">Sardar Vallabhbhai Patel Market</h1>
+
+      <div class="tour-subtitle" id="tour-subtitle">360° RENDER VIEWS</div>
+
+      <p class="tour-description" id="tour-desc">
+
+        The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist.
+
+      </p>
+
+
+
+      <!-- 45-deg Rhombus Diamond Button: ENTER THE BAZAAR -->
+
+      <button class="diamond-btn-container" id="enter-bazaar-btn" aria-label="Enter The Bazaar Virtual Tour">
+
+        <div class="diamond-pulse-ring"></div>
+
+        <div class="diamond-bg"></div>
+
+        <span class="diamond-label" id="bazaar-label">ENTER THE<br>BAZAAR</span>
+
+      </button>
+
+    </div>
+
+
+
+    <!-- Bottom Language Switcher Ribbon -->
+
+    <div class="welcome-bottom">
+
+      <div class="language-bar">
+
+        <span class="lang-btn active" id="btn-en" onclick="changeLanguage('en')">ENGLISH</span>
+
+        <span class="lang-sep">◇</span>
+
+        <span class="lang-btn" id="btn-te" onclick="changeLanguage('te')">TELUGU</span>
+
+        <span class="lang-sep">◇</span>
+
+        <span class="lang-btn" id="btn-hi" onclick="changeLanguage('hi')">HINDI</span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="top-hud" id="top-hud">
+
+    <div>
+
+      <div class="hud-brand">SARDAR VALLABHBHAI PATEL MARKET</div>
+
+      <div class="hud-sub">Architectural 360 Spatial View</div>
+
+    </div>
+
+    <div class="hud-actions">
+
+      <button class="btn-action" id="info-btn">INFO</button>
+
+      <button class="btn-action" onclick="document.getElementById('file-input').click()">Upload 360 Pano</button>
+
+      <input type="file" id="file-input" accept="image/*">
+
+      <button class="btn-action btn-vr-trigger" id="enter-vr-btn">ENTER VR</button>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="map-widget-container" id="map-widget">
+
+    <div class="map-card" id="map-card">
+
+      <div class="map-header" id="map-header" title="Toggle Mini-Map Size">
+
+        <span class="map-title">SITE MASTER PLAN</span>
+
+        <span class="map-toggle-icon" id="map-toggle-arrow">▾</span>
+
+      </div>
+
+      <div class="map-viewport" id="map-viewport">
+
+        <!-- Render uploaded axonometric sketch if found; fallback SVG below -->
+
+        <img class="map-bg-img" id="map-img-bg" src="./image_b26422.jpg" alt="Master Plan" onerror="this.style.display='none'">
+
+
+
+        <!-- Precise Axonometric Geometry Fallback (Stepped Amphitheater & Red Pavilion) -->
+
+        <svg class="map-svg-drawing" viewBox="0 0 300 240">
+
+          <defs>
+
+            <linearGradient id="amphGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+
+              <stop offset="0%" stop-color="#E5988A" stop-opacity="0.4"/>
+
+              <stop offset="100%" stop-color="#A8473B" stop-opacity="0.2"/>
+
+            </linearGradient>
+
+            <linearGradient id="roofGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+
+              <stop offset="0%" stop-color="#9E3B33"/>
+
+              <stop offset="100%" stop-color="#581C14"/>
+
+            </linearGradient>
+
+          </defs>
+
+          <path d="M 10,120 Q 90,80 145,130 T 290,140 L 290,230 L 10,230 Z" fill="#20242e"/>
+
+          <ellipse cx="145" cy="142" rx="44" ry="25" fill="url(#amphGrad)" stroke="#dfb76c" stroke-width="1.2"/>
+
+          <ellipse cx="145" cy="138" rx="35" ry="20" fill="none" stroke="#dfb76c" stroke-width="0.9" opacity="0.8"/>
+
+          <ellipse cx="145" cy="134" rx="26" ry="15" fill="none" stroke="#dfb76c" stroke-width="0.8" opacity="0.6"/>
+
+          <!-- Red Pavilion Block -->
+
+          <polygon points="165,65 245,28 285,48 205,85" fill="url(#roofGrad)" stroke="#E5988A" stroke-width="1.2"/>
+
+          <polygon points="205,85 285,48 285,115 205,152" fill="#581C14" stroke="#A8473B" stroke-width="1"/>
+
+          <polygon points="165,65 205,85 205,152 165,132" fill="#782920" stroke="#A8473B" stroke-width="1"/>
+
+        </svg>
+
+
+
+        <!-- Interactive Radar Waypoint Pins across the Plan -->
+
+        <!-- Pin 1: Amphitheater & Central Plaza -->
+
+        <div class="map-pin active" id="pin-amphi" style="top: 60%; left: 49%;" onclick="navigateToZone('amphi', 180, 0)">
+
+          <div class="pin-radar-ring"></div>
+
+          <div class="pin-core"></div>
+
+          <div class="pin-fov-cone" id="cone-amphi"></div>
+
+          <div class="map-tooltip">
+
+            <span class="map-tooltip-title">Amphitheater & Central Plaza</span>
+
+            <span class="map-tooltip-sub">Civic gathering & performance hub</span>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- Pin 2: Red Terraced Pavilion -->
+
+        <div class="map-pin" id="pin-pavilion" style="top: 32%; left: 74%;" onclick="navigateToZone('pavilion', 125, 8)">
+
+          <div class="pin-radar-ring"></div>
+
+          <div class="pin-core"></div>
+
+          <div class="map-tooltip">
+
+            <span class="map-tooltip-title">Red Terraced Pavilion</span>
+
+            <span class="map-tooltip-sub">Food & cultural arcade zone</span>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- Pin 3: Pergola Shaded Promenade & Steps -->
+
+        <div class="map-pin" id="pin-pergola" style="top: 42%; left: 38%;" onclick="navigateToZone('pergola', 215, -4)">
+
+          <div class="pin-radar-ring"></div>
+
+          <div class="pin-core"></div>
+
+          <div class="map-tooltip">
+
+            <span class="map-tooltip-title">Pergola Promenade & Steps</span>
+
+            <span class="map-tooltip-sub">Pedestrian shaded walkways</span>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- Pin 4: Heritage Clock Tower & Main Entrance -->
+
+        <div class="map-pin" id="pin-clock" style="top: 74%; left: 52%;" onclick="navigateToZone('clock', 180, 5)">
+
+          <div class="pin-radar-ring"></div>
+
+          <div class="pin-core"></div>
+
+          <div class="map-tooltip">
+
+            <span class="map-tooltip-title">Heritage Clock Tower Entrance</span>
+
+            <span class="map-tooltip-sub">Colonial facade nostalgic anchor</span>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- Pin 5: Artisan & Fruit Bazaar Kiosks -->
+
+        <div class="map-pin" id="pin-kiosks" style="top: 54%; left: 24%;" onclick="navigateToZone('kiosks', 240, -6)">
+
+          <div class="pin-radar-ring"></div>
+
+          <div class="pin-core"></div>
+
+          <div class="map-tooltip">
+
+            <span class="map-tooltip-title">Artisan & Fruit Bazaar Kiosks</span>
+
+            <span class="map-tooltip-sub">Modular weather-resistant stalls</span>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- Pin 6: Jewelry & Textile Arcade -->
+
+        <div class="map-pin" id="pin-arcade" style="top: 62%; left: 80%;" onclick="navigateToZone('arcade', 110, 0)">
+
+          <div class="pin-radar-ring"></div>
+
+          <div class="pin-core"></div>
+
+          <div class="map-tooltip">
+
+            <span class="map-tooltip-title">Jewelry & Textile Arcade</span>
+
+            <span class="map-tooltip-sub">Traditional commerce arcade</span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="bottom-dock" id="bottom-dock">
+
+    <button class="dock-btn" onclick="stepZoom(-5)" title="Zoom Out">−</button>
+
+    <div class="dock-zoom-readout" id="zoom-readout">60° FOV</div>
+
+    <button class="dock-btn" onclick="stepZoom(5)" title="Zoom In">+</button>
+
+    <button class="dock-btn" id="btn-rotate-toggle" title="Toggle Auto-Rotation">↻</button>
+
+    <button class="dock-btn" id="btn-recenter" title="Recenter View">⌖</button>
+
+  </div>
+
+
+
+  <script>
+
+    /* Multilingual Content Dictionary */
+
+    const translations = {
+
+      en: {
+
+        title: "Sardar Vallabhbhai Patel Market",
+
+        subtitle: "360° RENDER VIEWS",
+
+        desc: "The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist.",
+
+        bazaarLabel: "ENTER THE<br>BAZAAR"
+
+      },
+
+      te: {
+
+        title: "సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్",
+
+        subtitle: "360° రెండర్ దృశ్యాలు",
+
+        desc: "పునరుద్ధరించబడిన సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్, వలస పాలన నాటి వారసత్వాన్ని ఆధునిక డిజైన్‌తో అద్భుతంగా మిళితం చేస్తుంది. పునరుద్ధరించిన గడియార స్తంభం (క్లాక్ టవర్) మరియు అసలు ముఖద్వారం ఈ ప్రాంగణానికి ప్రధాన ఆకర్షణగా నిలుస్తాయి; పాత ఇరుకైన, రద్దీగా ఉండే సందుల స్థానంలో ఇప్పుడు పాదచారులకు అనుకూలమైన, నీడనిచ్చే చెట్లతో కూడిన మార్గాలు ఏర్పాటు చేయబడ్డాయి. సాంప్రదాయ దుకాణాలు తమ ప్రత్యేకతను నిలుపుకుంటూనే, మెరుగైన వెలుతురుతో పాటు వాతావరణ పరిస్థితులను తట్టుకునే ఆధునిక 'మాడ్యులర్' హంగులను సంతరించుకున్నాయి. పైకప్పుతో కూడిన బహిరంగ ప్రదేశం (ప్లాజా), డిజిటల్ దిశానిర్దేశక వ్యవస్థ మరియు క్రమబద్ధమైన పార్కింగ్ వంటి సౌకర్యాలు ఇందులో సున్నితంగా జోడించబడ్డాయి. రాత్రివేళల్లో వారసత్వ శైలి లైటింగ్ ఆధునిక పైకప్పులతో (కానోపీలతో) కలిసిపోయి, చరిత్ర మరియు ఆధునిక అవసరాలు కలిసి సాగే ఒక సుస్థిరమైన ప్రాంగణాన్ని సృష్టిస్తాయి.",
+
+        bazaarLabel: "బజారులోకి<br>ప్రవేశించండి"
+
+      },
+
+      hi: {
+
+        title: "सरदार वल्लभभाई पटेल मार्केट",
+
+        subtitle: "360° रेंडर व्यूज़",
+
+        desc: "नए सिरे से तैयार सरदार वल्लभभाई पटेल (पूर्णा) मार्केट में औपनिवेशिक दौर की विरासत और आधुनिक डिज़ाइन का मेल दिखता है। ठीक किया गया क्लॉक टावर और पुरानी इमारत का सामने का हिस्सा इस जगह की मुख्य पहचान हैं। इसके चारों ओर पैदल चलने वालों के लिए रास्ते और छायादार हरियाली है, जिसने पुरानी भीड़-भाड़ वाली गलियों की जगह ले ली है। पारंपरिक स्टॉल अपनी जीवंत पहचान बनाए रखते हैं, लेकिन उन्हें बेहतर लाइटिंग के साथ मॉड्यूलर और मौसम से सुरक्षित अपग्रेड मिला है। यहाँ एक ढका हुआ प्लाज़ा, डिजिटल वे-फाइंडिंग और व्यवस्थित पार्किंग की सुविधा भी दी गई है। रात में हेरिटेज लाइटिंग आधुनिक कैनोपी के साथ मिलकर एक ऐसी टिकाऊ जगह बनाती है जहाँ इतिहास और आधुनिक कामकाज साथ-साथ चलते हैं।",
+
+        bazaarLabel: "बाज़ार में<br>प्रवेश करें"
+
+      }
+
+    };
+
+
+
+    function changeLanguage(lang) {
+
+      const data = translations[lang];
+
+      if (!data) return;
+
+
+
+      document.getElementById('tour-title').textContent = data.title;
+
+      document.getElementById('tour-subtitle').textContent = data.subtitle;
+
+      document.getElementById('tour-desc').textContent = data.desc;
+
+      document.getElementById('bazaar-label').innerHTML = data.bazaarLabel;
+
+
+
+      const container = document.getElementById('welcome-text-container');
+
+      container.classList.remove('lang-te', 'lang-hi');
+
+      if (lang === 'te') container.classList.add('lang-te');
+
+      if (lang === 'hi') container.classList.add('lang-hi');
+
+
+
+      document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+
+      const activeBtn = document.getElementById(`btn-${lang}`);
+
+      if (activeBtn) activeBtn.classList.add('active');
+
+    }
+
+
+
+    const welcomeScreen = document.getElementById('welcome-screen');
+
+    const bottomDock = document.getElementById('bottom-dock');
+
+    const topHud = document.getElementById('top-hud');
+
+    const mapWidget = document.getElementById('map-widget');
+
+    const mapCard = document.getElementById('map-card');
+
+
+
+    // Enter the Bazaar: Hide Welcome screen, Reveal bottom dock, HUD, and Master Plan
+
+    document.getElementById('enter-bazaar-btn').addEventListener('click', () => {
+
+      welcomeScreen.classList.add('hidden');
+
+      bottomDock.classList.add('visible');
+
+      topHud.classList.add('visible');
+
+      mapWidget.classList.add('visible');
+
+    });
+
+
+
+    // Re-open INFO modal: Hide HUD and docks
+
+    document.getElementById('info-btn').addEventListener('click', () => {
+
+      welcomeScreen.classList.remove('hidden');
+
+      bottomDock.classList.remove('visible');
+
+      topHud.classList.remove('visible');
+
+      mapWidget.classList.remove('visible');
+
+    });
+
+
+
+    // Mini-map minimize / maximize toggle
+
+    document.getElementById('map-header').addEventListener('click', () => {
+
+      mapCard.classList.toggle('minimized');
+
+    });
+
+
+
+    let lon = 180, lat = 0;
+
+    let targetLon = 180, targetLat = 0;
+
+    let isTransitioning = false;
+
+
+
+    const canvas = document.getElementById('webgl-canvas');
+
+    const scene = new THREE.Scene();
+
+
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+    camera.position.set(0, 0, 0.1);
+
+
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: "high-performance" });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
+
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    renderer.toneMappingExposure = 1.05;
+
+    renderer.xr.enabled = true;
+
+
+
+    // Inverted 360 sphere geometry
+
+    const sphereGeometry = new THREE.SphereGeometry(500, 96, 64);
+
+    sphereGeometry.scale(-1, 1, 1);
+
+
+
+    const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x181c24 });
+
+    const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+    scene.add(sphereMesh);
+
+
+
+    function applyTexture(texture) {
+
+      texture.colorSpace = THREE.SRGBColorSpace;
+
+      texture.minFilter = THREE.LinearFilter;
+
+      texture.magFilter = THREE.LinearFilter;
+
+      texture.generateMipmaps = false;
+
+      sphereMaterial.map = texture;
+
+      sphereMaterial.color.set(0xffffff);
+
+      sphereMaterial.needsUpdate = true;
+
+    }
+
+
+
+    // Auto-load candidate files (prioritizing Enscape renders)
+
+    const candidateRenders = [
+
+      './poorna-market-view.jpg',
+
+      './Gemini_Generated_Image_yqbmbdyqbmbdyqbm.png',
+
+      './Gemini_Generated_Image_yqbmbdyqbmbdyqbm_4.png',
+
+      './Gemini_Generated_Image_yqbmbdyqbmbdyqbm_3.png',
+
+      './market_panorama.jpg'
+
+    ];
+
+
+
+    const textureLoader = new THREE.TextureLoader();
+
+    function tryLoadImages(index) {
+
+      if (index >= candidateRenders.length) return;
+
+      textureLoader.load(
+
+        candidateRenders[index],
+
+        (tex) => applyTexture(tex),
+
+        undefined,
+
+        () => tryLoadImages(index + 1)
+
+      );
+
+    }
+
+    tryLoadImages(0);
+
+
+
+    // Custom local file upload
+
+    document.getElementById('file-input').addEventListener('change', (e) => {
+
+      const file = e.target.files[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+
+        const img = new Image();
+
+        img.onload = () => {
+
+          const texture = new THREE.Texture(img);
+
+          texture.needsUpdate = true;
+
+          applyTexture(texture);
+
+        };
+
+        img.src = event.target.result;
+
+      };
+
+      reader.readAsDataURL(file);
+
+    });
+
+
+
+    function navigateToZone(zoneId, targetLongitude, targetLatitude) {
+
+      document.querySelectorAll('.map-pin').forEach(pin => pin.classList.remove('active'));
+
+      const activePin = document.getElementById(`pin-${zoneId}`);
+
+      if (activePin) activePin.classList.add('active');
+
+
+
+      targetLon = targetLongitude;
+
+      targetLat = targetLatitude;
+
+      isTransitioning = true;
+
+    }
+
+
+
+    /* Interaction & Camera Controls */
+
+    let isUserInteracting = false;
+
+    let startX = 0, startY = 0;
+
+    let startLon = 0, startLat = 0;
+
+    let autoRotate = true;
+
+
+
+    window.addEventListener('pointerdown', (e) => {
+
+      if (e.target.closest('#welcome-screen') || e.target.closest('.top-hud') || e.target.closest('.bottom-dock') || e.target.closest('#map-widget')) return;
+
+      isUserInteracting = true;
+
+      isTransitioning = false;
+
+      startX = e.clientX;
+
+      startY = e.clientY;
+
+      startLon = lon;
+
+      startLat = lat;
+
+    });
+
+
+
+    window.addEventListener('pointermove', (e) => {
+
+      if (!isUserInteracting) return;
+
+      lon = (startX - e.clientX) * 0.15 + startLon;
+
+      lat = (e.clientY - startY) * 0.15 + startLat;
+
+    });
+
+
+
+    window.addEventListener('pointerup', () => { isUserInteracting = false; });
+
+
+
+    function stepZoom(delta) {
+
+      camera.fov = THREE.MathUtils.clamp(camera.fov + delta, 40, 95);
+
+      camera.updateProjectionMatrix();
+
+      document.getElementById('zoom-readout').textContent = `${Math.round(camera.fov)}° FOV`;
+
+    }
+
+
+
+    document.getElementById('btn-rotate-toggle').addEventListener('click', () => {
+
+      autoRotate = !autoRotate;
+
+    });
+
+
+
+    document.getElementById('btn-recenter').addEventListener('click', () => {
+
+      navigateToZone('amphi', 180, 0);
+
+      camera.fov = 60;
+
+      camera.updateProjectionMatrix();
+
+      document.getElementById('zoom-readout').textContent = '60° FOV';
+
+    });
+
+
+
+    const enterVrBtn = document.getElementById('enter-vr-btn');
+
+    if ('xr' in navigator) {
+
+      navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+
+        if (!supported) enterVrBtn.style.display = 'none';
+
+      });
+
+      enterVrBtn.addEventListener('click', () => {
+
+        navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor'] }).then((session) => {
+
+          renderer.xr.setSession(session);
+
+        });
+
+      });
+
+    } else {
+
+      enterVrBtn.style.display = 'none';
+
+    }
+
+
+
+    renderer.setAnimationLoop(() => {
+
+      if (isTransitioning) {
+
+        lon += (targetLon - lon) * 0.06;
+
+        lat += (targetLat - lat) * 0.06;
+
+        if (Math.abs(targetLon - lon) < 0.2 && Math.abs(targetLat - lat) < 0.2) {
+
+          isTransitioning = false;
+
+        }
+
+      } else if (autoRotate && !isUserInteracting && !renderer.xr.isPresenting) {
+
+        lon += 0.04;
+
+      }
+
+
+
+      lat = Math.max(-85, Math.min(85, lat));
+
+      const phi = THREE.MathUtils.degToRad(90 - lat);
+
+      const theta = THREE.MathUtils.degToRad(lon);
+
+
+
+      if (!renderer.xr.isPresenting) {
+
+        camera.target = new THREE.Vector3(
+
+          500 * Math.sin(phi) * Math.cos(theta),
+
+          500 * Math.cos(phi),
+
+          500 * Math.sin(phi) * Math.sin(theta)
+
+        );
+
+        camera.lookAt(camera.target);
+
+      }
+
+
+
+      // Rotate active pin's radar cone on the mini-map to reflect current camera direction
+
+      const activeCone = document.querySelector('.map-pin.active .pin-fov-cone');
+
+      if (activeCone) {
+
+        activeCone.style.transform = `rotate(${lon + 90}deg)`;
+
+      }
+
+
+
+      renderer.render(scene, camera);
+
+    });
+
+
+
+    window.addEventListener('resize', () => {
+
+      camera.aspect = window.innerWidth / window.innerHeight;
+
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+    });
+
+  </script>
+
+</body>
+
+</html>
+
