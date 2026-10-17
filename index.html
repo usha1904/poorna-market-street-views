@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Sardar Vallabhbhai Patel Market - Architectural Interactive Tour</title>
 
-  <!-- Pannellum 360 Panorama Library -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+  <!-- Three.js for robust 360 WebGL panorama rendering without XHR restrictions -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <style>
     * {
@@ -15,6 +14,7 @@
       margin: 0;
       padding: 0;
       user-select: none;
+      -webkit-user-select: none;
       font-family: 'Georgia', 'Times New Roman', serif;
     }
 
@@ -22,11 +22,13 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #060b14;
       color: #fff;
     }
 
-    /* MAIN VIEWPORT */
+    /* ============================================================
+       1. MAIN INTERACTIVE VIEWPORT (360 SPHERE & 2D PERSPECTIVES)
+       ============================================================ */
     #viewport-container {
       width: 100vw;
       height: 100vh;
@@ -34,12 +36,18 @@
       inset: 0;
       z-index: 1;
       overflow: hidden;
-      background: #0a0a0a;
+      background: #080d17;
+      cursor: grab;
     }
 
-    #panorama-viewport {
+    #viewport-container.grabbing {
+      cursor: grabbing;
+    }
+
+    #threejs-canvas {
       width: 100%;
       height: 100%;
+      display: block;
       position: absolute;
       inset: 0;
       z-index: 2;
@@ -62,66 +70,44 @@
       pointer-events: auto;
     }
 
-    /* TOP LEFT NAVIGATION (PAGE 2) */
-    #nav-header {
+    /* ============================================================
+       2. TOP-LEFT HUD & 3-BAR MENU (Below Title Panel)
+       ============================================================ */
+    .top-left-container {
       position: absolute;
       top: 24px;
       left: 24px;
       z-index: 120;
       display: flex;
-      align-items: center;
-      gap: 14px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.4s ease;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      transform: translateY(-8px);
     }
 
-    #nav-header.visible {
+    .top-left-container.visible {
       opacity: 1;
       pointer-events: auto;
+      transform: translateY(0);
     }
 
-    .icon-back-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(10, 20, 36, 0.88);
-      border: 1.5px solid rgba(212, 175, 55, 0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
-      transition: transform 0.2s, background 0.2s, border-color 0.2s;
-    }
-
-    .icon-back-btn:hover {
-      background: rgba(212, 175, 55, 0.3);
-      border-color: #fff;
-      transform: scale(1.08);
-    }
-
-    .icon-back-btn svg {
-      width: 22px;
-      height: 22px;
-      stroke: #f7e7c4;
-      stroke-width: 2.2;
-      fill: none;
-    }
-
+    /* Title Card (Red back button removed completely) */
     .hud-title-card {
-      background: rgba(10, 20, 36, 0.88);
-      border: 1px solid rgba(212, 175, 55, 0.45);
-      padding: 9px 18px;
+      background: rgba(8, 16, 28, 0.92);
+      border: 1px solid rgba(212, 175, 55, 0.5);
+      padding: 10px 22px;
       border-radius: 6px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 22px rgba(0, 0, 0, 0.7);
     }
 
     .hud-title-card h2 {
-      font-size: 1rem;
+      font-size: 1.05rem;
       font-weight: 600;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       color: #f7e7c4;
       text-transform: uppercase;
     }
@@ -131,64 +117,189 @@
       font-size: 0.76rem;
       color: #b5c2d4;
       display: block;
-      margin-top: 2px;
+      margin-top: 3px;
     }
 
-    /* TOP RIGHT INFO BUTTON (PAGE 2) */
-    #info-btn-wrapper {
+    /* 3-Bar Hamburger Trigger Wrapper */
+    .menu-trigger-wrapper {
+      position: relative;
+    }
+
+    .hamburger-btn {
+      width: 44px;
+      height: 44px;
+      background: rgba(8, 16, 28, 0.94);
+      border: 1px solid rgba(214, 185, 120, 0.55);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+      transition: all 0.25s ease;
+    }
+
+    .hamburger-btn:hover,
+    .hamburger-btn.active {
+      background: rgba(214, 185, 120, 0.25);
+      border-color: #ebd39f;
+      transform: translateY(-1px);
+    }
+
+    .hamburger-bar {
+      width: 20px;
+      height: 2px;
+      background: #ebd39f;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    /* Animated Morph into 'X' when active */
+    .hamburger-btn.active .hamburger-bar:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+    .hamburger-btn.active .hamburger-bar:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger-btn.active .hamburger-bar:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Dropdown Popover List */
+    .dropdown-nav-menu {
+      position: absolute;
+      top: 52px;
+      left: 0;
+      min-width: 200px;
+      background: rgba(8, 16, 28, 0.96);
+      border: 1px solid rgba(214, 185, 120, 0.5);
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.85);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px) scale(0.97);
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .dropdown-nav-menu.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    .dropdown-item-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #ebd39f;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 9px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    .dropdown-item-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      flex-shrink: 0;
+    }
+
+    .dropdown-item-btn:hover {
+      background: rgba(214, 185, 120, 0.18);
+      border-color: rgba(214, 185, 120, 0.4);
+      color: #ffffff;
+      transform: translateX(3px);
+    }
+
+    /* ============================================================
+       3. TOP-RIGHT CONTROLS (FULLSCREEN + INFO 'i' BUTTON)
+       ============================================================ */
+    .top-right-controls {
       position: absolute;
       top: 24px;
       right: 24px;
       z-index: 120;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.4s ease;
     }
 
-    #info-btn-wrapper.visible {
+    .top-right-controls.visible {
       opacity: 1;
       pointer-events: auto;
     }
 
-    .icon-info-btn {
+    .hud-circle-btn {
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: rgba(10, 20, 36, 0.88);
+      background: rgba(8, 16, 28, 0.92);
       border: 1.5px solid rgba(212, 175, 55, 0.7);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       color: #f7e7c4;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65);
+      transition: transform 0.2s, background 0.2s, border-color 0.2s;
+    }
+
+    .hud-circle-btn:hover {
+      background: rgba(212, 175, 55, 0.3);
+      border-color: #ffffff;
+      transform: scale(1.08);
+    }
+
+    .hud-circle-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: #f7e7c4;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .info-letter {
       font-family: 'Georgia', serif;
       font-size: 1.25rem;
       font-style: italic;
       font-weight: bold;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
-      transition: transform 0.2s, background 0.2s, border-color 0.2s;
+      color: #f7e7c4;
     }
 
-    .icon-info-btn:hover {
-      background: rgba(212, 175, 55, 0.3);
-      border-color: #fff;
-      transform: scale(1.08);
-    }
-
-    /* FLOATING INFO MODAL / DRAWER */
+    /* Details Drawer */
     #info-card {
       position: absolute;
       top: 80px;
       right: 24px;
-      width: 340px;
+      width: 350px;
       max-width: calc(100vw - 48px);
-      background: rgba(9, 18, 32, 0.94);
+      background: rgba(9, 18, 32, 0.95);
       border: 1px solid rgba(214, 185, 120, 0.65);
       border-radius: 8px;
       padding: 18px 20px;
       z-index: 150;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(12px);
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(14px);
       opacity: 0;
       pointer-events: none;
       transform: translateY(-10px);
@@ -217,17 +328,17 @@
       letter-spacing: 0.8px;
     }
 
-    .info-close-btn {
+    .modal-close-icon {
       background: none;
       border: none;
       color: #dfcaa2;
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       line-height: 1;
       cursor: pointer;
       transition: color 0.2s;
     }
 
-    .info-close-btn:hover {
+    .modal-close-icon:hover {
       color: #ffffff;
     }
 
@@ -241,7 +352,7 @@
       background: rgba(214, 185, 120, 0.15);
       color: #ebd39f;
       border: 1px solid rgba(214, 185, 120, 0.35);
-      padding: 2px 7px;
+      padding: 2px 8px;
       border-radius: 4px;
       margin-bottom: 10px;
     }
@@ -269,7 +380,225 @@
       color: #ffffff;
     }
 
-    /* PAGE 1 ROYAL LOCKED SCREEN */
+    /* ============================================================
+       4. AERIAL SITE PLAN MODAL (Invoked from 3-Bar Menu)
+       ============================================================ */
+    #aerial-plan-modal {
+      position: absolute;
+      top: 145px;
+      left: 24px;
+      width: 320px;
+      background: rgba(8, 16, 28, 0.96);
+      border: 1px solid rgba(214, 185, 120, 0.65);
+      border-radius: 8px;
+      padding: 12px;
+      z-index: 140;
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(14px);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px);
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    #aerial-plan-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .plan-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.74rem;
+      letter-spacing: 1px;
+      color: #ebd39f;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-weight: bold;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #plan-viewport {
+      position: relative;
+      width: 100%;
+      height: 250px;
+      background: #111;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #plan-viewport img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+
+    /* Glowing Hotspot Dots */
+    .plan-dot {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #dc3545;
+      border: 2px solid #ffffff;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      z-index: 10;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+      transition: transform 0.2s, background 0.2s, border-color 0.2s;
+    }
+
+    .plan-dot::after {
+      content: '';
+      position: absolute;
+      inset: -5px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(220, 53, 69, 0.85);
+      animation: dot-pulse 1.8s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    @keyframes dot-pulse {
+      0% { transform: scale(0.6); opacity: 1; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    .plan-dot:hover, .plan-dot.active {
+      background: #d4af37;
+      border-color: #ffffff;
+      transform: translate(-50%, -50%) scale(1.4);
+      z-index: 30;
+    }
+
+    .dot-tooltip {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      background: rgba(6, 12, 22, 0.95);
+      border: 1px solid rgba(214, 185, 120, 0.6);
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      white-space: nowrap;
+      padding: 4px 8px;
+      border-radius: 4px;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, transform 0.2s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+    }
+
+    .plan-dot:hover .dot-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ============================================================
+       5. GALLERY MODAL
+       ============================================================ */
+    #gallery-modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(3, 8, 18, 0.88);
+      backdrop-filter: blur(14px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    #gallery-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .gallery-dialog {
+      background: rgba(9, 18, 32, 0.96);
+      border: 1px solid rgba(214, 185, 120, 0.55);
+      border-radius: 10px;
+      max-width: 900px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 22px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+    }
+
+    .gallery-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(214, 185, 120, 0.3);
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+
+    .gallery-header h3 {
+      font-size: 1.15rem;
+      color: #ebd39f;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .gallery-dialog {
+      background: rgba(9, 18, 32, 0.96);
+      border: 1px solid rgba(214, 185, 120, 0.55);
+      border-radius: 10px;
+      max-width: 1000px;
+      width: 100%;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 22px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+    }
+
+    .gallery-card:hover {
+      transform: translateY(-3px) scale(1.02);
+      border-color: #ebd39f;
+      box-shadow: 0 8px 22px rgba(214, 185, 120, 0.25);
+    }
+
+    .gallery-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .gallery-card-badge {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 6px 10px;
+      background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0) 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.72rem;
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    /* ============================================================
+       6. ROYAL LOCKED SPLASH SCREEN (Screen 1)
+       ============================================================ */
     #start-screen {
       position: absolute;
       inset: 0;
@@ -335,7 +664,7 @@
       letter-spacing: 4px;
       text-transform: uppercase;
       color: #ebd39f;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
       font-weight: 600;
     }
 
@@ -389,7 +718,7 @@
     .diamond-box {
       width: 100%;
       height: 100%;
-      border: 2px solid rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.95);
       background: rgba(14, 28, 48, 0.8);
       backdrop-filter: blur(8px);
       transform: rotate(45deg);
@@ -462,160 +791,125 @@
       color: #dfcaa2;
       font-size: 0.65rem;
     }
-
-    /* AERIAL PLAN MINI-MAP (PAGE 2) */
-    #minimap-card {
-      position: absolute;
-      bottom: 24px;
-      left: 24px;
-      width: 290px;
-      background: rgba(8, 16, 28, 0.92);
-      border: 1px solid rgba(214, 185, 120, 0.5);
-      border-radius: 8px;
-      padding: 10px;
-      z-index: 100;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.5s ease 0.2s;
-    }
-
-    #minimap-card.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .plan-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.72rem;
-      letter-spacing: 1px;
-      color: #ebd39f;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      font-weight: bold;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
-    #plan-viewport {
-      position: relative;
-      width: 100%;
-      height: 240px;
-      background: #111;
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    #plan-viewport img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      pointer-events: none;
-    }
-
-    /* Clean Hotspot Dots */
-    .plan-dot {
-      position: absolute;
-      width: 13px;
-      height: 13px;
-      border-radius: 50%;
-      background: #dc3545;
-      border: 2px solid #ffffff;
-      transform: translate(-50%, -50%);
-      cursor: pointer;
-      z-index: 10;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
-      transition: transform 0.2s, background 0.2s, border-color 0.2s;
-    }
-
-    .plan-dot::after {
-      content: '';
-      position: absolute;
-      inset: -5px;
-      border-radius: 50%;
-      border: 1.5px solid rgba(220, 53, 69, 0.85);
-      animation: dot-pulse 1.8s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    @keyframes dot-pulse {
-      0% { transform: scale(0.6); opacity: 1; }
-      100% { transform: scale(2.1); opacity: 0; }
-    }
-
-    .plan-dot:hover, .plan-dot.active {
-      background: #d4af37;
-      border-color: #ffffff;
-      transform: translate(-50%, -50%) scale(1.4);
-      z-index: 30;
-    }
-
-    /* Floating Tooltip */
-    .dot-tooltip {
-      position: absolute;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(4px);
-      background: rgba(6, 12, 22, 0.95);
-      border: 1px solid rgba(214, 185, 120, 0.6);
-      color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 0.7rem;
-      font-weight: 500;
-      white-space: nowrap;
-      padding: 4px 8px;
-      border-radius: 4px;
-      pointer-events: none;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.2s, transform 0.2s;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
-    }
-
-    .plan-dot:hover .dot-tooltip {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) translateY(0);
-    }
   </style>
 </head>
 <body>
 
-  <!-- VIEWPORT: 360 Pannellum or 2D Perspective Render -->
+  <!-- VIEWPORT CONTAINER: WebGL 360 Canvas or 2D Perspective Render -->
   <div id="viewport-container">
-    <div id="panorama-viewport"></div>
+    <canvas id="threejs-canvas"></canvas>
     <img id="perspective-view-image" src="" alt="Active Space Render" />
   </div>
 
-  <!-- PAGE 2: Left Navigation Header -->
-  <header id="nav-header">
-    <button class="icon-back-btn" id="back-to-start-btn" title="Back to Overview">
-      <svg viewBox="0 0 24 24">
-        <path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
+  <!-- SCREEN 2: TOP-LEFT TITLE & COMPACT 3-BAR HAMBURGER MENU -->
+  <div class="top-left-container" id="top-left-panel">
+    
+    <!-- Title Card -->
     <div class="hud-title-card">
-      <h2>Sardar Vallabhbhai Patel Market</h2>
-      <span id="hud-vantage-name">Pedestrian Promenade (360° Drag View)</span>
+      <h2>SARDAR VALLABHBHAI PATEL MARKET</h2>
+      <span id="hud-vantage-name">Artisan Promenade & Boulevard (360° View)</span>
     </div>
-  </header>
 
-  <!-- PAGE 2: Right Corner Info Button -->
-  <div id="info-btn-wrapper">
-    <button class="icon-info-btn" id="info-toggle-btn" title="View Space Details">i</button>
+    <!-- 3-Bar (☰) Hamburger Trigger & Dropdown -->
+    <div class="menu-trigger-wrapper">
+      <button class="hamburger-btn" id="hamburger-menu-btn" title="Toggle Navigation Menu">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+      </button>
+
+      <!-- Dropdown Items Popover -->
+      <nav class="dropdown-nav-menu" id="dropdown-nav-menu">
+        <button class="dropdown-item-btn" id="menu-btn-plan">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+            <line x1="8" y1="2" x2="8" y2="18"></line>
+            <line x1="16" y1="6" x2="16" y2="22"></line>
+          </svg>
+          <span>Aerial Plan</span>
+        </button>
+
+        <button class="dropdown-item-btn" id="menu-btn-gallery">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <span>Gallery</span>
+        </button>
+
+        <button class="dropdown-item-btn" id="menu-btn-details">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span>Details</span>
+        </button>
+
+        <button class="dropdown-item-btn" id="menu-btn-home">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span>Home Page</span>
+        </button>
+      </nav>
+    </div>
   </div>
 
-  <!-- PAGE 2: Info Card Panel -->
+  <!-- SCREEN 2: TOP-RIGHT CONTROLS (FULLSCREEN + INFO 'i' BUTTON) -->
+  <div class="top-right-controls" id="top-right-panel">
+    <!-- Fullscreen Toggle Button -->
+    <button class="hud-circle-btn" id="fullscreen-toggle-btn" title="Toggle Fullscreen">
+      <svg id="fs-enter-icon" viewBox="0 0 24 24">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <svg id="fs-exit-icon" viewBox="0 0 24 24" style="display: none;">
+        <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <!-- Info 'i' Button -->
+    <button class="hud-circle-btn" id="info-toggle-btn" title="View Space Details">
+      <span class="info-letter">i</span>
+    </button>
+  </div>
+
+  <!-- FLOATING MODAL: AERIAL MASTER PLAN -->
+  <aside id="aerial-plan-modal">
+    <div class="plan-header">
+      <span>Aerial Master Plan</span>
+      <button class="modal-close-icon" id="plan-close-btn">&times;</button>
+    </div>
+    <div id="plan-viewport">
+      <img src="d7d8187104c619259f0e91fa11ad60e8_2.jpg" alt="Aerial Plan of Market" id="master-plan-img" onerror="this.src='https://placehold.co/600x500/1e293b/d4af37?text=Aerial+Plan+Drawing'" />
+      <div id="plan-dots-container"></div>
+    </div>
+  </aside>
+
+  <!-- FLOATING MODAL: GALLERY -->
+  <div id="gallery-modal">
+    <div class="gallery-dialog">
+      <div class="gallery-header">
+        <h3>Architectural Views & Perspectives</h3>
+        <button class="modal-close-icon" id="gallery-close-btn">&times;</button>
+      </div>
+      <div class="gallery-grid" id="gallery-grid-items">
+        <!-- Generated dynamically via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING MODAL: DETAILS CARD -->
   <aside id="info-card">
     <div class="info-card-header">
       <h3 id="info-card-title">View Details</h3>
-      <button class="info-close-btn" id="info-close-btn">&times;</button>
+      <button class="modal-close-icon" id="info-close-btn">&times;</button>
     </div>
     <span class="info-category-tag" id="info-tag">Overview</span>
     <p class="info-body-text" id="info-text">
-      Select any point on the aerial site plan to explore architectural details and design concepts.
+      Select any point on the aerial site plan or gallery to explore architectural details and design concepts.
     </p>
     <div class="info-meta-row">
       <span><b>Zone:</b> <span id="info-meta-zone">-</span></span>
@@ -623,14 +917,14 @@
     </div>
   </aside>
 
-  <!-- PAGE 1: Royal Locked Splash Screen -->
+  <!-- SCREEN 1: ROYAL LOCKED SPLASH SCREEN -->
   <section id="start-screen">
     <div class="splash-bg"></div>
     <div class="splash-overlay-gradient"></div>
     <div class="royal-border"></div>
 
     <div class="royal-container">
-      <!-- Colonnade & Clock Tower Emblem Drawing -->
+      <!-- Colonnade & Clock Tower Line Drawing Emblem -->
       <svg class="crest-drawing" viewBox="0 0 200 60" fill="none" stroke="#ebd39f" stroke-width="1.2">
         <path d="M 85 58 L 85 24 L 94 14 L 100 8 L 106 14 L 115 24 L 115 58" />
         <circle cx="100" cy="22" r="5" />
@@ -654,7 +948,6 @@
       <h1 class="splash-main-title" id="dyn-title">Sardar Vallabhbhai Patel Market</h1>
       <h2 class="splash-subtitle" id="dyn-subtitle">360° RENDER VIEWS</h2>
       
-      <!-- Descriptions with pill buttons removed -->
       <p class="splash-description" id="dyn-desc">
         The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist.
       </p>
@@ -677,19 +970,10 @@
     </footer>
   </section>
 
-  <!-- Left Side Bottom Corner Aerial Plan -->
-  <aside id="minimap-card">
-    <div class="plan-header">
-      <span>Aerial Master Plan</span>
-      <span>Click Point to View</span>
-    </div>
-    <div id="plan-viewport">
-      <img src="aerial-plan.jpg" alt="Aerial Plan of Market" id="master-plan-img" />
-      <div id="plan-dots-container"></div>
-    </div>
-  </aside>
-
   <script>
+    // ============================================================
+    // 1. DATA AND TRILINGUAL REPOSITORY
+    // ============================================================
     const translations = {
       en: {
         title: "Sardar Vallabhbhai Patel Market",
@@ -717,7 +1001,6 @@
       document.getElementById('dyn-desc').textContent = translations[lang].desc;
     }
 
-    // Points with Info details for images 1-5 + 360 view
     const marketVantages = [
       {
         id: "view-360",
@@ -790,15 +1073,267 @@
         info: "Earth-toned terracotta amphitheatre stepped into the site contours, framed by perforated jali brick walls, lush succulent landscaping, and an elevated pedestrian bridge connecting terrace levels.",
         zone: "South Civic Plaza",
         features: "Curved monumental stairs, terracotta jali breeze screens, contoured terracing"
+      },
+      {
+        id: "view-viram-play",
+        name: "6. Shaded Pavilion & Play Area",
+        x: 58,
+        y: 42,
+        type: "2d",
+        src: "ChatGPT Image Aug 28, 2026, 09_36_20 PM.png",
+        category: "Recreation & Public Realm",
+        info: "Sheltered children's play area under dynamic terracotta pergola louvers with heritage light posts, wooden benches, and interactive outdoor equipment.",
+        zone: "Public Recreation Buffer",
+        features: "Timber-slat canopy, landscaped play zone, integrated vintage street lamps"
+      },
+      {
+        id: "view-viram-highway",
+        name: "7. VIRĀM Highway Complex & Parking",
+        x: 82,
+        y: 18,
+        type: "2d",
+        src: "ChatGPT Image Aug 28, 2026, 09_44_09 PM.png",
+        category: "Highway Commercial Hub",
+        info: "Aerial highway frontage showcasing the VIRĀM complex with wide vehicular access, heavy-vehicle logistics docking, and landscaped arrival bays.",
+        zone: "Highway Gateway Sector",
+        features: "Illuminated pylon signage, multi-vehicle parking, highway buffer landscaping"
+      },
+      {
+        id: "view-viram-front",
+        name: "8. VIRĀM Highway Elevation",
+        x: 86,
+        y: 28,
+        type: "2d",
+        src: "ChatGPT Image Aug 28, 2026, 09_51_26 PM.png",
+        category: "Facade Architecture",
+        info: "Frontal perspective displaying angled clerestory rooflines, brick-textured masses, and clear pedestrian-vehicular demarcation across the thoroughfare.",
+        zone: "Main Street Frontage",
+        features: "Angled mono-pitch roof, clerestory glazing, striped road delineators"
+      },
+      {
+        id: "view-viram-cantilever",
+        name: "9. Cantilevered Pavilion Portal",
+        x: 74,
+        y: 32,
+        type: "2d",
+        src: "ChatGPT Image Aug 28, 2026, 09_54_24 PM.png",
+        category: "Entrance Architecture",
+        info: "Prominent cantilevered portico with exposed truss structure providing deep shade, paired with double-height corner glazing and terracotta brickwork.",
+        zone: "North Terminal Portal",
+        features: "Deep cantilevered overhang, exposed structural trusses, feature corner glazing"
+      },
+      {
+        id: "view-viram-symmetry",
+        name: "10. Symmetrical Plaza Elevation",
+        x: 64,
+        y: 34,
+        type: "2d",
+        src: "ChatGPT Image Aug 28, 2026, 10_03_57 PM.png",
+        category: "Central Plaza Front",
+        info: "Monolithic symmetrical terracotta facade framed by wide horizontal canopies and high-level clerestory ribbons for natural daylight penetration.",
+        zone: "Civic Arrival Court",
+        features: "Double-tier overhang, clerestory light strip, glazed circulation core"
+      },
+      {
+        id: "view-viram-pergola",
+        name: "11. Timber Pergola Promenade",
+        x: 70,
+        y: 44,
+        type: "2d",
+        src: "ChatGPT Image Aug 28, 2026, 10_05_38 PM.png",
+        category: "Outdoor Dining & Shading",
+        info: "Interlocking vertical wooden timber colonnade offering shaded outdoor gathering, seating benches, and leafy canopy integration.",
+        zone: "East Shaded Courtyard",
+        features: "Repetitive timber louvers, semi-open dining pergola, perimeter trees"
+      },
+      {
+        id: "view-viram-interior-hall",
+        name: "12. Double-Height Food Hall & Mezzanine",
+        x: 40,
+        y: 60,
+        type: "2d",
+        src: "ChatGPT Image Aug 28, 2026, 10_32_10 PM.png",
+        category: "Interior Public Space",
+        info: "Expansive warm-toned food court with exposed steel trusses, skylight filtering, contemporary wooden furnishings, and open mezzanine gallery.",
+        zone: "Interior Dining Commons",
+        features: "Structural steel roof truss, floating open-riser staircase, terracotta masonry"
+      },
+      {
+        id: "view-viram-mezzanine",
+        name: "13. Mezzanine Dining Gallery",
+        x: 32,
+        y: 62,
+        type: "2d",
+        src: "ChatGPT Image Aug 28, 2026, 10_49_26 PM.png",
+        category: "Upper Level Dining",
+        info: "Overlook vantage from the mezzanine gallery highlighting patterned slatted shadows, wrought iron balustrades, and spacious culinary seating layouts.",
+        zone: "Upper Mezzanine Lounge",
+        features: "Sunlight cast patterns, iron railing guardrails, elevated vantage point"
+      },
+      {
+        id: "view-viram-seating-pergola",
+        name: "14. Shaded Garden Kiosk & Pergola",
+        x: 54,
+        y: 72,
+        type: "2d",
+        src: "ChatGPT Image Aug 28, 2026, 10_51_06 PM.png",
+        category: "Outdoor Pavilion Seating",
+        info: "Linear timber trellis structure with traditional charpai-inspired wooden daybeds and stone bench planters nestled within landscaped greenery.",
+        zone: "Artisan Garden Promenade",
+        features: "Traditional woven daybeds, cast-iron street lamps, geometric stepped pavers"
+      },
+      {
+        id: "view-viram-bifold",
+        name: "15. Folding Glazed Portal & Threshold",
+        x: 28,
+        y: 52,
+        type: "2d",
+        src: "ChatGPT Image Aug 28, 2026, 10_59_48 PM.png",
+        category: "Indoor-Outdoor Transition",
+        info: "Floor-to-ceiling bi-fold glass doors creating a seamless indoor-outdoor boundary between the air-conditioned hall and open landscaped forecourt.",
+        zone: "Main Entry Threshold",
+        features: "Multi-fold architectural glazing, seamless threshold transition, terracotta walls"
       }
     ];
 
-    let pannellumInstance = null;
-    let currentVantage = marketVantages[0];
+    // ============================================================
+    // 2. THREE.JS 360 WEBGL ENGINE (No XHR / No InvalidStateError)
+    // ============================================================
+    let scene, camera, renderer, sphereMesh;
+    let isUserInteracting = false;
+    let onPointerDownPointerX = 0, onPointerDownPointerY = 0;
+    let lon = 90, onPointerDownLon = 0;
+    let lat = 0, onPointerDownLat = 0;
+    let phi = 0, theta = 0;
+    let fov = 75;
+    const canvas = document.getElementById('threejs-canvas');
+    const viewportContainer = document.getElementById('viewport-container');
 
+    function initThreeJS() {
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 1100);
+      camera.target = new THREE.Vector3(0, 0, 0);
+
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      // Inverted equirectangular sphere
+      const geometry = new THREE.SphereGeometry(500, 60, 40);
+      geometry.scale(-1, 1, 1);
+
+      // Default placeholder gradient texture
+      const defaultTexture = createProcedural360Texture();
+      const material = new THREE.MeshBasicMaterial({ map: defaultTexture });
+      sphereMesh = new THREE.Mesh(geometry, material);
+      scene.add(sphereMesh);
+
+      // Event listeners for dragging & touch
+      viewportContainer.addEventListener('pointerdown', onPointerDown);
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerUp);
+      viewportContainer.addEventListener('wheel', onDocumentMouseWheel, { passive: false });
+      window.addEventListener('resize', onWindowResize);
+
+      animateThreeJS();
+    }
+
+    function createProcedural360Texture() {
+      const c = document.createElement('canvas');
+      c.width = 2048;
+      c.height = 1024;
+      const ctx = c.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 0, c.height);
+      grad.addColorStop(0, '#0c1a2e');
+      grad.addColorStop(0.5, '#1e293b');
+      grad.addColorStop(1, '#080d17');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, c.width, c.height);
+      return new THREE.CanvasTexture(c);
+    }
+
+    function loadEquirectangularTexture(imageSrc) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function () {
+        const texture = new THREE.Texture(img);
+        texture.needsUpdate = true;
+        sphereMesh.material.map = texture;
+        sphereMesh.material.needsUpdate = true;
+      };
+      img.onerror = function () {
+        console.warn('360 Image not found locally at ' + imageSrc + '. Using procedural fallback.');
+      };
+      img.src = imageSrc;
+    }
+
+    function onPointerDown(event) {
+      if (currentVantage && currentVantage.type !== '360') return;
+      isUserInteracting = true;
+      viewportContainer.classList.add('grabbing');
+      onPointerDownPointerX = event.clientX;
+      onPointerDownPointerY = event.clientY;
+      onPointerDownLon = lon;
+      onPointerDownLat = lat;
+    }
+
+    function onPointerMove(event) {
+      if (isUserInteracting === true) {
+        lon = (onPointerDownPointerX - event.clientX) * 0.15 + onPointerDownLon;
+        lat = (event.clientY - onPointerDownPointerY) * 0.15 + onPointerDownLat;
+      }
+    }
+
+    function onPointerUp() {
+      isUserInteracting = false;
+      viewportContainer.classList.remove('grabbing');
+    }
+
+    function onDocumentMouseWheel(event) {
+      if (currentVantage && currentVantage.type !== '360') return;
+      event.preventDefault();
+      fov += event.deltaY * 0.05;
+      fov = Math.max(35, Math.min(100, fov));
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animateThreeJS() {
+      requestAnimationFrame(animateThreeJS);
+
+      if (!isUserInteracting && currentVantage && currentVantage.type === '360') {
+        lon += 0.06; // Slow ambient rotation
+      }
+
+      lat = Math.max(-85, Math.min(85, lat));
+      phi = THREE.MathUtils.degToRad(90 - lat);
+      theta = THREE.MathUtils.degToRad(lon);
+
+      camera.target.x = 500 * Math.sin(phi) * Math.cos(theta);
+      camera.target.y = 500 * Math.cos(phi);
+      camera.target.z = 500 * Math.sin(phi) * Math.sin(theta);
+      camera.lookAt(camera.target);
+
+      renderer.render(scene, camera);
+    }
+
+    // ============================================================
+    // 3. NAVIGATION, VANTAGES & UI INTERFACES
+    // ============================================================
+    let currentVantage = marketVantages[0];
     const perspectiveImg = document.getElementById('perspective-view-image');
     const hudVantageName = document.getElementById('hud-vantage-name');
     const infoCard = document.getElementById('info-card');
+    const aerialPlanModal = document.getElementById('aerial-plan-modal');
+    const galleryModal = document.getElementById('gallery-modal');
+    const hamburgerBtn = document.getElementById('hamburger-menu-btn');
+    const dropdownNavMenu = document.getElementById('dropdown-nav-menu');
 
     function updateInfoCard(vantage) {
       document.getElementById('info-card-title').textContent = vantage.name;
@@ -813,40 +1348,111 @@
       hudVantageName.textContent = vantage.name;
       updateInfoCard(vantage);
 
-      if (vantage.type === "360") {
+      // Highlight active dot on the aerial plan
+      document.querySelectorAll('.plan-dot').forEach((dot, idx) => {
+        dot.classList.toggle('active', marketVantages[idx].id === vantage.id);
+      });
+
+      if (vantage.type === '360') {
         perspectiveImg.classList.remove('active');
-        if (pannellumInstance) pannellumInstance.destroy();
-        pannellumInstance = pannellum.viewer('panorama-viewport', {
-          type: 'equirectangular',
-          panorama: vantage.src,
-          autoLoad: true,
-          autoRotate: -1.5,
-          mouseZoom: true
-        });
+        canvas.style.display = 'block';
+        loadEquirectangularTexture(vantage.src);
       } else {
         perspectiveImg.src = vantage.src;
         perspectiveImg.classList.add('active');
-        if (pannellumInstance) {
-          pannellumInstance.destroy();
-          pannellumInstance = null;
-        }
+        canvas.style.display = 'none';
       }
     }
 
-    // Info Card Drawer Handlers
-    const infoBtnWrapper = document.getElementById('info-btn-wrapper');
-    const infoToggleBtn = document.getElementById('info-toggle-btn');
-    const infoCloseBtn = document.getElementById('info-close-btn');
+    // ============================================================
+    // 4. HAMBURGER 3-BAR MENU TOGGLE & ACTIONS
+    // ============================================================
+    hamburgerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = dropdownNavMenu.classList.contains('open');
+      dropdownNavMenu.classList.toggle('open', !isOpen);
+      hamburgerBtn.classList.toggle('active', !isOpen);
+    });
 
-    infoToggleBtn.addEventListener('click', () => {
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!dropdownNavMenu.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+        dropdownNavMenu.classList.remove('open');
+        hamburgerBtn.classList.remove('active');
+      }
+    });
+
+    document.getElementById('menu-btn-plan').addEventListener('click', () => {
+      dropdownNavMenu.classList.remove('open');
+      hamburgerBtn.classList.remove('active');
+      aerialPlanModal.classList.toggle('open');
+      galleryModal.classList.remove('open');
+    });
+
+    document.getElementById('menu-btn-gallery').addEventListener('click', () => {
+      dropdownNavMenu.classList.remove('open');
+      hamburgerBtn.classList.remove('active');
+      galleryModal.classList.toggle('open');
+      aerialPlanModal.classList.remove('open');
+    });
+
+    document.getElementById('menu-btn-details').addEventListener('click', () => {
+      dropdownNavMenu.classList.remove('open');
+      hamburgerBtn.classList.remove('active');
       infoCard.classList.toggle('open');
     });
 
-    infoCloseBtn.addEventListener('click', () => {
+    function returnToHomePage() {
+      dropdownNavMenu.classList.remove('open');
+      hamburgerBtn.classList.remove('active');
+      document.getElementById('start-screen').classList.remove('hidden');
+      document.getElementById('top-left-panel').classList.remove('visible');
+      document.getElementById('top-right-panel').classList.remove('visible');
       infoCard.classList.remove('open');
+      aerialPlanModal.classList.remove('open');
+      galleryModal.classList.remove('open');
+    }
+
+    document.getElementById('menu-btn-home').addEventListener('click', returnToHomePage);
+
+    // ============================================================
+    // 5. FULLSCREEN TOGGLE
+    // ============================================================
+    const fullscreenToggleBtn = document.getElementById('fullscreen-toggle-btn');
+    const fsEnterIcon = document.getElementById('fs-enter-icon');
+    const fsExitIcon = document.getElementById('fs-exit-icon');
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else if (document.documentElement.webkitRequestFullscreen) {
+          document.documentElement.webkitRequestFullscreen();
+        }
+        fsEnterIcon.style.display = 'none';
+        fsExitIcon.style.display = 'block';
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+        fsEnterIcon.style.display = 'block';
+        fsExitIcon.style.display = 'none';
+      }
+    }
+
+    fullscreenToggleBtn.addEventListener('click', toggleFullScreen);
+
+    document.addEventListener('fullscreenchange', () => {
+      const isFs = !!document.fullscreenElement;
+      fsEnterIcon.style.display = isFs ? 'none' : 'block';
+      fsExitIcon.style.display = isFs ? 'block' : 'none';
     });
 
-    // Populate Hotspots on Master Plan
+    // ============================================================
+    // 6. POPULATE HOTSPOTS & GALLERY ITEMS
+    // ============================================================
     const dotsContainer = document.getElementById('plan-dots-container');
     marketVantages.forEach((vantage, index) => {
       const dot = document.createElement('div');
@@ -860,31 +1466,59 @@
       dot.appendChild(tip);
 
       dot.addEventListener('click', () => {
-        document.querySelectorAll('.plan-dot').forEach(d => d.classList.remove('active'));
-        dot.classList.add('active');
         loadVantage(vantage);
       });
 
       dotsContainer.appendChild(dot);
     });
 
+    const galleryGrid = document.getElementById('gallery-grid-items');
+    marketVantages.forEach((vantage) => {
+      const card = document.createElement('div');
+      card.className = 'gallery-card';
+      card.innerHTML = `
+        <img src="${vantage.src}" alt="${vantage.name}" onerror="this.src='https://placehold.co/600x400/1e293b/d4af37?text=${encodeURIComponent(vantage.name)}'" />
+        <div class="gallery-card-badge">${vantage.name}</div>
+      `;
+      card.addEventListener('click', () => {
+        loadVantage(vantage);
+        galleryModal.classList.remove('open');
+      });
+      galleryGrid.appendChild(card);
+    });
+
+    // Modal Close Buttons
+    document.getElementById('plan-close-btn').addEventListener('click', () => {
+      aerialPlanModal.classList.remove('open');
+    });
+
+    document.getElementById('gallery-close-btn').addEventListener('click', () => {
+      galleryModal.classList.remove('open');
+    });
+
+    const infoToggleBtn = document.getElementById('info-toggle-btn');
+    const infoCloseBtn = document.getElementById('info-close-btn');
+
+    infoToggleBtn.addEventListener('click', () => {
+      infoCard.classList.toggle('open');
+    });
+
+    infoCloseBtn.addEventListener('click', () => {
+      infoCard.classList.remove('open');
+    });
+
     // START (ENTER THE BAZAAR) Action
     document.getElementById('start-tour-btn').addEventListener('click', () => {
       document.getElementById('start-screen').classList.add('hidden');
-      document.getElementById('nav-header').classList.add('visible');
-      document.getElementById('info-btn-wrapper').classList.add('visible');
-      document.getElementById('minimap-card').classList.add('visible');
+      document.getElementById('top-left-panel').classList.add('visible');
+      document.getElementById('top-right-panel').classList.add('visible');
       loadVantage(marketVantages[0]);
     });
 
-    // Back Symbol Action
-    document.getElementById('back-to-start-btn').addEventListener('click', () => {
-      document.getElementById('start-screen').classList.remove('hidden');
-      document.getElementById('nav-header').classList.remove('visible');
-      document.getElementById('info-btn-wrapper').classList.remove('visible');
-      document.getElementById('minimap-card').classList.remove('visible');
-      infoCard.classList.remove('open');
-    });
+    // Initialize 3D on window load
+    window.onload = function() {
+      initThreeJS();
+    };
   </script>
 </body>
 </html>
