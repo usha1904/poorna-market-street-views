@@ -554,8 +554,60 @@
 
     .gallery-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .gallery-card {
+      position: relative;
+      height: 180px;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid rgba(214, 185, 120, 0.35);
+      background: #060c18;
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .gallery-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      border-color: #ebd39f;
+      box-shadow: 0 10px 24px rgba(214, 185, 120, 0.28);
+    }
+
+    .gallery-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+
+    .gallery-card:hover img {
+      transform: scale(1.05);
+    }
+
+    .gallery-card-badge {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px 12px 6px;
+      background: linear-gradient(to top, rgba(4, 9, 18, 0.95) 0%, rgba(4, 9, 18, 0.7) 60%, transparent 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.74rem;
+      color: #ffffff;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .gallery-card-tag {
+      display: block;
+      font-size: 0.65rem;
+      color: #ebd39f;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 2px;
     }
 
     .gallery-dialog {
@@ -1003,112 +1055,121 @@
 
     const marketVantages = [
       {
-        id: "view-360",
-        name: "Artisan Promenade & Boulevard (360° View)",
+        id: "view-360-promenade",
+        name: "Artisan Promenade & Boulevard (360° Panorama)",
+        tag: "360° Panorama",
         x: 52,
         y: 64,
         type: "360",
         src: "Gemini_Generated_Image_yqbmbdyqbmbdyqbm.png",
-        category: "Central Boulevard",
-        info: "A pedestrianized spine paved with regional motif floor inlays, illuminated tree canopies, and linear reflective water features flanked by modernized artisan shops and traditional stalls.",
+        category: "Central Heritage Spine",
+        info: "A shaded, pedestrianized central spine featuring patterned stone pavement inlays, reflective shallow water channels, atmospheric evening lighting, and modular vendor kiosks.",
         zone: "Central Heritage Spine",
-        features: "Patterned stone inlay, atmospheric festoon lighting, linear shallow fountains"
+        features: "Patterned stone floor inlays, shallow reflective channels, ambient festoon lighting"
       },
       {
         id: "view-viram-front-plaza",
-        name: "1. Symmetrical Plaza Elevation",
+        name: "1. Symmetrical Plaza Elevation & Cantilever",
+        tag: "Exterior Elevation",
         x: 64,
         y: 34,
         type: "2d",
-        src: "ChatGPT_Image_Aug_28,_2026,_10_03_57_PM_upscaled (1).jpg",
+        src: "ChatGPT Image Aug 28, 2026, 10_03_57 PM.png",
         category: "Civic Forecourt",
-        info: "Monolithic symmetrical terracotta facade framed by wide horizontal cantilevered canopies and high-level clerestory ribbons for abundant natural daylight penetration.",
-        zone: "Civic Arrival Court",
-        features: "Deep cantilevered overhang, clerestory light strip, glazed entrance core"
+        info: "Symmetrical terracotta monolithic facade framed by dramatic horizontal cantilevered canopies and a recessed glazed atrium entry core, allowing balanced interior daylighting.",
+        zone: "Civic Arrival Plaza",
+        features: "Deep cantilevered sun canopy, continuous clerestory ribbons, central glazed atrium"
       },
       {
         id: "view-viram-timber-pergola",
-        name: "2. Timber Pergola Promenade",
+        name: "2. Timber Pergola Promenade & VIRĀM Wing",
+        tag: "Outdoor Walkway",
         x: 70,
         y: 44,
         type: "2d",
-        src: "ChatGPT Image Aug 28, 2026, 10_05_38 PM_2.png",
+        src: "ChatGPT Image Aug 28, 2026, 10_05_38 PM.png",
         category: "Outdoor Gathering",
-        info: "Interlocking vertical wooden timber colonnade offering shaded outdoor gathering, integrated perimeter greenery, and contemporary streetlamps along the thoroughfare.",
-        zone: "East Shaded Courtyard",
-        features: "Repetitive timber louvers, semi-open dining pergola, perimeter trees"
+        info: "Warm terracotta building corner with slatted timber pergola colonnade providing filtered shading for outdoor seating along the perimeter roadway.",
+        zone: "East Outdoor Commons",
+        features: "Interlocking vertical timber louvers, semi-covered seating deck, integrated mature shade trees"
       },
       {
         id: "view-viram-food-hall",
-        name: "3. Double-Height Food Hall & Commons",
+        name: "3. Double-Height Dining Commons & Truss Roof",
+        tag: "Interior Commons",
         x: 40,
         y: 60,
         type: "2d",
-        src: "ChatGPT Image Aug 28, 2026, 10_32_10 PM_2.png",
-        category: "Interior Public Commons",
-        info: "Expansive warm-toned food court featuring exposed steel structural trusses, skylight filtering, contemporary wooden furnishings, and open access to the upper mezzanine.",
+        src: "ChatGPT Image Aug 28, 2026, 10_32_10 PM.png",
+        category: "Food Commons",
+        info: "Expansive double-height food hall defined by exposed steel structural roof trusses, clerestory skylight filtration, open-riser circulation stairs, and warm brick finishes.",
         zone: "Interior Dining Commons",
-        features: "Structural steel roof truss, floating open-riser staircase, terracotta brickwork"
+        features: "Open structural steel trusses, skylight ceiling filtration, open-riser mezzanine stairs"
       },
       {
         id: "view-viram-mezzanine-dining",
-        name: "4. Mezzanine Dining Gallery",
+        name: "4. Mezzanine Dining Gallery & Overlook",
+        tag: "Upper Dining Level",
         x: 32,
         y: 62,
         type: "2d",
-        src: "ChatGPT Image Aug 28, 2026, 10_49_26 PM_2.png",
-        category: "Upper Dining Lounge",
-        info: "Elevated vantage point from the mezzanine gallery showcasing intricate slatted sunlight patterns, wrought-iron safety guardrails, and spacious dining layouts.",
+        src: "ChatGPT Image Aug 28, 2026, 10_49_26 PM.png",
+        category: "Upper Gallery",
+        info: "Elevated dining gallery viewpoint showcasing the intricate shadow play from overhead trusses, wrought-iron safety guardrails, and vantage across the entire commons.",
         zone: "Upper Mezzanine Lounge",
-        features: "Filtered geometric daylight, iron railing balustrades, double-height overlook"
+        features: "Wrought-iron safety balustrades, double-height overlook, textured terracotta block walls"
       },
       {
         id: "view-viram-garden-trellis",
-        name: "5. Shaded Trellis & Charpai Lounge",
+        name: "5. Shaded Trellis & Charpai Rest Lounge",
+        tag: "Courtyard Seating",
         x: 54,
         y: 72,
         type: "2d",
-        src: "ChatGPT Image Aug 28, 2026, 10_51_06 PM_2.png",
+        src: "ChatGPT Image Aug 28, 2026, 10_51_06 PM.png",
         category: "Outdoor Pavilion Seating",
-        info: "Linear timber trellis structure with traditional charpai-inspired wooden daybeds and stone bench planters nestled within lush landscaped greenery.",
+        info: "A quiet garden corridor featuring a repeating architectural timber trellis, traditional charpai-style woven daybeds, cast-iron street lamps, and lush landscape screening.",
         zone: "Artisan Garden Promenade",
-        features: "Traditional woven daybeds, cast-iron street lamps, geometric stepped pavers"
+        features: "Traditional woven daybeds, geometric concrete stepping pads, heritage post lanterns"
       },
       {
         id: "view-viram-folding-portal",
         name: "6. Folding Glazed Portal & Threshold",
+        tag: "Threshold Portal",
         x: 28,
         y: 52,
         type: "2d",
-        src: "ChatGPT Image Aug 28, 2026, 10_59_48 PM_2.png",
+        src: "ChatGPT Image Aug 28, 2026, 10_59_48 PM.png",
         category: "Indoor-Outdoor Transition",
-        info: "Floor-to-ceiling bi-fold glass doors creating a seamless indoor-outdoor boundary between the air-conditioned hall and the landscaped forecourt.",
+        info: "Multi-panel bi-fold architectural glass doors opening the interior dining space directly to the exterior courtyard and arrival forecourt.",
         zone: "Main Entry Threshold",
-        features: "Multi-fold architectural glazing, seamless threshold transition, terracotta walls"
+        features: "Full-height bi-fold glazing, flush door threshold, direct courtyard connection"
       },
       {
         id: "view-viram-aerial-pavilion",
         name: "7. Aerial Courtyard & Clay Tile Pavilion",
+        tag: "High Angle Perspective",
         x: 48,
         y: 40,
         type: "2d",
         src: "ChatGPT Image Aug 28, 2026, 11_07_28 PM.png",
         category: "Aerial Architecture",
-        info: "High-angle view of the large sloping clay-tile roof sheltering the central court, with an open-air beverage counter, courtyard charpais, and a central courtyard tree.",
+        info: "Elevated high-angle perspective showcasing the expansive clay-tile roof sheltering the central court, featuring outdoor beverage counters and courtyard gathering charpais.",
         zone: "Central Pavilion Core",
-        features: "Sloping clay tile roof, courtyard shade tree, outdoor beverage counter"
+        features: "Sloping terracotta tile roof canopy, integrated courtyard shade tree, outdoor beverage counter"
       },
       {
         id: "view-viram-play-pavilion",
-        name: "8. Shaded Playground & Family Pavilion",
+        name: "8. Shaded Children Public Play Pavilion",
+        tag: "Public Realm & Play",
         x: 58,
         y: 42,
         type: "2d",
         src: "ChatGPT_Image_Aug_28,_2026,_09_36_20_PM_upscaled.jpg",
         category: "Recreation & Public Realm",
-        info: "Sheltered children's play area under vibrant terracotta pergola louvers equipped with swings, wooden benches, and heritage streetlamps.",
+        info: "Sheltered recreation and sandplay area underneath a sloping louvered roof canopy, outfitted with wooden swing sets, timber park benches, and heritage streetlamps.",
         zone: "Public Recreation Buffer",
-        features: "Timber-slat canopy, sand play pit, integrated vintage street lamps"
+        features: "Louvered sun canopy, soft sand pit, wooden swing sets, perimeter benches"
       }
     ];
 
@@ -1389,12 +1450,16 @@
     });
 
     const galleryGrid = document.getElementById('gallery-grid-items');
+    galleryGrid.innerHTML = '';
     marketVantages.forEach((vantage) => {
       const card = document.createElement('div');
       card.className = 'gallery-card';
       card.innerHTML = `
-        <img src="${vantage.src}" alt="${vantage.name}" onerror="this.src='https://placehold.co/600x400/1e293b/d4af37?text=${encodeURIComponent(vantage.name)}'" />
-        <div class="gallery-card-badge">${vantage.name}</div>
+        <img src="${vantage.src}" alt="${vantage.name}" onerror="this.src='https://placehold.co/600x400/0c1726/ebd39f?text=${encodeURIComponent(vantage.name)}'" />
+        <div class="gallery-card-badge">
+          <span class="gallery-card-tag">${vantage.tag || 'Perspective'}</span>
+          ${vantage.name}
+        </div>
       `;
       card.addEventListener('click', () => {
         loadVantage(vantage);
