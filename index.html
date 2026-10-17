@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sardar Vallabhbhai Patel Market - Architectural Interactive Tour</title>
 
-  <!-- Three.js for robust 360 WebGL panorama rendering without XHR restrictions -->
+  <!-- Three.js for 360 Panoramas without CORS or XHR issues -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <style>
@@ -22,13 +22,11 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #060b14;
+      background: #060d17;
       color: #fff;
     }
 
-    /* ============================================================
-       1. MAIN INTERACTIVE VIEWPORT (360 SPHERE & 2D PERSPECTIVES)
-       ============================================================ */
+    /* Main Viewport Container */
     #viewport-container {
       width: 100vw;
       height: 100vh;
@@ -36,21 +34,20 @@
       inset: 0;
       z-index: 1;
       overflow: hidden;
-      background: #080d17;
-      cursor: grab;
+      background: #08101d;
     }
 
-    #viewport-container.grabbing {
-      cursor: grabbing;
-    }
-
-    #threejs-canvas {
+    #three-canvas-container {
       width: 100%;
       height: 100%;
-      display: block;
       position: absolute;
       inset: 0;
       z-index: 2;
+      cursor: grab;
+    }
+
+    #three-canvas-container:active {
+      cursor: grabbing;
     }
 
     #perspective-view-image {
@@ -62,7 +59,7 @@
       object-fit: cover;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: opacity 0.4s ease-in-out;
     }
 
     #perspective-view-image.active {
@@ -70,168 +67,134 @@
       pointer-events: auto;
     }
 
-    /* ============================================================
-       2. TOP-LEFT HUD & 3-BAR MENU (Below Title Panel)
-       ============================================================ */
-    .top-left-container {
+    /* Top Left Header & Menu */
+    #top-left-panel {
       position: absolute;
       top: 24px;
       left: 24px;
       z-index: 120;
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
+      gap: 8px;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      transform: translateY(-8px);
+      transition: opacity 0.4s ease;
     }
 
-    .top-left-container.visible {
+    #top-left-panel.visible {
       opacity: 1;
       pointer-events: auto;
-      transform: translateY(0);
     }
 
-    /* Title Card (Red back button removed completely) */
-    .hud-title-card {
-      background: rgba(8, 16, 28, 0.92);
-      border: 1px solid rgba(212, 175, 55, 0.5);
-      padding: 10px 22px;
+    .title-card {
+      background: rgba(10, 20, 36, 0.88);
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      padding: 10px 18px;
       border-radius: 6px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 4px 22px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65);
     }
 
-    .hud-title-card h2 {
+    .title-card h2 {
       font-size: 1.05rem;
       font-weight: 600;
-      letter-spacing: 1.5px;
+      letter-spacing: 1.2px;
       color: #f7e7c4;
       text-transform: uppercase;
     }
 
-    .hud-title-card span {
+    .title-card span {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 0.76rem;
+      font-size: 0.78rem;
       color: #b5c2d4;
       display: block;
       margin-top: 3px;
     }
 
-    /* 3-Bar Hamburger Trigger Wrapper */
-    .menu-trigger-wrapper {
-      position: relative;
-    }
-
-    .hamburger-btn {
+    /* 3-Bar (☰ Hamburger) Menu Toggle */
+    .menu-bar-btn {
       width: 44px;
       height: 44px;
-      background: rgba(8, 16, 28, 0.94);
-      border: 1px solid rgba(214, 185, 120, 0.55);
+      background: rgba(10, 20, 36, 0.9);
+      border: 1.5px solid rgba(212, 175, 55, 0.6);
       border-radius: 6px;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       gap: 5px;
       cursor: pointer;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
       transition: all 0.25s ease;
     }
 
-    .hamburger-btn:hover,
-    .hamburger-btn.active {
-      background: rgba(214, 185, 120, 0.25);
-      border-color: #ebd39f;
-      transform: translateY(-1px);
+    .menu-bar-btn:hover {
+      background: rgba(212, 175, 55, 0.25);
+      border-color: #ffffff;
+      transform: scale(1.05);
     }
 
-    .hamburger-bar {
+    .menu-bar-btn span {
+      display: block;
       width: 20px;
       height: 2px;
       background: #ebd39f;
       border-radius: 2px;
-      transition: all 0.3s ease;
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
 
-    /* Animated Morph into 'X' when active */
-    .hamburger-btn.active .hamburger-bar:nth-child(1) {
-      transform: translateY(7px) rotate(45deg);
-    }
-    .hamburger-btn.active .hamburger-bar:nth-child(2) {
-      opacity: 0;
-    }
-    .hamburger-btn.active .hamburger-bar:nth-child(3) {
-      transform: translateY(-7px) rotate(-45deg);
-    }
-
-    /* Dropdown Popover List */
-    .dropdown-nav-menu {
+    /* Dropdown Menu Container */
+    #dropdown-menu {
       position: absolute;
-      top: 52px;
-      left: 0;
-      min-width: 200px;
-      background: rgba(8, 16, 28, 0.96);
-      border: 1px solid rgba(214, 185, 120, 0.5);
+      top: 106px;
+      left: 24px;
+      z-index: 130;
+      background: rgba(8, 16, 28, 0.95);
+      border: 1px solid rgba(212, 175, 55, 0.5);
       border-radius: 8px;
       padding: 8px;
       display: flex;
       flex-direction: column;
       gap: 4px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(14px);
-      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.85);
       opacity: 0;
       pointer-events: none;
-      transform: translateY(-8px) scale(0.97);
-      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transform: translateY(-8px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      min-width: 175px;
     }
 
-    .dropdown-nav-menu.open {
+    #dropdown-menu.open {
       opacity: 1;
       pointer-events: auto;
-      transform: translateY(0) scale(1);
+      transform: translateY(0);
     }
 
-    .dropdown-item-btn {
-      background: transparent;
-      border: 1px solid transparent;
-      color: #ebd39f;
+    .menu-item-btn {
+      background: none;
+      border: none;
+      color: #d1dced;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      padding: 9px 14px;
-      border-radius: 5px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-align: left;
+      padding: 9px 12px;
+      border-radius: 4px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 11px;
-      transition: all 0.2s ease;
-      text-align: left;
+      gap: 10px;
+      transition: background 0.2s ease, color 0.2s ease;
     }
 
-    .dropdown-item-btn svg {
-      width: 16px;
-      height: 16px;
-      stroke: currentColor;
-      flex-shrink: 0;
+    .menu-item-btn:hover {
+      background: rgba(212, 175, 55, 0.2);
+      color: #ebd39f;
     }
 
-    .dropdown-item-btn:hover {
-      background: rgba(214, 185, 120, 0.18);
-      border-color: rgba(214, 185, 120, 0.4);
-      color: #ffffff;
-      transform: translateX(3px);
-    }
-
-    /* ============================================================
-       3. TOP-RIGHT CONTROLS (FULLSCREEN + INFO 'i' BUTTON)
-       ============================================================ */
-    .top-right-controls {
+    /* Top Right Buttons (Fullscreen + Info) */
+    #top-right-controls {
       position: absolute;
       top: 24px;
       right: 24px;
@@ -244,33 +207,33 @@
       transition: opacity 0.4s ease;
     }
 
-    .top-right-controls.visible {
+    #top-right-controls.visible {
       opacity: 1;
       pointer-events: auto;
     }
 
-    .hud-circle-btn {
+    .round-ctrl-btn {
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: rgba(8, 16, 28, 0.92);
+      background: rgba(10, 20, 36, 0.88);
       border: 1.5px solid rgba(212, 175, 55, 0.7);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      color: #f7e7c4;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
       transition: transform 0.2s, background 0.2s, border-color 0.2s;
+      color: #f7e7c4;
     }
 
-    .hud-circle-btn:hover {
+    .round-ctrl-btn:hover {
       background: rgba(212, 175, 55, 0.3);
-      border-color: #ffffff;
+      border-color: #fff;
       transform: scale(1.08);
     }
 
-    .hud-circle-btn svg {
+    .round-ctrl-btn svg {
       width: 20px;
       height: 20px;
       stroke: #f7e7c4;
@@ -283,27 +246,78 @@
       font-size: 1.25rem;
       font-style: italic;
       font-weight: bold;
-      color: #f7e7c4;
     }
 
-    /* Details Drawer */
+    /* Previous / Next Side Arrow Buttons (Hidden initially, active on gallery viewing) */
+    .edge-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 38px;
+      height: 70px;
+      background: rgba(10, 20, 36, 0.88);
+      border: 1px solid rgba(212, 175, 55, 0.65);
+      z-index: 120;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.75);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, background 0.2s, border-color 0.2s, transform 0.2s;
+    }
+
+    .edge-nav-btn.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .edge-nav-btn:hover {
+      background: rgba(212, 175, 55, 0.3);
+      border-color: #ffffff;
+    }
+
+    .edge-nav-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: #f7e7c4;
+      stroke-width: 2.2;
+      fill: none;
+    }
+
+    #nav-btn-prev {
+      left: 0;
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+      border-left: none;
+    }
+
+    #nav-btn-next {
+      right: 0;
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+      border-right: none;
+    }
+
+    /* Floating Detail Card */
     #info-card {
       position: absolute;
       top: 80px;
       right: 24px;
-      width: 350px;
+      width: 340px;
       max-width: calc(100vw - 48px);
-      background: rgba(9, 18, 32, 0.95);
+      background: rgba(9, 18, 32, 0.96);
       border: 1px solid rgba(214, 185, 120, 0.65);
       border-radius: 8px;
       padding: 18px 20px;
       z-index: 150;
-      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.9);
-      backdrop-filter: blur(14px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
       opacity: 0;
       pointer-events: none;
       transform: translateY(-10px);
-      transition: opacity 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
     #info-card.open {
@@ -312,7 +326,7 @@
       transform: translateY(0);
     }
 
-    .info-card-header {
+    .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -321,28 +335,27 @@
       margin-bottom: 12px;
     }
 
-    .info-card-header h3 {
+    .card-header h3 {
       font-size: 0.95rem;
       color: #ebd39f;
       text-transform: uppercase;
       letter-spacing: 0.8px;
     }
 
-    .modal-close-icon {
+    .modal-close-btn {
       background: none;
       border: none;
       color: #dfcaa2;
-      font-size: 1.35rem;
+      font-size: 1.4rem;
       line-height: 1;
       cursor: pointer;
-      transition: color 0.2s;
     }
 
-    .modal-close-icon:hover {
-      color: #ffffff;
+    .modal-close-btn:hover {
+      color: #fff;
     }
 
-    .info-category-tag {
+    .category-badge {
       display: inline-block;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 0.68rem;
@@ -352,7 +365,7 @@
       background: rgba(214, 185, 120, 0.15);
       color: #ebd39f;
       border: 1px solid rgba(214, 185, 120, 0.35);
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 4px;
       margin-bottom: 10px;
     }
@@ -365,7 +378,7 @@
       margin-bottom: 12px;
     }
 
-    .info-meta-row {
+    .meta-list {
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -376,61 +389,57 @@
       padding-top: 10px;
     }
 
-    .info-meta-row b {
+    .meta-list b {
       color: #ffffff;
     }
 
-    /* ============================================================
-       4. AERIAL SITE PLAN MODAL (Invoked from 3-Bar Menu)
-       ============================================================ */
-    #aerial-plan-modal {
+    /* Modal Backdrop for Plan and Gallery */
+    .modal-overlay {
       position: absolute;
-      top: 145px;
-      left: 24px;
-      width: 320px;
-      background: rgba(8, 16, 28, 0.96);
-      border: 1px solid rgba(214, 185, 120, 0.65);
-      border-radius: 8px;
-      padding: 12px;
-      z-index: 140;
-      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.9);
-      backdrop-filter: blur(14px);
+      inset: 0;
+      background: rgba(4, 9, 18, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
       opacity: 0;
       pointer-events: none;
-      transform: translateY(-8px);
-      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition: opacity 0.3s ease;
     }
 
-    #aerial-plan-modal.open {
+    .modal-overlay.open {
       opacity: 1;
       pointer-events: auto;
-      transform: translateY(0);
     }
 
-    .plan-header {
+    .modal-box {
+      background: rgba(8, 16, 28, 0.98);
+      border: 1px solid rgba(214, 185, 120, 0.6);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+      max-width: 900px;
+      width: 100%;
+      max-height: 90vh;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.74rem;
-      letter-spacing: 1px;
-      color: #ebd39f;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      font-weight: bold;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      flex-direction: column;
     }
 
-    #plan-viewport {
+    /* Aerial Plan Container */
+    #plan-wrapper {
       position: relative;
       width: 100%;
-      height: 250px;
-      background: #111;
-      border-radius: 4px;
+      height: 480px;
+      background: #111827;
+      border-radius: 6px;
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 12px;
     }
 
-    #plan-viewport img {
+    #plan-wrapper img {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -438,40 +447,38 @@
       pointer-events: none;
     }
 
-    /* Glowing Hotspot Dots */
     .plan-dot {
       position: absolute;
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
-      background: #dc3545;
+      background: #dc2626;
       border: 2px solid #ffffff;
       transform: translate(-50%, -50%);
       cursor: pointer;
       z-index: 10;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
-      transition: transform 0.2s, background 0.2s, border-color 0.2s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+      transition: transform 0.2s, background 0.2s;
     }
 
     .plan-dot::after {
       content: '';
       position: absolute;
-      inset: -5px;
+      inset: -6px;
       border-radius: 50%;
-      border: 1.5px solid rgba(220, 53, 69, 0.85);
-      animation: dot-pulse 1.8s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+      border: 1.5px solid rgba(220, 38, 38, 0.8);
+      animation: pulse-ring 1.8s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
-    @keyframes dot-pulse {
+    @keyframes pulse-ring {
       0% { transform: scale(0.6); opacity: 1; }
       100% { transform: scale(2.2); opacity: 0; }
     }
 
     .plan-dot:hover, .plan-dot.active {
-      background: #d4af37;
-      border-color: #ffffff;
+      background: #eab308;
       transform: translate(-50%, -50%) scale(1.4);
-      z-index: 30;
+      z-index: 25;
     }
 
     .dot-tooltip {
@@ -480,11 +487,10 @@
       left: 50%;
       transform: translateX(-50%) translateY(4px);
       background: rgba(6, 12, 22, 0.95);
-      border: 1px solid rgba(214, 185, 120, 0.6);
-      color: #ffffff;
+      border: 1px solid rgba(214, 185, 120, 0.7);
+      color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 0.7rem;
-      font-weight: 500;
+      font-size: 0.72rem;
       white-space: nowrap;
       padding: 4px 8px;
       border-radius: 4px;
@@ -492,7 +498,7 @@
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.2s, transform 0.2s;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.7);
     }
 
     .plan-dot:hover .dot-tooltip {
@@ -501,156 +507,60 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    /* ============================================================
-       5. GALLERY MODAL
-       ============================================================ */
-    #gallery-modal {
-      position: absolute;
-      inset: 0;
-      background: rgba(3, 8, 18, 0.88);
-      backdrop-filter: blur(14px);
-      z-index: 200;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.35s ease;
-    }
-
-    #gallery-modal.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .gallery-dialog {
-      background: rgba(9, 18, 32, 0.96);
-      border: 1px solid rgba(214, 185, 120, 0.55);
-      border-radius: 10px;
-      max-width: 900px;
-      width: 100%;
-      max-height: 85vh;
-      overflow-y: auto;
-      padding: 22px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
-    }
-
-    .gallery-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(214, 185, 120, 0.3);
-      padding-bottom: 10px;
-      margin-bottom: 16px;
-    }
-
-    .gallery-header h3 {
-      font-size: 1.15rem;
-      color: #ebd39f;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .gallery-grid {
+    /* Gallery Grid */
+    #gallery-grid-container {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 18px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      overflow-y: auto;
+      max-height: 60vh;
+      padding: 10px 4px;
+      margin-top: 12px;
+    }
+
+    #gallery-grid-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    #gallery-grid-container::-webkit-scrollbar-thumb {
+      background: rgba(214, 185, 120, 0.35);
+      border-radius: 4px;
     }
 
     .gallery-card {
-      position: relative;
-      height: 180px;
-      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
       overflow: hidden;
       cursor: pointer;
-      border: 1px solid rgba(214, 185, 120, 0.35);
-      background: #060c18;
-      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+      background: rgba(14, 24, 40, 0.8);
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
     }
 
     .gallery-card:hover {
-      transform: translateY(-4px) scale(1.02);
+      transform: translateY(-3px);
       border-color: #ebd39f;
-      box-shadow: 0 10px 24px rgba(214, 185, 120, 0.28);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
     }
 
     .gallery-card img {
       width: 100%;
-      height: 100%;
+      height: 120px;
       object-fit: cover;
       display: block;
-      transition: transform 0.4s ease;
     }
 
-    .gallery-card:hover img {
-      transform: scale(1.05);
+    .gallery-card-body {
+      padding: 8px 10px;
     }
 
-    .gallery-card-badge {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 10px 12px 6px;
-      background: linear-gradient(to top, rgba(4, 9, 18, 0.95) 0%, rgba(4, 9, 18, 0.7) 60%, transparent 100%);
+    .gallery-card-title {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 0.74rem;
-      color: #ffffff;
+      font-size: 0.75rem;
       font-weight: 600;
-      letter-spacing: 0.3px;
-    }
-
-    .gallery-card-tag {
-      display: block;
-      font-size: 0.65rem;
       color: #ebd39f;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 2px;
+      line-height: 1.3;
     }
 
-    .gallery-dialog {
-      background: rgba(9, 18, 32, 0.96);
-      border: 1px solid rgba(214, 185, 120, 0.55);
-      border-radius: 10px;
-      max-width: 1000px;
-      width: 100%;
-      max-height: 88vh;
-      overflow-y: auto;
-      padding: 22px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
-    }
-
-    .gallery-card:hover {
-      transform: translateY(-3px) scale(1.02);
-      border-color: #ebd39f;
-      box-shadow: 0 8px 22px rgba(214, 185, 120, 0.25);
-    }
-
-    .gallery-card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .gallery-card-badge {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 6px 10px;
-      background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0) 100%);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 0.72rem;
-      color: #ffffff;
-      font-weight: 500;
-    }
-
-    /* ============================================================
-       6. ROYAL LOCKED SPLASH SCREEN (Screen 1)
-       ============================================================ */
+    /* PAGE 1: ROYAL LOCKED ENTRANCE */
     #start-screen {
       position: absolute;
       inset: 0;
@@ -716,7 +626,7 @@
       letter-spacing: 4px;
       text-transform: uppercase;
       color: #ebd39f;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
       font-weight: 600;
     }
 
@@ -743,10 +653,10 @@
       font-size: 0.84rem;
       line-height: 1.7;
       color: #d1dced;
-      max-height: 150px;
+      max-height: 140px;
       overflow-y: auto;
       padding: 0 16px;
-      margin-bottom: 34px;
+      margin-bottom: 30px;
       text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
     }
 
@@ -770,7 +680,7 @@
     .diamond-box {
       width: 100%;
       height: 100%;
-      border: 2px solid rgba(255, 255, 255, 0.95);
+      border: 2px solid rgba(255, 255, 255, 0.9);
       background: rgba(14, 28, 48, 0.8);
       backdrop-filter: blur(8px);
       transform: rotate(45deg);
@@ -847,136 +757,133 @@
 </head>
 <body>
 
-  <!-- VIEWPORT CONTAINER: WebGL 360 Canvas or 2D Perspective Render -->
+  <!-- VIEWPORT: Three.js 360 Canvas and 2D Perspective Render Container -->
   <div id="viewport-container">
-    <canvas id="threejs-canvas"></canvas>
+    <div id="three-canvas-container"></div>
     <img id="perspective-view-image" src="" alt="Active Space Render" />
   </div>
 
-  <!-- SCREEN 2: TOP-LEFT TITLE & COMPACT 3-BAR HAMBURGER MENU -->
-  <div class="top-left-container" id="top-left-panel">
-    
-    <!-- Title Card -->
-    <div class="hud-title-card">
+  <!-- PAGE 2: Left Navigation Panel (Title Card + 3-Bar Dropdown Menu) -->
+  <div id="top-left-panel">
+    <div class="title-card">
       <h2>SARDAR VALLABHBHAI PATEL MARKET</h2>
-      <span id="hud-vantage-name">Artisan Promenade & Boulevard (360° View)</span>
+      <span id="hud-vantage-title">Central Artisan Promenade (360° Drag View)</span>
     </div>
 
-    <!-- 3-Bar (☰) Hamburger Trigger & Dropdown -->
-    <div class="menu-trigger-wrapper">
-      <button class="hamburger-btn" id="hamburger-menu-btn" title="Toggle Navigation Menu">
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-      </button>
-
-      <!-- Dropdown Items Popover -->
-      <nav class="dropdown-nav-menu" id="dropdown-nav-menu">
-        <button class="dropdown-item-btn" id="menu-btn-plan">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
-            <line x1="8" y1="2" x2="8" y2="18"></line>
-            <line x1="16" y1="6" x2="16" y2="22"></line>
-          </svg>
-          <span>Aerial Plan</span>
-        </button>
-
-        <button class="dropdown-item-btn" id="menu-btn-gallery">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-            <polyline points="21 15 16 10 5 21"></polyline>
-          </svg>
-          <span>Gallery</span>
-        </button>
-
-        <button class="dropdown-item-btn" id="menu-btn-details">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
-          <span>Details</span>
-        </button>
-
-        <button class="dropdown-item-btn" id="menu-btn-home">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-          </svg>
-          <span>Home Page</span>
-        </button>
-      </nav>
-    </div>
+    <!-- 3-Bar Menu Toggle Button -->
+    <button class="menu-bar-btn" id="menu-toggle-btn" title="Open Navigation Menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
   </div>
 
-  <!-- SCREEN 2: TOP-RIGHT CONTROLS (FULLSCREEN + INFO 'i' BUTTON) -->
-  <div class="top-right-controls" id="top-right-panel">
-    <!-- Fullscreen Toggle Button -->
-    <button class="hud-circle-btn" id="fullscreen-toggle-btn" title="Toggle Fullscreen">
-      <svg id="fs-enter-icon" viewBox="0 0 24 24">
-        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Dropdown Menu Box -->
+  <nav id="dropdown-menu">
+    <button class="menu-item-btn" id="menu-btn-plan">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 18l6-6-6-6"/>
       </svg>
-      <svg id="fs-exit-icon" viewBox="0 0 24 24" style="display: none;">
-        <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" stroke-linecap="round" stroke-linejoin="round"/>
+      AERIAL PLAN
+    </button>
+    <button class="menu-item-btn" id="menu-btn-gallery">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      GALLERY
+    </button>
+    <button class="menu-item-btn" id="menu-btn-details">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="16" x2="12" y2="12"/>
+        <line x1="12" y1="8" x2="12.01" y2="8"/>
+      </svg>
+      DETAILS
+    </button>
+    <button class="menu-item-btn" id="menu-btn-home">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      HOME PAGE
+    </button>
+  </nav>
+
+  <!-- Top Right Controls (Fullscreen & Info) -->
+  <div id="top-right-controls">
+    <button class="round-ctrl-btn" id="fullscreen-btn" title="Toggle Fullscreen">
+      <svg id="fullscreen-icon" viewBox="0 0 24 24">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
       </svg>
     </button>
-
-    <!-- Info 'i' Button -->
-    <button class="hud-circle-btn" id="info-toggle-btn" title="View Space Details">
+    <button class="round-ctrl-btn" id="info-btn" title="View Space Details">
       <span class="info-letter">i</span>
     </button>
   </div>
 
-  <!-- FLOATING MODAL: AERIAL MASTER PLAN -->
-  <aside id="aerial-plan-modal">
-    <div class="plan-header">
-      <span>Aerial Master Plan</span>
-      <button class="modal-close-icon" id="plan-close-btn">&times;</button>
+  <!-- Side Navigation Edge Buttons (Only active when browsing gallery images) -->
+  <button class="edge-nav-btn" id="nav-btn-prev" title="Previous Gallery View">
+    <svg viewBox="0 0 24 24">
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+  </button>
+  <button class="edge-nav-btn" id="nav-btn-next" title="Next Gallery View">
+    <svg viewBox="0 0 24 24">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </button>
+
+  <!-- Space Details Info Card -->
+  <aside id="info-card">
+    <div class="card-header">
+      <h3 id="info-card-title">Space Details</h3>
+      <button class="modal-close-btn" id="info-close-btn">&times;</button>
     </div>
-    <div id="plan-viewport">
-      <img src="d7d8187104c619259f0e91fa11ad60e8_2.jpg" alt="Aerial Plan of Market" id="master-plan-img" onerror="this.src='https://placehold.co/600x500/1e293b/d4af37?text=Aerial+Plan+Drawing'" />
-      <div id="plan-dots-container"></div>
+    <span class="category-badge" id="info-badge">Central Spine</span>
+    <p class="info-body-text" id="info-body">
+      Select any point on the aerial site plan or choose an image from the gallery to explore architectural details.
+    </p>
+    <div class="meta-list">
+      <span><b>Spatial Zone:</b> <span id="info-zone">-</span></span>
+      <span><b>Key Materials & Lighting:</b> <span id="info-features">-</span></span>
     </div>
   </aside>
 
-  <!-- FLOATING MODAL: GALLERY -->
-  <div id="gallery-modal">
-    <div class="gallery-dialog">
-      <div class="gallery-header">
-        <h3>Architectural Views & Perspectives</h3>
-        <button class="modal-close-icon" id="gallery-close-btn">&times;</button>
+  <!-- Aerial Plan Modal -->
+  <div class="modal-overlay" id="plan-modal">
+    <div class="modal-box">
+      <div class="card-header">
+        <h3>Aerial Master Site Plan</h3>
+        <button class="modal-close-btn" id="plan-close-btn">&times;</button>
       </div>
-      <div class="gallery-grid" id="gallery-grid-items">
-        <!-- Generated dynamically via JavaScript -->
+      <div id="plan-wrapper">
+        <img src="aerial-plan.jpg" alt="Aerial Master Plan" id="site-plan-image" />
+        <div id="plan-dots-layer"></div>
       </div>
     </div>
   </div>
 
-  <!-- FLOATING MODAL: DETAILS CARD -->
-  <aside id="info-card">
-    <div class="info-card-header">
-      <h3 id="info-card-title">View Details</h3>
-      <button class="modal-close-icon" id="info-close-btn">&times;</button>
+  <!-- Gallery Modal -->
+  <div class="modal-overlay" id="gallery-modal">
+    <div class="modal-box">
+      <div class="card-header">
+        <h3>Architectural Gallery Views</h3>
+        <button class="modal-close-btn" id="gallery-close-btn">&times;</button>
+      </div>
+      <div id="gallery-grid-container"></div>
     </div>
-    <span class="info-category-tag" id="info-tag">Overview</span>
-    <p class="info-body-text" id="info-text">
-      Select any point on the aerial site plan or gallery to explore architectural details and design concepts.
-    </p>
-    <div class="info-meta-row">
-      <span><b>Zone:</b> <span id="info-meta-zone">-</span></span>
-      <span><b>Key Features:</b> <span id="info-meta-features">-</span></span>
-    </div>
-  </aside>
+  </div>
 
-  <!-- SCREEN 1: ROYAL LOCKED SPLASH SCREEN -->
+  <!-- PAGE 1: Royal Locked Splash Screen -->
   <section id="start-screen">
     <div class="splash-bg"></div>
     <div class="splash-overlay-gradient"></div>
     <div class="royal-border"></div>
 
     <div class="royal-container">
-      <!-- Colonnade & Clock Tower Line Drawing Emblem -->
+      <!-- Colonnade & Clock Tower Emblem Drawing -->
       <svg class="crest-drawing" viewBox="0 0 200 60" fill="none" stroke="#ebd39f" stroke-width="1.2">
         <path d="M 85 58 L 85 24 L 94 14 L 100 8 L 106 14 L 115 24 L 115 58" />
         <circle cx="100" cy="22" r="5" />
@@ -999,7 +906,7 @@
 
       <h1 class="splash-main-title" id="dyn-title">Sardar Vallabhbhai Patel Market</h1>
       <h2 class="splash-subtitle" id="dyn-subtitle">360° RENDER VIEWS</h2>
-      
+
       <p class="splash-description" id="dyn-desc">
         The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist.
       </p>
@@ -1014,492 +921,558 @@
 
     <!-- Trilingual Switcher Footer -->
     <footer class="lang-bar">
-      <button class="lang-item active" onclick="switchLanguage('en')">ENGLISH</button>
+      <button class="lang-item active" data-lang="en">ENGLISH</button>
       <span class="diamond-sep">◇</span>
-      <button class="lang-item" onclick="switchLanguage('te')">TELUGU</button>
+      <button class="lang-item" data-lang="te">TELUGU</button>
       <span class="diamond-sep">◇</span>
-      <button class="lang-item" onclick="switchLanguage('hi')">HINDI</button>
+      <button class="lang-item" data-lang="hi">HINDI</button>
     </footer>
   </section>
 
   <script>
-    // ============================================================
-    // 1. DATA AND TRILINGUAL REPOSITORY
-    // ============================================================
-    const translations = {
-      en: {
-        title: "Sardar Vallabhbhai Patel Market",
-        subtitle: "360° RENDER VIEWS",
-        desc: "The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist."
-      },
-      te: {
-        title: "సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్",
-        subtitle: "360° రెండర్ దృశ్యాలు",
-        desc: "పునరుద్ధరించబడిన సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్, వలస పాలన నాటి వారసత్వాన్ని ఆధునిక డిజైన్‌తో అద్భుతంగా మిళితం చేస్తుంది. పునరుద్ధరించిన గడియార స్తంభం (క్లాక్ టవర్) మరియు అసలు ముఖద్వారం ఈ ప్రాంగణానికి ప్రధాన ఆకర్షణగా నిలుస్తాయి; పాత ఇరుకైన, రద్దీగా ఉండే సందుల స్థానంలో ఇప్పుడు పాదచారులకు అనుకూలమైన, నీడనిచ్చే చెట్లతో కూడిన మార్గాలు ఏర్పాటు చేయబడ్డాయి. సాంప్రదాయ దుకాణాలు తమ ప్రత్యేకతను నిలుపుకుంటూనే, మెరుగైన వెలుతురుతో పాటు వాతావరణ పరిస్థితులను తట్టుకునే ఆధునిక 'మాడ్యులర్' హంగులను సంతరించుకున్నాయి. పైకప్పుతో కూడిన బహిరంగ ప్రదేశం (ప్లాజా), డిజిటల్ దిశానిర్దేశక వ్యవస్థ మరియు క్రమబద్ధమైన పార్కింగ్ వంటి సౌకర్యాలు ఇందులో సున్నితంగా జోడించబడ్డాయి. రాత్రివేళల్లో వారసత్వ శైలి లైటింగ్ ఆధునిక పైకప్పులతో (కానోపీలతో) కలిసిపోయి, చరిత్ర మరియు ఆధునిక అవసరాలు కలిసి సాగే ఒక సుస్థిరమైన ప్రాంగణాన్ని సృష్టిస్తాయి."
-      },
-      hi: {
-        title: "सरदार वल्लभभाई पटेल मार्केट",
-        subtitle: "360° रेंडर व्यूज़",
-        desc: "नए सिरे से तैयार सरदार वल्लभभाई पटेल (पूर्णा) मार्केट में औपनिवेशिक दौर की विरासत और आधुनिक डिज़ाइन का मेल दिखता है। ठीक किया गया क्लॉक टावर और पुरानी इमारत का सामने का हिस्सा इस जगह की मुख्य पहचान हैं। इसके चारों ओर पैदल चलने वालों के लिए रास्ते और छायादार हरियाली है, जिसने पुरानी भीड़-भाड़ वाली गलियों की जगह ले ली है। पारंपरिक स्टॉल अपनी जीवंत पहचान बनाए रखते हैं, लेकिन उन्हें बेहतर लाइटिंग के साथ मॉड्यूलर और मौसम से सुरक्षित अपग्रेड मिला है। यहाँ एक ढका हुआ प्लाज़ा, डिजिटल वे-फाइंडिंग और व्यवस्थित पार्किंग की सुविधा भी दी गई है। रात में हेरिटेज लाइटिंग आधुनिक कैनोपी के साथ मिलकर एक ऐसी टिकाऊ जगह बनाती है जहाँ इतिहास और आधुनिक कामकाज साथ-साथ चलते हैं।"
-      }
-    };
+    /* Architectural Tour Application Script */
+    (function () {
+      "use strict";
 
-    function switchLanguage(lang) {
-      document.querySelectorAll('.lang-item').forEach(el => el.classList.remove('active'));
-      event.target.classList.add('active');
-
-      document.getElementById('dyn-title').textContent = translations[lang].title;
-      document.getElementById('dyn-subtitle').textContent = translations[lang].subtitle;
-      document.getElementById('dyn-desc').textContent = translations[lang].desc;
-    }
-
-    const marketVantages = [
-      {
-        id: "view-360-promenade",
-        name: "Artisan Promenade & Boulevard (360° Panorama)",
-        tag: "360° Panorama",
-        x: 52,
-        y: 64,
-        type: "360",
-        src: "Gemini_Generated_Image_yqbmbdyqbmbdyqbm.png",
-        category: "Central Heritage Spine",
-        info: "A shaded, pedestrianized central spine featuring patterned stone pavement inlays, reflective shallow water channels, atmospheric evening lighting, and modular vendor kiosks.",
-        zone: "Central Heritage Spine",
-        features: "Patterned stone floor inlays, shallow reflective channels, ambient festoon lighting"
-      },
-      {
-        id: "view-viram-front-plaza",
-        name: "1. Symmetrical Plaza Elevation & Cantilever",
-        tag: "Exterior Elevation",
-        x: 64,
-        y: 34,
-        type: "2d",
-        src: "ChatGPT Image Aug 28, 2026, 10_03_57 PM.png",
-        category: "Civic Forecourt",
-        info: "Symmetrical terracotta monolithic facade framed by dramatic horizontal cantilevered canopies and a recessed glazed atrium entry core, allowing balanced interior daylighting.",
-        zone: "Civic Arrival Plaza",
-        features: "Deep cantilevered sun canopy, continuous clerestory ribbons, central glazed atrium"
-      },
-      {
-        id: "view-viram-timber-pergola",
-        name: "2. Timber Pergola Promenade & VIRĀM Wing",
-        tag: "Outdoor Walkway",
-        x: 70,
-        y: 44,
-        type: "2d",
-        src: "ChatGPT Image Aug 28, 2026, 10_05_38 PM.png",
-        category: "Outdoor Gathering",
-        info: "Warm terracotta building corner with slatted timber pergola colonnade providing filtered shading for outdoor seating along the perimeter roadway.",
-        zone: "East Outdoor Commons",
-        features: "Interlocking vertical timber louvers, semi-covered seating deck, integrated mature shade trees"
-      },
-      {
-        id: "view-viram-food-hall",
-        name: "3. Double-Height Dining Commons & Truss Roof",
-        tag: "Interior Commons",
-        x: 40,
-        y: 60,
-        type: "2d",
-        src: "ChatGPT Image Aug 28, 2026, 10_32_10 PM.png",
-        category: "Food Commons",
-        info: "Expansive double-height food hall defined by exposed steel structural roof trusses, clerestory skylight filtration, open-riser circulation stairs, and warm brick finishes.",
-        zone: "Interior Dining Commons",
-        features: "Open structural steel trusses, skylight ceiling filtration, open-riser mezzanine stairs"
-      },
-      {
-        id: "view-viram-mezzanine-dining",
-        name: "4. Mezzanine Dining Gallery & Overlook",
-        tag: "Upper Dining Level",
-        x: 32,
-        y: 62,
-        type: "2d",
-        src: "ChatGPT Image Aug 28, 2026, 10_49_26 PM.png",
-        category: "Upper Gallery",
-        info: "Elevated dining gallery viewpoint showcasing the intricate shadow play from overhead trusses, wrought-iron safety guardrails, and vantage across the entire commons.",
-        zone: "Upper Mezzanine Lounge",
-        features: "Wrought-iron safety balustrades, double-height overlook, textured terracotta block walls"
-      },
-      {
-        id: "view-viram-garden-trellis",
-        name: "5. Shaded Trellis & Charpai Rest Lounge",
-        tag: "Courtyard Seating",
-        x: 54,
-        y: 72,
-        type: "2d",
-        src: "ChatGPT Image Aug 28, 2026, 10_51_06 PM.png",
-        category: "Outdoor Pavilion Seating",
-        info: "A quiet garden corridor featuring a repeating architectural timber trellis, traditional charpai-style woven daybeds, cast-iron street lamps, and lush landscape screening.",
-        zone: "Artisan Garden Promenade",
-        features: "Traditional woven daybeds, geometric concrete stepping pads, heritage post lanterns"
-      },
-      {
-        id: "view-viram-folding-portal",
-        name: "6. Folding Glazed Portal & Threshold",
-        tag: "Threshold Portal",
-        x: 28,
-        y: 52,
-        type: "2d",
-        src: "ChatGPT Image Aug 28, 2026, 10_59_48 PM.png",
-        category: "Indoor-Outdoor Transition",
-        info: "Multi-panel bi-fold architectural glass doors opening the interior dining space directly to the exterior courtyard and arrival forecourt.",
-        zone: "Main Entry Threshold",
-        features: "Full-height bi-fold glazing, flush door threshold, direct courtyard connection"
-      },
-      {
-        id: "view-viram-aerial-pavilion",
-        name: "7. Aerial Courtyard & Clay Tile Pavilion",
-        tag: "High Angle Perspective",
-        x: 48,
-        y: 40,
-        type: "2d",
-        src: "ChatGPT Image Aug 28, 2026, 11_07_28 PM.png",
-        category: "Aerial Architecture",
-        info: "Elevated high-angle perspective showcasing the expansive clay-tile roof sheltering the central court, featuring outdoor beverage counters and courtyard gathering charpais.",
-        zone: "Central Pavilion Core",
-        features: "Sloping terracotta tile roof canopy, integrated courtyard shade tree, outdoor beverage counter"
-      },
-      {
-        id: "view-viram-play-pavilion",
-        name: "8. Shaded Children Public Play Pavilion",
-        tag: "Public Realm & Play",
-        x: 58,
-        y: 42,
-        type: "2d",
-        src: "ChatGPT_Image_Aug_28,_2026,_09_36_20_PM_upscaled.jpg",
-        category: "Recreation & Public Realm",
-        info: "Sheltered recreation and sandplay area underneath a sloping louvered roof canopy, outfitted with wooden swing sets, timber park benches, and heritage streetlamps.",
-        zone: "Public Recreation Buffer",
-        features: "Louvered sun canopy, soft sand pit, wooden swing sets, perimeter benches"
-      }
-    ];
-
-    // ============================================================
-    // 2. THREE.JS 360 WEBGL ENGINE (No XHR / No InvalidStateError)
-    // ============================================================
-    let scene, camera, renderer, sphereMesh;
-    let isUserInteracting = false;
-    let onPointerDownPointerX = 0, onPointerDownPointerY = 0;
-    let lon = 90, onPointerDownLon = 0;
-    let lat = 0, onPointerDownLat = 0;
-    let phi = 0, theta = 0;
-    let fov = 75;
-    const canvas = document.getElementById('threejs-canvas');
-    const viewportContainer = document.getElementById('viewport-container');
-
-    function initThreeJS() {
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 1100);
-      camera.target = new THREE.Vector3(0, 0, 0);
-
-      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(window.innerWidth, window.innerHeight);
-
-      // Inverted equirectangular sphere
-      const geometry = new THREE.SphereGeometry(500, 60, 40);
-      geometry.scale(-1, 1, 1);
-
-      // Default placeholder gradient texture
-      const defaultTexture = createProcedural360Texture();
-      const material = new THREE.MeshBasicMaterial({ map: defaultTexture });
-      sphereMesh = new THREE.Mesh(geometry, material);
-      scene.add(sphereMesh);
-
-      // Event listeners for dragging & touch
-      viewportContainer.addEventListener('pointerdown', onPointerDown);
-      document.addEventListener('pointermove', onPointerMove);
-      document.addEventListener('pointerup', onPointerUp);
-      viewportContainer.addEventListener('wheel', onDocumentMouseWheel, { passive: false });
-      window.addEventListener('resize', onWindowResize);
-
-      animateThreeJS();
-    }
-
-    function createProcedural360Texture() {
-      const c = document.createElement('canvas');
-      c.width = 2048;
-      c.height = 1024;
-      const ctx = c.getContext('2d');
-      const grad = ctx.createLinearGradient(0, 0, 0, c.height);
-      grad.addColorStop(0, '#0c1a2e');
-      grad.addColorStop(0.5, '#1e293b');
-      grad.addColorStop(1, '#080d17');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, c.width, c.height);
-      return new THREE.CanvasTexture(c);
-    }
-
-    function loadEquirectangularTexture(imageSrc) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = function () {
-        const texture = new THREE.Texture(img);
-        texture.needsUpdate = true;
-        sphereMesh.material.map = texture;
-        sphereMesh.material.needsUpdate = true;
+      // Trilingual Content Dictionary
+      const translations = {
+        en: {
+          title: "SARDAR VALLABHBHAI PATEL MARKET",
+          subtitle: "360° RENDER VIEWS",
+          desc: "The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist."
+        },
+        te: {
+          title: "సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్",
+          subtitle: "360° రెండర్ దృశ్యాలు",
+          desc: "పునరుద్ధరించబడిన సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్, వలస పాలన నాటి వారసత్వాన్ని ఆధునిక డిజైన్‌తో అద్భుతంగా మిళితం చేస్తుంది. పునరుద్ధరించిన గడియార స్తంభం (క్లాక్ టవర్) మరియు అసలు ముఖద్వారం ఈ ప్రాంగణానికి ప్రధాన ఆకర్షణగా నిలుస్తాయి; పాత ఇరుకైన, రద్దీగా ఉండే సందుల స్థానంలో ఇప్పుడు పాదచారులకు అనుకూలమైన, నీడనిచ్చే చెట్లతో కూడిన మార్గాలు ఏర్పాటు చేయబడ్డాయి. సాంప్రదాయ దుకాణాలు తమ ప్రత్యేకతను నిలుపుకుంటూనే, మెరుగైన వెలుతురుతో పాటు వాతావరణ పరిస్థితులను తట్టుకునే ఆధునిక 'మాడ్యులర్' హంగులను సంతరించుకున్నాయి. పైకప్పుతో కూడిన బహిరంగ ప్రదేశం (ప్లాజా), డిజిటల్ దిశానిర్దేశక వ్యవస్థ మరియు క్రమబద్ధమైన పార్కింగ్ వంటి సౌకర్యాలు ఇందులో సున్నితంగా జోడించబడ్డాయి. రాత్రివేళల్లో వారసత్వ శైలి లైటింగ్ ఆధునిక పైకప్పులతో (కానోపీలతో) కలిసిపోయి, చరిత్ర మరియు ఆధునిక అవసరాలు కలిసి సాగే ఒక సుస్థిరమైన ప్రాంగణాన్ని సృష్టిస్తాయి."
+        },
+        hi: {
+          title: "सरदार वल्लभभाई पटेल मार्केट",
+          subtitle: "360° रेंडर व्यूज़",
+          desc: "नए सिरे से तैयार सरदार वल्लभभाई पटेल (पूर्णा) मार्केट में औपनिवेशिक दौर की विरासत और आधुनिक डिज़ाइन का मेल दिखता है। ठीक किया गया क्लॉक टावर और पुरानी इमारत का सामने का हिस्सा इस जगह की मुख्य पहचान हैं। इसके चारों ओर पैदल चलने वालों के लिए रास्ते और छायादार हरियाली है, जिसने पुरानी भीड़-भाड़ वाली गलियों की जगह ले ली है। पारंपरिक स्टॉल अपनी जीवंत पहचान बनाए रखते हैं, लेकिन उन्हें बेहतर लाइटिंग के साथ मॉड्यूलर और मौसम से सुरक्षित अपग्रेड मिला है। यहाँ एक ढका हुआ प्लाज़ा, डिजिटल वे-फाइंडिंग और व्यवस्थित पार्किंग की सुविधा भी दी गई है। रात में हेरिटेज लाइटिंग आधुनिक कैनोपी के साथ मिलकर एक ऐसी टिकाऊ जगह बनाती है जहाँ इतिहास और आधुनिक कामकाज साथ-साथ चलते हैं।"
+        }
       };
-      img.onerror = function () {
-        console.warn('360 Image not found locally at ' + imageSrc + '. Using procedural fallback.');
-      };
-      img.src = imageSrc;
-    }
 
-    function onPointerDown(event) {
-      if (currentVantage && currentVantage.type !== '360') return;
-      isUserInteracting = true;
-      viewportContainer.classList.add('grabbing');
-      onPointerDownPointerX = event.clientX;
-      onPointerDownPointerY = event.clientY;
-      onPointerDownLon = lon;
-      onPointerDownLat = lat;
-    }
+      // Project Vantages and Architectural Renders
+      const marketVantages = [
+        {
+          id: "promenade-360",
+          name: "Central Artisan Promenade (360° Drag View)",
+          x: 50,
+          y: 62,
+          type: "360",
+          src: "Gemini_Generated_Image_yqbmbdyqbmbdyqbm.png",
+          badge: "Pedestrian Spine",
+          info: "Tree-shaded main pedestrian avenue featuring regional inlay flooring, integrated linear fountains, festoon illumination, and modular artisan shops.",
+          zone: "Central Heritage Axis",
+          features: "Patterned stone paving, water cascades, atmospheric string lighting"
+        },
+        {
+          id: "viram-facade",
+          name: "1. VIRAM Highway Complex Front Elevation",
+          x: 48,
+          y: 78,
+          type: "2d",
+          src: "ChatGPT_Image_Aug_28,_2026,_10_03_57_PM_upscaled (1).jpg",
+          badge: "Civic Facade",
+          info: "Frontal perspective of the primary pavilion showcasing symmetrical terracotta brick facades, large-span steel roof canopies, and wide pedestrian arrival plazas.",
+          zone: "West Entry Plaza",
+          features: "Exposed terracotta brickwork, cantilevered steel truss, full-height glazing"
+        },
+        {
+          id: "viram-pergola",
+          name: "2. Timber Pergola Promenade & VIRAM Wing",
+          x: 68,
+          y: 42,
+          type: "2d",
+          src: "ChatGPT Image Aug 28, 2026, 10_05_38 PM.png",
+          badge: "Semi-Covered Concourse",
+          info: "Diagonal perspective showing the sloped terracotta roof profile, vertical timber louvers, and shaded pedestrian pergola seating walkway.",
+          zone: "North Concourse",
+          features: "Exposed timber rafters, rhythmically spaced sun louvers, night bollard lamps"
+        },
+        {
+          id: "dining-hall",
+          name: "3. Double-Height Food Hall & Courtyard Link",
+          x: 32,
+          y: 52,
+          type: "2d",
+          src: "ChatGPT Image Aug 28, 2026, 10_32_10 PM.png",
+          badge: "Dining Pavilion",
+          info: "Expansive double-height dining volume with natural terracotta wall finishes, open steel roof trusses, and direct sightlines to the outdoor landscape courtyards.",
+          zone: "Central Public Hall",
+          features: "Exposed ceiling lattice, polished brick floor, expansive glass threshold"
+        },
+        {
+          id: "mezzanine-dining",
+          name: "4. Mezzanine Dining Gallery & Bar Overlook",
+          x: 38,
+          y: 35,
+          type: "2d",
+          src: "ChatGPT Image Aug 28, 2026, 10_49_26 PM.png",
+          badge: "Mezzanine Floor",
+          info: "Elevated upper dining terrace offering panoramic interior vistas over the ground-level cafeteria tables, bar counter, and steel structural roof beams.",
+          zone: "Level 1 Overlook",
+          features: "Steel safety balustrades, warm pendant ambient lamps, acoustic block surfaces"
+        },
+        {
+          id: "pergola-seating",
+          name: "5. Outdoor Pergola Seating & Charpai Garden",
+          x: 74,
+          y: 60,
+          type: "2d",
+          src: "ChatGPT Image Aug 28, 2026, 10_51_06 PM.png",
+          badge: "Open-Air Social Space",
+          info: "Shaded linear timber pergola court featuring traditional woven charpai daybeds and contoured planters integrated into natural tree canopy shade.",
+          zone: "East Landscape Garden",
+          features: "Timber pergola frames, woven artisan seating, heritage cast-iron lamp posts"
+        },
+        {
+          id: "bifold-portal",
+          name: "6. Glass Bi-Fold Threshold & Highway Vista",
+          x: 22,
+          y: 65,
+          type: "2d",
+          src: "ChatGPT Image Aug 28, 2026, 10_59_48 PM.png",
+          badge: "Indoor-Outdoor Transition",
+          info: "Seamless architectural transition between the interior cafeteria and open landscape patio through floor-to-ceiling multi-panel folding glass doors.",
+          zone: "South-West Portal",
+          features: "Aluminum-framed accordion glazing, natural ventilation, wide gravel terrace"
+        },
+        {
+          id: "aerial-courtyard",
+          name: "7. Aerial Courtyard & Clay Tile Roofline",
+          x: 58,
+          y: 28,
+          type: "2d",
+          src: "ChatGPT Image Aug 28, 2026, 11_07_28 PM.png",
+          badge: "Rooftop & Courtyard",
+          info: "Overhead axonometric perspective highlighting the red clay tiled hip roof, open-air food counter, and gravel relaxation court populated with woven daybeds.",
+          zone: "North Elevation Terrace",
+          features: "Mangalore clay tiles, central courtyard shade tree, permeable gravel paving"
+        },
+        {
+          id: "children-play",
+          name: "8. Shaded Children Play Pavilion",
+          x: 82,
+          y: 35,
+          type: "2d",
+          src: "ChatGPT_Image_Aug_28,_2026,_09_36_20_PM_upscaled.jpg",
+          badge: "Family & Play Zone",
+          info: "Sheltered children sandplay area integrated beneath a translucent red canopy with wooden swings, benches, and protective perimeter shade trees.",
+          zone: "North-East Recreation Corner",
+          features: "Soft sand ground finish, timber swing sets, high-transmittance roof canopy"
+        }
+      ];
 
-    function onPointerMove(event) {
-      if (isUserInteracting === true) {
+      // State
+      let currentIndex = 0;
+      let scene, camera, renderer, sphereMesh;
+      let isUserInteracting = false;
+      let onPointerDownPointerX = 0, onPointerDownPointerY = 0;
+      let lon = 0, onPointerDownLon = 0, lat = 0, onPointerDownLat = 0;
+      let phi = 0, theta = 0;
+
+      // DOM Elements
+      const startScreen = document.getElementById('start-screen');
+      const startBtn = document.getElementById('start-tour-btn');
+      const topLeftPanel = document.getElementById('top-left-panel');
+      const topRightControls = document.getElementById('top-right-controls');
+      const hudVantageTitle = document.getElementById('hud-vantage-title');
+      const perspectiveImg = document.getElementById('perspective-view-image');
+      const threeContainer = document.getElementById('three-canvas-container');
+
+      const menuToggleBtn = document.getElementById('menu-toggle-btn');
+      const dropdownMenu = document.getElementById('dropdown-menu');
+      const menuBtnPlan = document.getElementById('menu-btn-plan');
+      const menuBtnGallery = document.getElementById('menu-btn-gallery');
+      const menuBtnDetails = document.getElementById('menu-btn-details');
+      const menuBtnHome = document.getElementById('menu-btn-home');
+
+      const planModal = document.getElementById('plan-modal');
+      const planCloseBtn = document.getElementById('plan-close-btn');
+      const planDotsLayer = document.getElementById('plan-dots-layer');
+
+      const galleryModal = document.getElementById('gallery-modal');
+      const galleryCloseBtn = document.getElementById('gallery-close-btn');
+      const galleryGridContainer = document.getElementById('gallery-grid-container');
+
+      const infoBtn = document.getElementById('info-btn');
+      const infoCard = document.getElementById('info-card');
+      const infoCloseBtn = document.getElementById('info-close-btn');
+      const infoCardTitle = document.getElementById('info-card-title');
+      const infoBadge = document.getElementById('info-badge');
+      const infoBody = document.getElementById('info-body');
+      const infoZone = document.getElementById('info-zone');
+      const infoFeatures = document.getElementById('info-features');
+
+      const fullscreenBtn = document.getElementById('fullscreen-btn');
+      const navBtnPrev = document.getElementById('nav-btn-prev');
+      const navBtnNext = document.getElementById('nav-btn-next');
+
+      // Procedural Canvas Texture for 360 Fallback
+      function createFallbackPanoramaTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 2048;
+        canvas.height = 1024;
+        const ctx = canvas.getContext('2d');
+
+        // Sky & Ground Gradient
+        const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        grad.addColorStop(0, '#0d1b2a');
+        grad.addColorStop(0.48, '#1b263b');
+        grad.addColorStop(0.5, '#415a77');
+        grad.addColorStop(0.52, '#778da9');
+        grad.addColorStop(1, '#1e293b');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Warm Market Lights
+        ctx.fillStyle = '#ffeedd';
+        for (let i = 0; i < 70; i++) {
+          const x = (i * 30 + 10) % canvas.width;
+          const y = 430 + Math.sin(i * 0.4) * 35;
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Central Heritage Boulevard Text
+        ctx.font = 'bold 36px Georgia';
+        ctx.fillStyle = '#ebd39f';
+        ctx.textAlign = 'center';
+        ctx.fillText('SARDAR VALLABHBHAI PATEL MARKET — 360° PANORAMA', canvas.width / 2, 490);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.minFilter = THREE.LinearFilter;
+        return tex;
+      }
+
+      // Initialize Three.js 360 Sphere
+      function initThree() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100);
+        camera.target = new THREE.Vector3(0, 0, 0);
+
+        const geometry = new THREE.SphereGeometry(500, 60, 40);
+        geometry.scale(-1, 1, 1); // Invert sphere to look from inside
+
+        const material = new THREE.MeshBasicMaterial({
+          map: createFallbackPanoramaTexture()
+        });
+
+        sphereMesh = new THREE.Mesh(geometry, material);
+        scene.add(sphereMesh);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        threeContainer.appendChild(renderer.domElement);
+
+        // Interaction Handlers (Touch & Mouse Drag)
+        threeContainer.addEventListener('mousedown', onPointerDown, false);
+        window.addEventListener('mousemove', onPointerMove, false);
+        window.addEventListener('mouseup', onPointerUp, false);
+        threeContainer.addEventListener('wheel', onDocumentWheel, { passive: false });
+
+        threeContainer.addEventListener('touchstart', onTouchStart, { passive: false });
+        window.addEventListener('touchmove', onTouchMove, { passive: false });
+        window.addEventListener('touchend', onPointerUp, false);
+
+        window.addEventListener('resize', onWindowResize, false);
+        animate();
+      }
+
+      function loadPanoramaImage(src) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function () {
+          const texture = new THREE.Texture(img);
+          texture.needsUpdate = true;
+          sphereMesh.material.map = texture;
+          sphereMesh.material.needsUpdate = true;
+        };
+        img.onerror = function () {
+          sphereMesh.material.map = createFallbackPanoramaTexture();
+          sphereMesh.material.needsUpdate = true;
+        };
+        img.src = src;
+      }
+
+      // Three.js Drag & Motion Logic
+      function onPointerDown(event) {
+        isUserInteracting = true;
+        onPointerDownPointerX = event.clientX;
+        onPointerDownPointerY = event.clientY;
+        onPointerDownLon = lon;
+        onPointerDownLat = lat;
+      }
+
+      function onPointerMove(event) {
+        if (!isUserInteracting) return;
         lon = (onPointerDownPointerX - event.clientX) * 0.15 + onPointerDownLon;
         lat = (event.clientY - onPointerDownPointerY) * 0.15 + onPointerDownLat;
       }
-    }
 
-    function onPointerUp() {
-      isUserInteracting = false;
-      viewportContainer.classList.remove('grabbing');
-    }
-
-    function onDocumentMouseWheel(event) {
-      if (currentVantage && currentVantage.type !== '360') return;
-      event.preventDefault();
-      fov += event.deltaY * 0.05;
-      fov = Math.max(35, Math.min(100, fov));
-      camera.fov = fov;
-      camera.updateProjectionMatrix();
-    }
-
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    function animateThreeJS() {
-      requestAnimationFrame(animateThreeJS);
-
-      if (!isUserInteracting && currentVantage && currentVantage.type === '360') {
-        lon += 0.06; // Slow ambient rotation
+      function onPointerUp() {
+        isUserInteracting = false;
       }
 
-      lat = Math.max(-85, Math.min(85, lat));
-      phi = THREE.MathUtils.degToRad(90 - lat);
-      theta = THREE.MathUtils.degToRad(lon);
+      function onTouchStart(event) {
+        if (event.touches.length === 1) {
+          isUserInteracting = true;
+          onPointerDownPointerX = event.touches[0].pageX;
+          onPointerDownPointerY = event.touches[0].pageY;
+          onPointerDownLon = lon;
+          onPointerDownLat = lat;
+        }
+      }
 
-      camera.target.x = 500 * Math.sin(phi) * Math.cos(theta);
-      camera.target.y = 500 * Math.cos(phi);
-      camera.target.z = 500 * Math.sin(phi) * Math.sin(theta);
-      camera.lookAt(camera.target);
+      function onTouchMove(event) {
+        if (isUserInteracting && event.touches.length === 1) {
+          lon = (onPointerDownPointerX - event.touches[0].pageX) * 0.2 + onPointerDownLon;
+          lat = (event.touches[0].pageY - onPointerDownPointerY) * 0.2 + onPointerDownLat;
+          event.preventDefault();
+        }
+      }
 
-      renderer.render(scene, camera);
-    }
+      function onDocumentWheel(event) {
+        const fov = camera.fov + event.deltaY * 0.05;
+        camera.fov = THREE.MathUtils.clamp(fov, 30, 95);
+        camera.updateProjectionMatrix();
+        event.preventDefault();
+      }
 
-    // ============================================================
-    // 3. NAVIGATION, VANTAGES & UI INTERFACES
-    // ============================================================
-    let currentVantage = marketVantages[0];
-    const perspectiveImg = document.getElementById('perspective-view-image');
-    const hudVantageName = document.getElementById('hud-vantage-name');
-    const infoCard = document.getElementById('info-card');
-    const aerialPlanModal = document.getElementById('aerial-plan-modal');
-    const galleryModal = document.getElementById('gallery-modal');
-    const hamburgerBtn = document.getElementById('hamburger-menu-btn');
-    const dropdownNavMenu = document.getElementById('dropdown-nav-menu');
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
 
-    function updateInfoCard(vantage) {
-      document.getElementById('info-card-title').textContent = vantage.name;
-      document.getElementById('info-tag').textContent = vantage.category;
-      document.getElementById('info-text').textContent = vantage.info;
-      document.getElementById('info-meta-zone').textContent = vantage.zone;
-      document.getElementById('info-meta-features').textContent = vantage.features;
-    }
+      function animate() {
+        requestAnimationFrame(animate);
+        lat = Math.max(-85, Math.min(85, lat));
+        phi = THREE.MathUtils.degToRad(90 - lat);
+        theta = THREE.MathUtils.degToRad(lon);
 
-    function loadVantage(vantage) {
-      currentVantage = vantage;
-      hudVantageName.textContent = vantage.name;
-      updateInfoCard(vantage);
+        camera.target.x = 500 * Math.sin(phi) * Math.cos(theta);
+        camera.target.y = 500 * Math.cos(phi);
+        camera.target.z = 500 * Math.sin(phi) * Math.sin(theta);
+        camera.lookAt(camera.target);
 
-      // Highlight active dot on the aerial plan
-      document.querySelectorAll('.plan-dot').forEach((dot, idx) => {
-        dot.classList.toggle('active', marketVantages[idx].id === vantage.id);
+        // Subtle idle rotation if user is not dragging
+        if (!isUserInteracting) {
+          lon += 0.04;
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      // Load Vantage (360 or 2D)
+      function loadVantage(index, triggeredFromGallery) {
+        currentIndex = index;
+        const vantage = marketVantages[index];
+
+        // Update Title HUD and Details Card
+        hudVantageTitle.textContent = vantage.name;
+        infoCardTitle.textContent = vantage.name;
+        infoBadge.textContent = vantage.badge;
+        infoBody.textContent = vantage.info;
+        infoZone.textContent = vantage.zone;
+        infoFeatures.textContent = vantage.features;
+
+        // Highlight active plan dot
+        document.querySelectorAll('.plan-dot').forEach((dot, i) => {
+          dot.classList.toggle('active', i === index);
+        });
+
+        // Toggle 360 vs 2D Views
+        if (vantage.type === '360') {
+          perspectiveImg.classList.remove('active');
+          threeContainer.style.display = 'block';
+          loadPanoramaImage(vantage.src);
+
+          // In 360 view: Next & Previous buttons MUST BE HIDDEN
+          navBtnPrev.classList.remove('visible');
+          navBtnNext.classList.remove('visible');
+        } else {
+          threeContainer.style.display = 'none';
+          perspectiveImg.src = vantage.src;
+          perspectiveImg.classList.add('active');
+
+          // Reveal side navigation buttons ONLY if triggered from gallery or already in gallery browsing mode
+          if (triggeredFromGallery) {
+            navBtnPrev.classList.add('visible');
+            navBtnNext.classList.add('visible');
+          }
+        }
+      }
+
+      // Cycle Gallery Images (Next / Prev)
+      function navigate(direction) {
+        let newIndex = currentIndex + direction;
+        if (newIndex >= marketVantages.length) newIndex = 0;
+        if (newIndex < 0) newIndex = marketVantages.length - 1;
+        loadVantage(newIndex, true);
+      }
+
+      // Populate Aerial Site Plan Hotspots
+      function populatePlanDots() {
+        planDotsLayer.innerHTML = '';
+        marketVantages.forEach((vantage, index) => {
+          const dot = document.createElement('div');
+          dot.className = 'plan-dot' + (index === 0 ? ' active' : '');
+          dot.style.left = vantage.x + '%';
+          dot.style.top = vantage.y + '%';
+
+          const tip = document.createElement('div');
+          tip.className = 'dot-tooltip';
+          tip.textContent = vantage.name;
+          dot.appendChild(tip);
+
+          dot.addEventListener('click', () => {
+            planModal.classList.remove('open');
+            loadVantage(index, false);
+          });
+
+          planDotsLayer.appendChild(dot);
+        });
+      }
+
+      // Populate Gallery Grid
+      function populateGalleryGrid() {
+        galleryGridContainer.innerHTML = '';
+        marketVantages.forEach((vantage, index) => {
+          const card = document.createElement('div');
+          card.className = 'gallery-card';
+
+          const img = document.createElement('img');
+          img.src = vantage.src;
+          img.alt = vantage.name;
+          img.onerror = function () {
+            this.src = 'https://placehold.co/400x250/1b263b/ebd39f?text=' + encodeURIComponent(vantage.name);
+          };
+
+          const body = document.createElement('div');
+          body.className = 'gallery-card-body';
+          const title = document.createElement('div');
+          title.className = 'gallery-card-title';
+          title.textContent = vantage.name;
+
+          body.appendChild(title);
+          card.appendChild(img);
+          card.appendChild(body);
+
+          card.addEventListener('click', () => {
+            galleryModal.classList.remove('open');
+            // User explicitly clicked from gallery -> reveal side navigation arrows!
+            loadVantage(index, true);
+          });
+
+          galleryGridContainer.appendChild(card);
+        });
+      }
+
+      // Language Switcher Handler
+      document.querySelectorAll('.lang-item').forEach((btn) => {
+        btn.addEventListener('click', function () {
+          const lang = this.getAttribute('data-lang');
+          document.querySelectorAll('.lang-item').forEach((b) => b.classList.remove('active'));
+          this.classList.add('active');
+
+          if (translations[lang]) {
+            document.getElementById('dyn-title').textContent = translations[lang].title;
+            document.getElementById('dyn-subtitle').textContent = translations[lang].subtitle;
+            document.getElementById('dyn-desc').textContent = translations[lang].desc;
+          }
+        });
       });
 
-      if (vantage.type === '360') {
-        perspectiveImg.classList.remove('active');
-        canvas.style.display = 'block';
-        loadEquirectangularTexture(vantage.src);
-      } else {
-        perspectiveImg.src = vantage.src;
-        perspectiveImg.classList.add('active');
-        canvas.style.display = 'none';
-      }
-    }
+      // 3-Bar Dropdown Menu Interactions
+      menuToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('open');
+      });
 
-    // ============================================================
-    // 4. HAMBURGER 3-BAR MENU TOGGLE & ACTIONS
-    // ============================================================
-    hamburgerBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isOpen = dropdownNavMenu.classList.contains('open');
-      dropdownNavMenu.classList.toggle('open', !isOpen);
-      hamburgerBtn.classList.toggle('active', !isOpen);
-    });
+      window.addEventListener('click', (e) => {
+        if (!dropdownMenu.contains(e.target) && e.target !== menuToggleBtn) {
+          dropdownMenu.classList.remove('open');
+        }
+      });
 
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!dropdownNavMenu.contains(e.target) && !hamburgerBtn.contains(e.target)) {
-        dropdownNavMenu.classList.remove('open');
-        hamburgerBtn.classList.remove('active');
-      }
-    });
+      // Menu Actions
+      menuBtnPlan.addEventListener('click', () => {
+        dropdownMenu.classList.remove('open');
+        planModal.classList.add('open');
+        populatePlanDots();
+      });
 
-    document.getElementById('menu-btn-plan').addEventListener('click', () => {
-      dropdownNavMenu.classList.remove('open');
-      hamburgerBtn.classList.remove('active');
-      aerialPlanModal.classList.toggle('open');
-      galleryModal.classList.remove('open');
-    });
+      menuBtnGallery.addEventListener('click', () => {
+        dropdownMenu.classList.remove('open');
+        galleryModal.classList.add('open');
+        populateGalleryGrid();
+      });
 
-    document.getElementById('menu-btn-gallery').addEventListener('click', () => {
-      dropdownNavMenu.classList.remove('open');
-      hamburgerBtn.classList.remove('active');
-      galleryModal.classList.toggle('open');
-      aerialPlanModal.classList.remove('open');
-    });
+      menuBtnDetails.addEventListener('click', () => {
+        dropdownMenu.classList.remove('open');
+        infoCard.classList.toggle('open');
+      });
 
-    document.getElementById('menu-btn-details').addEventListener('click', () => {
-      dropdownNavMenu.classList.remove('open');
-      hamburgerBtn.classList.remove('active');
-      infoCard.classList.toggle('open');
-    });
+      menuBtnHome.addEventListener('click', () => {
+        dropdownMenu.classList.remove('open');
+        startScreen.classList.remove('hidden');
+        topLeftPanel.classList.remove('visible');
+        topRightControls.classList.remove('visible');
+        infoCard.classList.remove('open');
+        navBtnPrev.classList.remove('visible');
+        navBtnNext.classList.remove('visible');
+      });
 
-    function returnToHomePage() {
-      dropdownNavMenu.classList.remove('open');
-      hamburgerBtn.classList.remove('active');
-      document.getElementById('start-screen').classList.remove('hidden');
-      document.getElementById('top-left-panel').classList.remove('visible');
-      document.getElementById('top-right-panel').classList.remove('visible');
-      infoCard.classList.remove('open');
-      aerialPlanModal.classList.remove('open');
-      galleryModal.classList.remove('open');
-    }
+      // Modals Close Handlers
+      planCloseBtn.addEventListener('click', () => planModal.classList.remove('open'));
+      galleryCloseBtn.addEventListener('click', () => galleryModal.classList.remove('open'));
+      infoCloseBtn.addEventListener('click', () => infoCard.classList.remove('open'));
+      infoBtn.addEventListener('click', () => infoCard.classList.toggle('open'));
 
-    document.getElementById('menu-btn-home').addEventListener('click', returnToHomePage);
-
-    // ============================================================
-    // 5. FULLSCREEN TOGGLE
-    // ============================================================
-    const fullscreenToggleBtn = document.getElementById('fullscreen-toggle-btn');
-    const fsEnterIcon = document.getElementById('fs-enter-icon');
-    const fsExitIcon = document.getElementById('fs-exit-icon');
-
-    function toggleFullScreen() {
-      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        if (document.documentElement.requestFullscreen) {
+      // Fullscreen Toggle
+      fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen().catch(() => {});
-        } else if (document.documentElement.webkitRequestFullscreen) {
-          document.documentElement.webkitRequestFullscreen();
-        }
-        fsEnterIcon.style.display = 'none';
-        fsExitIcon.style.display = 'block';
-      } else {
-        if (document.exitFullscreen) {
+        } else {
           document.exitFullscreen().catch(() => {});
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
         }
-        fsEnterIcon.style.display = 'block';
-        fsExitIcon.style.display = 'none';
-      }
-    }
-
-    fullscreenToggleBtn.addEventListener('click', toggleFullScreen);
-
-    document.addEventListener('fullscreenchange', () => {
-      const isFs = !!document.fullscreenElement;
-      fsEnterIcon.style.display = isFs ? 'none' : 'block';
-      fsExitIcon.style.display = isFs ? 'block' : 'none';
-    });
-
-    // ============================================================
-    // 6. POPULATE HOTSPOTS & GALLERY ITEMS
-    // ============================================================
-    const dotsContainer = document.getElementById('plan-dots-container');
-    marketVantages.forEach((vantage, index) => {
-      const dot = document.createElement('div');
-      dot.className = 'plan-dot' + (index === 0 ? ' active' : '');
-      dot.style.left = `${vantage.x}%`;
-      dot.style.top = `${vantage.y}%`;
-
-      const tip = document.createElement('div');
-      tip.className = 'dot-tooltip';
-      tip.textContent = vantage.name;
-      dot.appendChild(tip);
-
-      dot.addEventListener('click', () => {
-        loadVantage(vantage);
       });
 
-      dotsContainer.appendChild(dot);
-    });
-
-    const galleryGrid = document.getElementById('gallery-grid-items');
-    galleryGrid.innerHTML = '';
-    marketVantages.forEach((vantage) => {
-      const card = document.createElement('div');
-      card.className = 'gallery-card';
-      card.innerHTML = `
-        <img src="${vantage.src}" alt="${vantage.name}" onerror="this.src='https://placehold.co/600x400/0c1726/ebd39f?text=${encodeURIComponent(vantage.name)}'" />
-        <div class="gallery-card-badge">
-          <span class="gallery-card-tag">${vantage.tag || 'Perspective'}</span>
-          ${vantage.name}
-        </div>
-      `;
-      card.addEventListener('click', () => {
-        loadVantage(vantage);
-        galleryModal.classList.remove('open');
+      // Side Navigation Buttons
+      navBtnPrev.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigate(-1);
       });
-      galleryGrid.appendChild(card);
-    });
 
-    // Modal Close Buttons
-    document.getElementById('plan-close-btn').addEventListener('click', () => {
-      aerialPlanModal.classList.remove('open');
-    });
+      navBtnNext.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigate(1);
+      });
 
-    document.getElementById('gallery-close-btn').addEventListener('click', () => {
-      galleryModal.classList.remove('open');
-    });
+      // START TOUR ACTION
+      startBtn.addEventListener('click', () => {
+        startScreen.classList.add('hidden');
+        topLeftPanel.classList.add('visible');
+        topRightControls.classList.add('visible');
 
-    const infoToggleBtn = document.getElementById('info-toggle-btn');
-    const infoCloseBtn = document.getElementById('info-close-btn');
+        // Initially in 360 mode: lateral nav buttons MUST be hidden
+        navBtnPrev.classList.remove('visible');
+        navBtnNext.classList.remove('visible');
 
-    infoToggleBtn.addEventListener('click', () => {
-      infoCard.classList.toggle('open');
-    });
+        // Load default 360 scene (Promenade)
+        loadVantage(0, false);
+      });
 
-    infoCloseBtn.addEventListener('click', () => {
-      infoCard.classList.remove('open');
-    });
-
-    // START (ENTER THE BAZAAR) Action
-    document.getElementById('start-tour-btn').addEventListener('click', () => {
-      document.getElementById('start-screen').classList.add('hidden');
-      document.getElementById('top-left-panel').classList.add('visible');
-      document.getElementById('top-right-panel').classList.add('visible');
-      loadVantage(marketVantages[0]);
-    });
-
-    // Initialize 3D on window load
-    window.onload = function() {
-      initThreeJS();
-    };
+      // Initialize Three.js on page load
+      window.addEventListener('load', () => {
+        initThree();
+      });
+    })();
   </script>
 </body>
 </html>
