@@ -1053,7 +1053,7 @@
         },
         {
           id: "children-play",
-          name: "8. Shaded Children Play Pavilion",
+          name: "8. Shaded Children Play Pavilion & Swings",
           x: 82,
           y: 35,
           type: "2d",
@@ -1062,6 +1062,42 @@
           info: "Sheltered children sandplay area integrated beneath a translucent red canopy with wooden swings, benches, and protective perimeter shade trees.",
           zone: "North-East Recreation Corner",
           features: "Soft sand ground finish, timber swing sets, high-transmittance roof canopy"
+        },
+        {
+          id: "pylon-parking",
+          name: "9. VIRAM Highway Pylon Signboard & Truck Parking",
+          x: 28,
+          y: 84,
+          type: "2d",
+          src: "ChatGPT Image Aug 28, 2026, 09_44_09 PM.png",
+          badge: "Highway Arrival & Logistics",
+          info: "Prominent glowing highway totem pylon standing tall beside the dedicated commercial truck bay and guest car parking apron against dusk skies.",
+          zone: "South Highway Frontage",
+          features: "Illuminated monolith totem, heavy-duty asphalt aprons, median safety curbing"
+        },
+        {
+          id: "highway-elevation",
+          name: "10. Highway Elevation & Butterfly Roof Silhouette",
+          x: 18,
+          y: 75,
+          type: "2d",
+          src: "ChatGPT Image Aug 28, 2026, 09_51_26 PM.png",
+          badge: "Linear Highway Elevation",
+          info: "Long-distance road corridor view showcasing the dynamic upward-flared butterfly roofline, clerical clerestory windows, and deep timber louvered pergolas.",
+          zone: "National Corridor Edge",
+          features: "Curved metal roof contour, clerestory daylight ribbons, road-side lamp posts"
+        },
+        {
+          id: "angular-portal",
+          name: "11. Angular Entrance Portal & Extended Canopy",
+          x: 35,
+          y: 72,
+          type: "2d",
+          src: "ChatGPT Image Aug 28, 2026, 09_54_24 PM.png",
+          badge: "Arrival Concourse",
+          info: "Dramatic oblique perspective emphasizing the cantilevered steel entry awning, full-height atrium glass corner, and modern black horizontal window louvers.",
+          zone: "West Entry Concourse",
+          features: "Deep cantilever canopy, double-glazed curtain corner, exposed masonry"
         }
       ];
 
@@ -1339,10 +1375,12 @@
         });
       }
 
-      // Populate Gallery Grid
+      // Populate Gallery Grid (Excluding 360° panorama card)
       function populateGalleryGrid() {
         galleryGridContainer.innerHTML = '';
         marketVantages.forEach((vantage, index) => {
+          if (vantage.type === '360') return; // Exclude 360 view card from gallery
+
           const card = document.createElement('div');
           card.className = 'gallery-card';
 
