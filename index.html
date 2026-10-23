@@ -22,7 +22,7 @@
       --terracotta-rust: #A8473B;
       --text-ivory: #fcf9f2;
       --text-muted: #e4d7c5;
-      --bg-glass: rgba(14, 18, 24, 0.88);
+      --bg-glass: rgba(14, 18, 24, 0.90);
       --border-accent: rgba(229, 152, 138, 0.35);
     }
 
@@ -167,7 +167,7 @@
     .lang-sep { color: var(--gold-line); opacity: 0.6; font-size: 9px; }
 
     /* ==========================================================================
-       TOP-LEFT BRAND BADGE WITH INTEGRATED 3-BAR MENU BUTTON
+       TOP-LEFT BRAND BADGE WITH 3-BAR MENU BUTTON
        ========================================================================== */
     .top-left-brand-container {
       position: absolute; top: 24px; left: 24px; z-index: 25;
@@ -191,7 +191,6 @@
       font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.8px;
     }
 
-    /* 3-Bar Hamburger Trigger Button */
     .hamburger-btn {
       width: 34px; height: 34px; border-radius: 6px;
       background: rgba(223, 183, 108, 0.12); border: 1px solid var(--gold-line);
@@ -210,7 +209,6 @@
       background: #ffffff;
     }
 
-    /* Dropdown 3-Options Menu (Gallery, Details, Home Page) */
     .dropdown-menu {
       margin-top: 8px; width: 175px;
       background: rgba(14, 18, 24, 0.95); border: 1.5px solid var(--gold-line);
@@ -283,7 +281,7 @@
     .aerial-plan-btn:hover .aerial-btn-dot { background: #fff; }
 
     /* ==========================================================================
-       FULLSCREEN 3D PERSPECTIVE TILT MASTER PLAN MODAL
+       FULLSCREEN 3D PERSPECTIVE TILT MASTER PLAN MODAL (UPDATED IMAGE)
        ========================================================================== */
     #plan-modal {
       position: absolute; inset: 0; z-index: 85;
@@ -296,7 +294,7 @@
     #plan-modal.visible { opacity: 1; visibility: visible; pointer-events: auto; }
 
     .plan-board {
-      position: relative; width: min(94vw, 1100px); height: min(84vh, 750px);
+      position: relative; width: min(94vw, 1050px); height: min(84vh, 760px);
       background: var(--bg-glass); border: 1.5px solid var(--gold-line);
       border-radius: 18px; overflow: hidden; display: flex; flex-direction: column;
       box-shadow: 0 24px 60px rgba(0,0,0,0.9);
@@ -317,14 +315,14 @@
     .plan-close-btn:hover { background: var(--terracotta-rust); }
 
     .plan-canvas-area {
-      position: relative; flex: 1; width: 100%; height: 100%; overflow: hidden; background: #0c0f16;
+      position: relative; flex: 1; width: 100%; height: 100%; overflow: hidden; background: #1a1514;
     }
     .plan-canvas-area img {
-      width: 100%; height: 100%; object-fit: contain; filter: brightness(0.96) contrast(1.08);
+      width: 100%; height: 100%; object-fit: contain; filter: contrast(1.05) brightness(0.98);
       display: block;
     }
 
-    /* Interactive Radar Waypoint Pins */
+    /* Interactive Radar Waypoint Pins mapped to plan.jpg */
     .map-pin {
       position: absolute; width: 26px; height: 26px; transform: translate(-50%, -50%);
       cursor: pointer; z-index: 10;
@@ -332,7 +330,7 @@
     .pin-core {
       position: absolute; inset: 4px; border-radius: 50%; background: #ff4757;
       border: 1.5px solid #fff; box-shadow: 0 0 12px rgba(255, 71, 87, 0.95);
-      transition: transform 0.2s;
+      transition: transform 0.2s, background 0.2s;
     }
     .map-pin:hover .pin-core, .map-pin.active .pin-core {
       transform: scale(1.35); background: var(--gold-accent);
@@ -473,7 +471,6 @@
         <div class="brand-title">SARDAR VALLABHBHAI PATEL MARKET</div>
         <div class="brand-sub">Central Artisan Promenade (360° Drag View)</div>
       </div>
-      <!-- 3-bar hamburger icon button -->
       <button class="hamburger-btn" id="menu-toggle-btn" onclick="toggleDropdownMenu()" title="Toggle Menu">
         <div class="hamburger-bar"></div>
         <div class="hamburger-bar"></div>
@@ -481,7 +478,6 @@
       </button>
     </div>
 
-    <!-- Dropdown Menu containing the 3 options -->
     <div class="dropdown-menu" id="dropdown-menu">
       <button class="dropdown-item" onclick="handleGalleryClick()">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -502,7 +498,6 @@
        TOP-RIGHT QUICK ACTIONS (AUDIO, FULLSCREEN & VR)
        ========================================================================== -->
   <div class="top-right-actions" id="top-right">
-    <!-- Music Mute/Unmute Toggle Button -->
     <button class="icon-round-btn" id="audio-toggle-btn" onclick="toggleAudio()" title="Toggle Background Music">
       <svg id="audio-icon-on" viewBox="0 0 24 24">
         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -535,7 +530,7 @@
   </div>
 
   <!-- ==========================================================================
-       FULLSCREEN 3D PERSPECTIVE TILT MASTER PLAN MODAL
+       FULLSCREEN 3D PERSPECTIVE TILT MASTER PLAN MODAL (plan.jpg)
        ========================================================================== -->
   <div id="plan-modal">
     <div class="plan-board" id="plan-board">
@@ -544,57 +539,55 @@
         <button class="plan-close-btn" onclick="closePlanModal()" title="Close Plan">✕</button>
       </div>
       <div class="plan-canvas-area" id="plan-canvas">
-        <img id="plan-img" src="./image_12a35e.jpg" alt="Aerial Master Plan">
+        <img id="plan-img" src="./plan.jpg" alt="Aerial Master Site Plan" onerror="handlePlanError(this)">
 
-        <!-- Responsive Pins across the Axonometric Drawing -->
-        <div class="map-pin active" style="top: 61%; left: 39%;" onclick="selectZone(180, 0)">
+        <!-- Responsive Pins accurately positioned on plan.jpg -->
+        <!-- 1. Central Stepped Amphitheater / Sunken Plaza (Active Node) -->
+        <div class="map-pin active" style="top: 52%; left: 55%;" onclick="selectZone(180, 0)">
           <div class="pin-radar-ring"></div><div class="pin-core"></div><div class="pin-fov-cone"></div>
-          <div class="map-tooltip"><span class="map-tooltip-title">Central Amphitheater</span><span class="map-tooltip-sub">Semicircular civic gathering forum</span></div>
+          <div class="map-tooltip"><span class="map-tooltip-title">Central Amphitheater & Fountain</span><span class="map-tooltip-sub">Sunken circular gathering court</span></div>
         </div>
 
-        <div class="map-pin" style="top: 52%; left: 34%;" onclick="selectZone(210, -5)">
+        <!-- 2. Curved Heritage Arcade (Top Center) -->
+        <div class="map-pin" style="top: 38%; left: 58%;" onclick="selectZone(130, 8)">
           <div class="pin-core"></div>
-          <div class="map-tooltip"><span class="map-tooltip-title">West Entrance Gate</span><span class="map-tooltip-sub">Pedestrian arrival node</span></div>
+          <div class="map-tooltip"><span class="map-tooltip-title">North Heritage Colonnade</span><span class="map-tooltip-sub">Restored brick arches & shaded cafes</span></div>
         </div>
 
-        <div class="map-pin" style="top: 69%; left: 32%;" onclick="selectZone(240, -4)">
+        <!-- 3. Curved East Arcade (Top Right) -->
+        <div class="map-pin" style="top: 45%; left: 78%;" onclick="selectZone(80, 6)">
           <div class="pin-core"></div>
-          <div class="map-tooltip"><span class="map-tooltip-title">Heritage Arcade Wall</span><span class="map-tooltip-sub">Restored brick perimeter</span></div>
+          <div class="map-tooltip"><span class="map-tooltip-title">East Commercial Arcade</span><span class="map-tooltip-sub">Boutiques and spice stalls</span></div>
         </div>
 
-        <div class="map-pin" style="top: 74%; left: 38%;" onclick="selectZone(195, 2)">
+        <!-- 4. Main Civic & Cultural Hall (Top Left) -->
+        <div class="map-pin" style="top: 41%; left: 37%;" onclick="selectZone(210, 4)">
           <div class="pin-core"></div>
-          <div class="map-tooltip"><span class="map-tooltip-title">Street Promenade Spine</span><span class="map-tooltip-sub">Active market pedestrian corridor</span></div>
+          <div class="map-tooltip"><span class="map-tooltip-title">Multi-Purpose Cultural Hall</span><span class="map-tooltip-sub">Exhibitions and auditorium foyer</span></div>
         </div>
 
-        <div class="map-pin" style="top: 67%; left: 42%;" onclick="selectZone(160, 5)">
+        <!-- 5. Linear Market Wing & Arrival Forecourt (West) -->
+        <div class="map-pin" style="top: 52%; left: 25%;" onclick="selectZone(240, -4)">
           <div class="pin-core"></div>
-          <div class="map-tooltip"><span class="map-tooltip-title">Courtyard Plaza</span><span class="map-tooltip-sub">Shaded outdoor seating node</span></div>
+          <div class="map-tooltip"><span class="map-tooltip-title">West Arcade Promenade</span><span class="map-tooltip-sub">Arrival forecourt & linear retail spine</span></div>
         </div>
 
-        <div class="map-pin" style="top: 45%; left: 40%;" onclick="selectZone(140, 0)">
+        <!-- 6. Landscaped Shaded Plaza (Pergolas & Trees) -->
+        <div class="map-pin" style="top: 46%; left: 50%;" onclick="selectZone(160, 2)">
           <div class="pin-core"></div>
-          <div class="map-tooltip"><span class="map-tooltip-title">Central Pergola Walk</span><span class="map-tooltip-sub">Timber-shaded spine linking blocks</span></div>
+          <div class="map-tooltip"><span class="map-tooltip-title">Biophilic Garden Court</span><span class="map-tooltip-sub">Timber pergolas & shaded seating</span></div>
         </div>
 
-        <div class="map-pin" style="top: 40%; left: 54%;" onclick="selectZone(120, 8)">
+        <!-- 7. South Street Entrance Pavilion -->
+        <div class="map-pin" style="top: 61%; left: 50%;" onclick="selectZone(195, -3)">
           <div class="pin-core"></div>
-          <div class="map-tooltip"><span class="map-tooltip-title">North Terrace Pavilion</span><span class="map-tooltip-sub">Food & cultural arcade hall</span></div>
+          <div class="map-tooltip"><span class="map-tooltip-title">South Gate Pavilion</span><span class="map-tooltip-sub">Main pedestrian entrance link</span></div>
         </div>
 
-        <div class="map-pin" style="top: 48%; left: 60%;" onclick="selectZone(90, 4)">
+        <!-- 8. Southeast Artisan Block -->
+        <div class="map-pin" style="top: 59%; left: 77%;" onclick="selectZone(60, -2)">
           <div class="pin-core"></div>
-          <div class="map-tooltip"><span class="map-tooltip-title">East Courtyard Basin</span><span class="map-tooltip-sub">Landscaped reflection pond</span></div>
-        </div>
-
-        <div class="map-pin" style="top: 59%; left: 63%;" onclick="selectZone(75, -2)">
-          <div class="pin-core"></div>
-          <div class="map-tooltip"><span class="map-tooltip-title">Artisan Workshop Wing</span><span class="map-tooltip-sub">Modular craftsman studios</span></div>
-        </div>
-
-        <div class="map-pin" style="top: 44%; left: 68%;" onclick="selectZone(50, 10)">
-          <div class="pin-core"></div>
-          <div class="map-tooltip"><span class="map-tooltip-title">Upper Colonnade Hall</span><span class="map-tooltip-sub">Covered multi-purpose exhibition</span></div>
+          <div class="map-tooltip"><span class="map-tooltip-title">Artisan & Craft Block</span><span class="map-tooltip-sub">Modular workshops and textile stalls</span></div>
         </div>
       </div>
     </div>
@@ -614,7 +607,7 @@
   <input type="file" id="file-input" accept="image/*">
 
   <!-- ==========================================================================
-       AUDIO CONTROLLER & INTERACTION LOGIC
+       THREE.JS & INTERACTION LOGIC
        ========================================================================== -->
   <script>
     const translations = {
@@ -679,9 +672,7 @@
           isAudioPlaying = true;
           audioIconOn.style.display = 'block';
           audioIconOff.style.display = 'none';
-        }).catch(() => {
-          // Fallback or user gesture restriction
-        });
+        }).catch(() => {});
       }
     }
 
@@ -700,7 +691,6 @@
       }
     }
 
-    /* Reveal UI upon entering the bazaar */
     document.getElementById('enter-bazaar-btn').addEventListener('click', () => {
       welcomeScreen.classList.add('hidden');
       bottomDock.classList.add('visible');
@@ -710,7 +700,6 @@
       startBackgroundAudio();
     });
 
-    /* Toggle 3-Bar Dropdown Menu */
     function toggleDropdownMenu() {
       const isOpen = dropdownMenu.classList.toggle('open');
       menuToggleBtn.classList.toggle('active', isOpen);
@@ -721,14 +710,12 @@
       menuToggleBtn.classList.remove('active');
     }
 
-    /* Close dropdown when clicking outside */
     window.addEventListener('click', (e) => {
       if (!e.target.closest('#top-brand')) {
         closeDropdownMenu();
       }
     });
 
-    /* Dropdown Actions */
     function handleGalleryClick() {
       closeDropdownMenu();
       document.getElementById('file-input').click();
@@ -756,11 +743,20 @@
       }
     }
 
-    /* Modal Open & Close */
     function openPlanModal() { planModal.classList.add('visible'); }
     function closePlanModal() {
       planModal.classList.remove('visible');
       planBoard.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+    }
+
+    function handlePlanError(img) {
+      const fallbacks = ['./plan.png', './plan.jpeg', './image_16.png'];
+      const cur = img.getAttribute('data-err') || '0';
+      const idx = parseInt(cur, 10);
+      if (idx < fallbacks.length) {
+        img.setAttribute('data-err', (idx + 1).toString());
+        img.src = fallbacks[idx];
+      }
     }
 
     /* 3D Perspective Tilt on the Master Plan */
@@ -775,8 +771,8 @@
       const dX = (e.clientX - cX) / (window.innerWidth / 2);
       const dY = (e.clientY - cY) / (window.innerHeight / 2);
 
-      tiltTargetX = -dY * 14;
-      tiltTargetY = dX * 16;
+      tiltTargetX = -dY * 13;
+      tiltTargetY = dX * 15;
     });
 
     function renderTilt() {
