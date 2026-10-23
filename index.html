@@ -13,6 +13,34 @@
   <!-- Three.js WebGL & WebXR Engine -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
+  <!-- Early Head Handlers to Guarantee No ReferenceErrors -->
+  <script>
+    function handlePlanError(img) {
+      var fallbacks = ['./plan.png', './plan.jpeg', './image_16.png'];
+      var cur = parseInt(img.getAttribute('data-err') || '0', 10);
+      if (cur < fallbacks.length) {
+        img.setAttribute('data-err', (cur + 1).toString());
+        img.src = fallbacks[cur];
+      }
+    }
+    function handleFrameError(img) {
+      var curIdx = parseInt(img.getAttribute('data-index') || '0', 10);
+      var altFiles = [
+        ['./FRAME-2.png', './frame_1.jpg', './frame_1.png'],
+        ['./FRAME-3.png', './frame_2.jpg', './frame_2.png'],
+        ['./FRAME-4.png', './frame_3.jpg', './frame_3.png'],
+        ['./FRAME-5.png', './frame_4.jpg', './frame_4.png'],
+        ['./FRAME-6.png', './frame_5.jpg', './frame_5.png'],
+        ['./FRAME-1.png', './frame_6.jpg', './frame_6.png']
+      ];
+      var retry = parseInt(img.getAttribute('data-retry') || '0', 10);
+      if (altFiles[curIdx] && retry < altFiles[curIdx].length) {
+        img.setAttribute('data-retry', (retry + 1).toString());
+        img.src = altFiles[curIdx][retry];
+      }
+    }
+  </script>
+
   <style>
     :root {
       --gold-line: rgba(223, 183, 108, 0.75);
@@ -30,19 +58,7 @@
     body, html { width: 100%; height: 100%; overflow: hidden; background: #080a0e; font-family: 'Inter', sans-serif; color: var(--text-ivory); }
     #webgl-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
 
-    /* ==========================================================================
-       HERITAGE INTERACTIVE WELCOME SCREEN
-       ========================================================================== */
-    #welcome-screen {
-      position: absolute; inset: 0; z-index: 50;
-      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-      padding: clamp(14px, 3vw, 36px);
-      background: radial-gradient(circle at center, rgba(14, 18, 24, 0.35) 0%, rgba(6, 8, 12, 0.82) 100%);
-      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
-      pointer-events: auto;
-    }
-    #welcome-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-
+    /* Inset Outer Border Frame */
     .outer-border-frame {
       position: absolute;
       top: clamp(12px, 2.4vw, 28px);
@@ -52,6 +68,179 @@
       border: 1px solid var(--gold-line);
       pointer-events: none;
       box-shadow: inset 0 0 24px rgba(0,0,0,0.6), 0 0 16px rgba(223, 183, 108, 0.15);
+      z-index: 10;
+    }
+
+    /* ==========================================================================
+       STAGE 1: TEASER SCREEN
+       ========================================================================== */
+    #teaser-screen {
+      position: absolute; inset: 0; z-index: 60;
+      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+      padding: clamp(24px, 4vw, 48px);
+      background: radial-gradient(circle at center, rgba(14, 18, 24, 0.45) 0%, rgba(6, 8, 12, 0.88) 100%);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.7s;
+      pointer-events: auto;
+    }
+    #teaser-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-40px); }
+
+    .teaser-content {
+      position: relative; z-index: 12;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      margin: auto 0;
+      max-width: 820px;
+    }
+    .teaser-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 18px; border-radius: 20px;
+      background: rgba(88, 28, 20, 0.55); border: 1px solid var(--gold-line);
+      color: var(--gold-accent); font-family: 'Cinzel', serif; font-size: 11px;
+      letter-spacing: 2px; text-transform: uppercase; font-weight: 600;
+      margin-bottom: 22px; backdrop-filter: blur(8px);
+    }
+    .teaser-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(34px, 6.2vw, 68px);
+      font-weight: 800; letter-spacing: 3px; color: #ffffff;
+      text-shadow: 0 4px 24px rgba(0,0,0,0.95), 0 0 35px rgba(223, 183, 108, 0.3);
+      line-height: 1.15; margin-bottom: 14px;
+    }
+    .teaser-subtitle {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(15px, 2.2vw, 22px);
+      font-weight: 300; letter-spacing: 1.5px;
+      color: var(--gold-accent); text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+    }
+
+    .teaser-bottom {
+      position: relative; z-index: 12;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      margin-bottom: clamp(18px, 3.5vh, 42px);
+    }
+    .teaser-arrow-circle {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(14, 18, 24, 0.85); border: 1.5px solid var(--gold-line);
+      color: var(--gold-accent); display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.65);
+      animation: teaserBounce 2s infinite ease-in-out;
+    }
+    .teaser-arrow-circle svg { width: 20px; height: 20px; stroke: currentColor; fill: none; }
+    @keyframes teaserBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(8px); }
+    }
+    .teaser-go-btn {
+      background: linear-gradient(135deg, #a8473b 0%, #581c14 100%);
+      border: 1.5px solid var(--gold-line);
+      color: #ffffff; font-family: 'Cinzel', serif; font-size: 13px;
+      font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+      padding: 14px 44px; border-radius: 40px; cursor: pointer;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.85), 0 0 20px rgba(223, 183, 108, 0.3);
+      transition: all 0.25s ease;
+    }
+    .teaser-go-btn:hover {
+      transform: scale(1.06); border-color: #ffffff;
+      box-shadow: 0 12px 34px rgba(223, 183, 108, 0.5);
+    }
+
+    /* ==========================================================================
+       STAGE 2: FULL-SCREEN SEQUENTIAL 6-FRAME STORYBOARD
+       ========================================================================== */
+    #storyboard-screen {
+      position: absolute; inset: 0; z-index: 55;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: #000000;
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s;
+      cursor: pointer;
+    }
+    #storyboard-screen.active {
+      opacity: 1; visibility: visible; pointer-events: auto;
+    }
+
+    .storyboard-viewport {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; background: #000;
+    }
+    .storyboard-panel-img {
+      max-width: 96vw; max-height: 88vh; width: auto; height: auto;
+      object-fit: contain; border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.95);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      filter: contrast(1.04) brightness(1.01);
+    }
+
+    /* Top HUD: Title, Progress Dots, Skip Button */
+    .storyboard-top-hud {
+      position: absolute; top: clamp(16px, 3vh, 32px); left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(20px, 4vw, 48px); z-index: 20; pointer-events: none;
+    }
+    .storyboard-label-box {
+      background: rgba(14, 18, 24, 0.88); border: 1px solid var(--gold-line);
+      padding: 8px 18px; border-radius: 30px; backdrop-filter: blur(12px);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .storyboard-counter {
+      font-family: 'Cinzel', serif; font-size: 13px; font-weight: 700;
+      color: var(--gold-accent); letter-spacing: 1.5px;
+    }
+    .storyboard-dots {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .sb-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: rgba(255,255,255,0.25); transition: all 0.25s ease;
+    }
+    .sb-dot.active {
+      background: var(--gold-accent); width: 18px; border-radius: 6px;
+      box-shadow: 0 0 10px rgba(223, 183, 108, 0.7);
+    }
+    .storyboard-skip-btn {
+      pointer-events: auto;
+      background: rgba(14, 18, 24, 0.88); border: 1px solid var(--gold-line);
+      color: var(--text-ivory); font-family: 'Cinzel', serif; font-size: 11px;
+      letter-spacing: 2px; font-weight: 700; padding: 8px 20px; border-radius: 30px;
+      cursor: pointer; backdrop-filter: blur(12px); transition: all 0.2s ease;
+    }
+    .storyboard-skip-btn:hover {
+      background: var(--terracotta-rust); border-color: #fff;
+    }
+
+    /* Bottom Prompt HUD */
+    .storyboard-bottom-prompt {
+      position: absolute; bottom: clamp(18px, 3.5vh, 36px);
+      left: 50%; transform: translateX(-50%);
+      background: rgba(14, 18, 24, 0.85); border: 1px solid rgba(223, 183, 108, 0.45);
+      padding: 8px 24px; border-radius: 30px; backdrop-filter: blur(12px);
+      font-size: 12px; letter-spacing: 1.5px; color: var(--gold-accent);
+      pointer-events: none; z-index: 20; text-transform: uppercase; font-weight: 500;
+      animation: pulsePrompt 2.2s infinite ease-in-out;
+    }
+    @keyframes pulsePrompt {
+      0%, 100% { opacity: 0.75; transform: translateX(-50%) scale(1); }
+      50% { opacity: 1; transform: translateX(-50%) scale(1.03); }
+    }
+
+    /* ==========================================================================
+       STAGE 3: ROYAL HERITAGE OVERVIEW SCREEN (SLIDES UP FROM BOTTOM)
+       ========================================================================== */
+    #welcome-screen {
+      position: absolute; inset: 0; z-index: 50;
+      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+      padding: clamp(14px, 3vw, 36px);
+      background: radial-gradient(circle at center, rgba(14, 18, 24, 0.35) 0%, rgba(6, 8, 12, 0.82) 100%);
+      transform: translateY(100%);
+      transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+      pointer-events: none;
+    }
+    #welcome-screen.active {
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    #welcome-screen.hidden {
+      opacity: 0; pointer-events: none; transform: translateY(-40px);
     }
 
     .welcome-top {
@@ -59,7 +248,6 @@
       display: flex; flex-direction: column; align-items: center; text-align: center;
       margin-top: 6px;
     }
-
     .market-sketch {
       width: clamp(88px, 8.5vw, 125px); height: auto; margin-bottom: 6px;
       filter: drop-shadow(0 2px 8px rgba(0,0,0,0.9));
@@ -67,7 +255,6 @@
     .market-sketch path, .market-sketch rect, .market-sketch line, .market-sketch circle, .market-sketch polygon {
       stroke: var(--gold-line); fill: none; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
     }
-
     .monarchy-brand-label {
       font-family: 'Cinzel', serif; font-size: clamp(10px, 1.1vw, 13px);
       letter-spacing: clamp(3px, 0.4vw, 5px); color: var(--gold-line); text-transform: uppercase;
@@ -80,21 +267,18 @@
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 0 16px;
     }
-
     .tour-title {
       font-family: 'Cinzel', serif; font-size: clamp(20px, 3vw, 36px);
       font-weight: 700; letter-spacing: 2px; color: #ffffff;
       text-shadow: 0 2px 14px rgba(0,0,0,0.95), 0 0 25px rgba(0,0,0,0.85);
       margin-bottom: 4px; line-height: 1.25;
     }
-
     .tour-subtitle {
       font-family: 'Cinzel', serif; font-size: clamp(11px, 1.4vw, 15px);
       font-weight: 600; letter-spacing: 4px; color: var(--gold-line);
       text-transform: uppercase; text-shadow: 0 2px 10px rgba(0,0,0,0.9);
       margin-bottom: 18px;
     }
-
     .tour-description {
       font-size: clamp(11.5px, 1.05vw, 14px); line-height: 1.74;
       color: var(--text-ivory); font-weight: 300; max-width: 820px;
@@ -281,7 +465,7 @@
     .aerial-plan-btn:hover .aerial-btn-dot { background: #fff; }
 
     /* ==========================================================================
-       FULLSCREEN 3D PERSPECTIVE TILT MASTER PLAN MODAL (UPDATED IMAGE)
+       FULLSCREEN 3D PERSPECTIVE TILT MASTER PLAN MODAL (plan.jpg)
        ========================================================================== */
     #plan-modal {
       position: absolute; inset: 0; z-index: 85;
@@ -406,7 +590,55 @@
   </audio>
 
   <!-- ==========================================================================
-       HERITAGE INTERACTIVE WELCOME SCREEN
+       STAGE 1: TEASER SCREEN
+       ========================================================================== -->
+  <div id="teaser-screen">
+    <div class="outer-border-frame"></div>
+
+    <div class="teaser-content">
+      <div class="teaser-badge">✨ Architectural Experience</div>
+      <h1 class="teaser-title">HELLOWW!! 👋</h1>
+      <p class="teaser-subtitle">wanna see something new?</p>
+    </div>
+
+    <div class="teaser-bottom">
+      <div class="teaser-arrow-circle">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+      </div>
+      <button class="teaser-go-btn" id="teaser-go-btn">LET'S GO 🚀</button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       STAGE 2: FULL-SCREEN SEQUENTIAL 6-FRAME STORYBOARD
+       ========================================================================== -->
+  <div id="storyboard-screen">
+    <div class="storyboard-top-hud">
+      <div class="storyboard-label-box">
+        <span class="storyboard-counter" id="sb-counter">1 / 6</span>
+        <div class="storyboard-dots" id="sb-dots">
+          <div class="sb-dot active"></div>
+          <div class="sb-dot"></div>
+          <div class="sb-dot"></div>
+          <div class="sb-dot"></div>
+          <div class="sb-dot"></div>
+          <div class="sb-dot"></div>
+        </div>
+      </div>
+      <button class="storyboard-skip-btn" id="sb-skip-btn">SKIP ⏭</button>
+    </div>
+
+    <div class="storyboard-viewport">
+      <img id="storyboard-frame-img" class="storyboard-panel-img" src="./FRAME-2.png" alt="Storyboard Frame" data-index="0" onerror="handleFrameError(this)">
+    </div>
+
+    <div class="storyboard-bottom-prompt">
+      <span id="sb-prompt-text">Click anywhere for next frame ➔</span>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       STAGE 3: ROYAL HERITAGE OVERVIEW SCREEN (SLIDES UP)
        ========================================================================== -->
   <div id="welcome-screen">
     <div class="outer-border-frame"></div>
@@ -519,7 +751,7 @@
   </div>
 
   <!-- ==========================================================================
-       AERIAL PLAN CORNER BUTTON (BOTTOM-LEFT)
+       AERIAL PLAN BUTTON (BOTTOM-LEFT CORNER)
        ========================================================================== -->
   <div class="bottom-left-corner" id="corner-plan-container">
     <button class="aerial-plan-btn" id="corner-plan-btn" onclick="openPlanModal()">
@@ -542,49 +774,41 @@
         <img id="plan-img" src="./plan.jpg" alt="Aerial Master Site Plan" onerror="handlePlanError(this)">
 
         <!-- Responsive Pins accurately positioned on plan.jpg -->
-        <!-- 1. Central Stepped Amphitheater / Sunken Plaza (Active Node) -->
         <div class="map-pin active" style="top: 52%; left: 55%;" onclick="selectZone(180, 0)">
           <div class="pin-radar-ring"></div><div class="pin-core"></div><div class="pin-fov-cone"></div>
           <div class="map-tooltip"><span class="map-tooltip-title">Central Amphitheater & Fountain</span><span class="map-tooltip-sub">Sunken circular gathering court</span></div>
         </div>
 
-        <!-- 2. Curved Heritage Arcade (Top Center) -->
         <div class="map-pin" style="top: 38%; left: 58%;" onclick="selectZone(130, 8)">
           <div class="pin-core"></div>
           <div class="map-tooltip"><span class="map-tooltip-title">North Heritage Colonnade</span><span class="map-tooltip-sub">Restored brick arches & shaded cafes</span></div>
         </div>
 
-        <!-- 3. Curved East Arcade (Top Right) -->
         <div class="map-pin" style="top: 45%; left: 78%;" onclick="selectZone(80, 6)">
           <div class="pin-core"></div>
           <div class="map-tooltip"><span class="map-tooltip-title">East Commercial Arcade</span><span class="map-tooltip-sub">Boutiques and spice stalls</span></div>
         </div>
 
-        <!-- 4. Main Civic & Cultural Hall (Top Left) -->
         <div class="map-pin" style="top: 41%; left: 37%;" onclick="selectZone(210, 4)">
           <div class="pin-core"></div>
           <div class="map-tooltip"><span class="map-tooltip-title">Multi-Purpose Cultural Hall</span><span class="map-tooltip-sub">Exhibitions and auditorium foyer</span></div>
         </div>
 
-        <!-- 5. Linear Market Wing & Arrival Forecourt (West) -->
         <div class="map-pin" style="top: 52%; left: 25%;" onclick="selectZone(240, -4)">
           <div class="pin-core"></div>
           <div class="map-tooltip"><span class="map-tooltip-title">West Arcade Promenade</span><span class="map-tooltip-sub">Arrival forecourt & linear retail spine</span></div>
         </div>
 
-        <!-- 6. Landscaped Shaded Plaza (Pergolas & Trees) -->
         <div class="map-pin" style="top: 46%; left: 50%;" onclick="selectZone(160, 2)">
           <div class="pin-core"></div>
           <div class="map-tooltip"><span class="map-tooltip-title">Biophilic Garden Court</span><span class="map-tooltip-sub">Timber pergolas & shaded seating</span></div>
         </div>
 
-        <!-- 7. South Street Entrance Pavilion -->
         <div class="map-pin" style="top: 61%; left: 50%;" onclick="selectZone(195, -3)">
           <div class="pin-core"></div>
           <div class="map-tooltip"><span class="map-tooltip-title">South Gate Pavilion</span><span class="map-tooltip-sub">Main pedestrian entrance link</span></div>
         </div>
 
-        <!-- 8. Southeast Artisan Block -->
         <div class="map-pin" style="top: 59%; left: 77%;" onclick="selectZone(60, -2)">
           <div class="pin-core"></div>
           <div class="map-tooltip"><span class="map-tooltip-title">Artisan & Craft Block</span><span class="map-tooltip-sub">Modular workshops and textile stalls</span></div>
@@ -607,9 +831,10 @@
   <input type="file" id="file-input" accept="image/*">
 
   <!-- ==========================================================================
-       THREE.JS & INTERACTION LOGIC
+       MAIN JAVASCRIPT LOGIC
        ========================================================================== -->
   <script>
+    /* Multilingual Content Dictionary */
     const translations = {
       en: {
         title: "Sardar Vallabhbhai Patel Market",
@@ -650,7 +875,18 @@
       if (activeBtn) activeBtn.classList.add('active');
     }
 
+    /* DOM References */
+    const teaserScreen = document.getElementById('teaser-screen');
+    const teaserGoBtn = document.getElementById('teaser-go-btn');
+    const storyboardScreen = document.getElementById('storyboard-screen');
+    const storyboardFrameImg = document.getElementById('storyboard-frame-img');
+    const sbCounter = document.getElementById('sb-counter');
+    const sbDots = document.getElementById('sb-dots').children;
+    const sbSkipBtn = document.getElementById('sb-skip-btn');
+    const sbPromptText = document.getElementById('sb-prompt-text');
     const welcomeScreen = document.getElementById('welcome-screen');
+    const enterBazaarBtn = document.getElementById('enter-bazaar-btn');
+
     const bottomDock = document.getElementById('bottom-dock');
     const topBrand = document.getElementById('top-brand');
     const topRight = document.getElementById('top-right');
@@ -663,8 +899,75 @@
     const audioIconOn = document.getElementById('audio-icon-on');
     const audioIconOff = document.getElementById('audio-icon-off');
 
-    let isAudioPlaying = false;
+    /* Storyboard Frame Paths */
+    const storyboardFrames = [
+      './FRAME-2.png', // Frame 1: The Entrance (8:00 AM)
+      './FRAME-3.png', // Frame 2: Meeting the Vendors
+      './FRAME-4.png', // Frame 3: The Morning Chaos (11:00 AM)
+      './FRAME-5.png', // Frame 4: The Keeper of Stories
+      './FRAME-6.png', // Frame 5: Observing the Issues
+      './FRAME-1.png'  // Frame 6: The Vision
+    ];
+    let currentFrameIndex = 0;
 
+    function renderStoryboardFrame(index) {
+      currentFrameIndex = index;
+      storyboardFrameImg.style.opacity = '0';
+      storyboardFrameImg.style.transform = 'scale(0.97)';
+
+      setTimeout(() => {
+        storyboardFrameImg.setAttribute('data-index', index.toString());
+        storyboardFrameImg.setAttribute('data-retry', '0');
+        storyboardFrameImg.src = storyboardFrames[index];
+        storyboardFrameImg.style.opacity = '1';
+        storyboardFrameImg.style.transform = 'scale(1)';
+
+        sbCounter.textContent = `${index + 1} / ${storyboardFrames.length}`;
+        for (let i = 0; i < sbDots.length; i++) {
+          sbDots[i].classList.toggle('active', i === index);
+        }
+
+        if (index === storyboardFrames.length - 1) {
+          sbPromptText.textContent = "Click to enter the Heritage Experience ➔";
+        } else {
+          sbPromptText.textContent = "Click anywhere for next frame ➔";
+        }
+      }, 150);
+    }
+
+    function advanceStoryboard() {
+      if (currentFrameIndex < storyboardFrames.length - 1) {
+        renderStoryboardFrame(currentFrameIndex + 1);
+      } else {
+        finishStoryboard();
+      }
+    }
+
+    function finishStoryboard() {
+      storyboardScreen.classList.remove('active');
+      welcomeScreen.classList.add('active');
+    }
+
+    /* Stage Transitions */
+    teaserGoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      teaserScreen.classList.add('hidden');
+      storyboardScreen.classList.add('active');
+      renderStoryboardFrame(0);
+    });
+
+    storyboardScreen.addEventListener('click', (e) => {
+      if (e.target === sbSkipBtn) return;
+      advanceStoryboard();
+    });
+
+    sbSkipBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      finishStoryboard();
+    });
+
+    /* Audio Management */
+    let isAudioPlaying = false;
     function startBackgroundAudio() {
       if (!isAudioPlaying) {
         bgAudio.volume = 0.35;
@@ -691,7 +994,9 @@
       }
     }
 
-    document.getElementById('enter-bazaar-btn').addEventListener('click', () => {
+    /* Enter the 360 Bazaar from Stage 3 */
+    enterBazaarBtn.addEventListener('click', () => {
+      welcomeScreen.classList.remove('active');
       welcomeScreen.classList.add('hidden');
       bottomDock.classList.add('visible');
       topBrand.classList.add('visible');
@@ -700,6 +1005,7 @@
       startBackgroundAudio();
     });
 
+    /* 3-Bar Dropdown Menu Controls */
     function toggleDropdownMenu() {
       const isOpen = dropdownMenu.classList.toggle('open');
       menuToggleBtn.classList.toggle('active', isOpen);
@@ -724,15 +1030,19 @@
     function handleDetailsClick() {
       closeDropdownMenu();
       welcomeScreen.classList.remove('hidden');
+      welcomeScreen.classList.add('active');
     }
 
     function handleHomeClick() {
       closeDropdownMenu();
-      welcomeScreen.classList.remove('hidden');
       bottomDock.classList.remove('visible');
       topBrand.classList.remove('visible');
       topRight.classList.remove('visible');
       cornerPlanContainer.classList.remove('visible');
+      welcomeScreen.classList.remove('active');
+      welcomeScreen.classList.add('hidden');
+      storyboardScreen.classList.remove('active');
+      teaserScreen.classList.remove('hidden');
     }
 
     function toggleFullScreen() {
@@ -743,23 +1053,14 @@
       }
     }
 
+    /* Master Plan Modal */
     function openPlanModal() { planModal.classList.add('visible'); }
     function closePlanModal() {
       planModal.classList.remove('visible');
       planBoard.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
     }
 
-    function handlePlanError(img) {
-      const fallbacks = ['./plan.png', './plan.jpeg', './image_16.png'];
-      const cur = img.getAttribute('data-err') || '0';
-      const idx = parseInt(cur, 10);
-      if (idx < fallbacks.length) {
-        img.setAttribute('data-err', (idx + 1).toString());
-        img.src = fallbacks[idx];
-      }
-    }
-
-    /* 3D Perspective Tilt on the Master Plan */
+    /* 3D Mouse Parallax Tilt for Aerial Plan */
     let tiltTargetX = 0, tiltTargetY = 0;
     let tiltCurrentX = 0, tiltCurrentY = 0;
 
@@ -788,7 +1089,7 @@
     }
     requestAnimationFrame(renderTilt);
 
-    /* Three.js 360 Viewer */
+    /* Three.js 360 Viewer Setup */
     let lon = 180, lat = 0;
     let targetLon = 180, targetLat = 0;
     let isTransitioning = false;
@@ -867,14 +1168,14 @@
       closePlanModal();
     }
 
-    /* Orbit Drag */
+    /* Orbit Drag Controls */
     let isUserInteracting = false;
     let startX = 0, startY = 0;
     let startLon = 0, startLat = 0;
     let autoRotate = true;
 
     window.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('#welcome-screen') || e.target.closest('#top-brand') || e.target.closest('#top-right') || e.target.closest('#bottom-dock') || e.target.closest('#corner-plan-container') || e.target.closest('#plan-modal')) return;
+      if (e.target.closest('#teaser-screen') || e.target.closest('#storyboard-screen') || e.target.closest('#welcome-screen') || e.target.closest('#top-brand') || e.target.closest('#top-right') || e.target.closest('#bottom-dock') || e.target.closest('#corner-plan-container') || e.target.closest('#plan-modal')) return;
       isUserInteracting = true;
       isTransitioning = false;
       startX = e.clientX;
@@ -908,7 +1209,7 @@
       document.getElementById('zoom-readout').textContent = '60° FOV';
     });
 
-    /* WebXR Meta Quest VR */
+    /* WebXR Meta Quest Support */
     const enterVrBtn = document.getElementById('enter-vr-btn');
     if ('xr' in navigator) {
       navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
