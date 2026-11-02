@@ -13,34 +13,6 @@
   <!-- Three.js WebGL & WebXR Engine -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-  <!-- Early Head Handlers to Guarantee No ReferenceErrors -->
-  <script>
-    function handlePlanError(img) {
-      var fallbacks = ['./plan.png', './plan.jpeg', './image_16.png'];
-      var cur = parseInt(img.getAttribute('data-err') || '0', 10);
-      if (cur < fallbacks.length) {
-        img.setAttribute('data-err', (cur + 1).toString());
-        img.src = fallbacks[cur];
-      }
-    }
-    function handleFrameError(img) {
-      var curIdx = parseInt(img.getAttribute('data-index') || '0', 10);
-      var altFiles = [
-        ['./FRAME-2.png', './frame_1.jpg', './frame_1.png'],
-        ['./FRAME-3.png', './frame_2.jpg', './frame_2.png'],
-        ['./FRAME-4.png', './frame_3.jpg', './frame_3.png'],
-        ['./FRAME-5.png', './frame_4.jpg', './frame_4.png'],
-        ['./FRAME-6.png', './frame_5.jpg', './frame_5.png'],
-        ['./FRAME-1.png', './frame_6.jpg', './frame_6.png']
-      ];
-      var retry = parseInt(img.getAttribute('data-retry') || '0', 10);
-      if (altFiles[curIdx] && retry < altFiles[curIdx].length) {
-        img.setAttribute('data-retry', (retry + 1).toString());
-        img.src = altFiles[curIdx][retry];
-      }
-    }
-  </script>
-
   <style>
     :root {
       --gold-line: rgba(223, 183, 108, 0.75);
@@ -58,232 +30,162 @@
     body, html { width: 100%; height: 100%; overflow: hidden; background: #080a0e; font-family: 'Inter', sans-serif; color: var(--text-ivory); }
     #webgl-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
 
-    /* Inset Outer Border Frame */
-    .outer-border-frame {
-      position: absolute;
-      top: clamp(12px, 2.4vw, 28px);
-      bottom: clamp(12px, 2.4vw, 28px);
-      left: clamp(12px, 2.4vw, 28px);
-      right: clamp(12px, 2.4vw, 28px);
-      border: 1px solid var(--gold-line);
-      pointer-events: none;
-      box-shadow: inset 0 0 24px rgba(0,0,0,0.6), 0 0 16px rgba(223, 183, 108, 0.15);
-      z-index: 10;
+    /* Universal Back Button on Top Right */
+    .global-back-btn {
+      position: absolute; top: 24px; right: 24px; z-index: 100;
+      background: rgba(14, 18, 24, 0.88); border: 1.5px solid var(--gold-line);
+      color: var(--gold-accent); padding: 8px 18px; border-radius: 30px;
+      font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer;
+      backdrop-filter: blur(14px); box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+      display: none; align-items: center; gap: 6px; transition: all 0.2s;
     }
+    .global-back-btn.visible { display: flex; }
+    .global-back-btn:hover { background: var(--terracotta-rust); color: #fff; border-color: #fff; }
 
     /* ==========================================================================
-       STAGE 1: TEASER SCREEN
+       STAGE 1: FULLSCREEN HELLOW TEASER SCREEN
        ========================================================================== */
     #teaser-screen {
       position: absolute; inset: 0; z-index: 60;
       display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-      padding: clamp(24px, 4vw, 48px);
-      background: radial-gradient(circle at center, rgba(14, 18, 24, 0.45) 0%, rgba(6, 8, 12, 0.88) 100%);
-      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.7s;
-      pointer-events: auto;
+      padding: clamp(24px, 4vw, 50px);
+      background: radial-gradient(circle at center, rgba(20, 26, 36, 0.92) 0%, rgba(8, 11, 16, 0.98) 100%);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    #teaser-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-40px); }
+    #teaser-screen.hidden { opacity: 0; pointer-events: none; transform: translateY(-30px); }
 
-    .teaser-content {
-      position: relative; z-index: 12;
-      display: flex; flex-direction: column; align-items: center; text-align: center;
-      margin: auto 0;
-      max-width: 820px;
+    .teaser-center {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; margin: auto; max-width: 700px;
     }
+
     .teaser-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 18px; border-radius: 20px;
-      background: rgba(88, 28, 20, 0.55); border: 1px solid var(--gold-line);
-      color: var(--gold-accent); font-family: 'Cinzel', serif; font-size: 11px;
-      letter-spacing: 2px; text-transform: uppercase; font-weight: 600;
-      margin-bottom: 22px; backdrop-filter: blur(8px);
+      background: rgba(168, 71, 59, 0.3); border: 1px solid var(--border-accent);
+      padding: 6px 16px; border-radius: 24px; font-size: 11px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--gold-accent); margin-bottom: 22px;
+      backdrop-filter: blur(10px);
     }
+
     .teaser-title {
-      font-family: 'Cinzel', serif;
-      font-size: clamp(34px, 6.2vw, 68px);
-      font-weight: 800; letter-spacing: 3px; color: #ffffff;
-      text-shadow: 0 4px 24px rgba(0,0,0,0.95), 0 0 35px rgba(223, 183, 108, 0.3);
-      line-height: 1.15; margin-bottom: 14px;
+      font-family: 'Cinzel', serif; font-size: clamp(36px, 6vw, 64px);
+      font-weight: 800; color: #ffffff; letter-spacing: 2px;
+      margin-bottom: 12px; text-shadow: 0 4px 20px rgba(0,0,0,0.9);
     }
+
     .teaser-subtitle {
-      font-family: 'Inter', sans-serif;
-      font-size: clamp(15px, 2.2vw, 22px);
-      font-weight: 300; letter-spacing: 1.5px;
-      color: var(--gold-accent); text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+      font-size: clamp(16px, 2.2vw, 24px); color: var(--text-muted);
+      font-weight: 300; letter-spacing: 1px; margin-bottom: 10px;
     }
 
     .teaser-bottom {
-      position: relative; z-index: 12;
-      display: flex; flex-direction: column; align-items: center; gap: 14px;
-      margin-bottom: clamp(18px, 3.5vh, 42px);
+      display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%;
     }
-    .teaser-arrow-circle {
-      width: 44px; height: 44px; border-radius: 50%;
-      background: rgba(14, 18, 24, 0.85); border: 1.5px solid var(--gold-line);
-      color: var(--gold-accent); display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.65);
-      animation: teaserBounce 2s infinite ease-in-out;
+
+    .lets-go-btn {
+      background: linear-gradient(135deg, #A8473B, #581C14);
+      border: 1.5px solid var(--gold-line); color: var(--text-ivory);
+      padding: 14px 42px; border-radius: 40px; font-family: 'Cinzel', serif;
+      font-size: 14px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+      cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.7); transition: all 0.3s;
     }
-    .teaser-arrow-circle svg { width: 20px; height: 20px; stroke: currentColor; fill: none; }
-    @keyframes teaserBounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(8px); }
-    }
-    .teaser-go-btn {
-      background: linear-gradient(135deg, #a8473b 0%, #581c14 100%);
-      border: 1.5px solid var(--gold-line);
-      color: #ffffff; font-family: 'Cinzel', serif; font-size: 13px;
-      font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
-      padding: 14px 44px; border-radius: 40px; cursor: pointer;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.85), 0 0 20px rgba(223, 183, 108, 0.3);
-      transition: all 0.25s ease;
-    }
-    .teaser-go-btn:hover {
-      transform: scale(1.06); border-color: #ffffff;
-      box-shadow: 0 12px 34px rgba(223, 183, 108, 0.5);
+    .lets-go-btn:hover {
+      transform: scale(1.06); border-color: #fff; box-shadow: 0 0 30px rgba(223, 183, 108, 0.6);
     }
 
     /* ==========================================================================
-       STAGE 2: FULL-SCREEN SEQUENTIAL 6-FRAME STORYBOARD
+       STAGE 2: STORYBOARD VIDEO INTERFACE
        ========================================================================== */
     #storyboard-screen {
       position: absolute; inset: 0; z-index: 55;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: #000000;
-      opacity: 0; visibility: hidden; pointer-events: none;
-      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s;
-      cursor: pointer;
+      background: #040608; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: clamp(16px, 3vw, 36px); opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity 0.5s ease, visibility 0.5s;
     }
-    #storyboard-screen.active {
-      opacity: 1; visibility: visible; pointer-events: auto;
-    }
+    #storyboard-screen.visible { opacity: 1; visibility: visible; pointer-events: auto; }
 
     .storyboard-viewport {
-      position: absolute; inset: 0; width: 100%; height: 100%;
+      position: relative; width: min(94vw, 1100px); height: min(78vh, 680px);
+      background: #000; border: 2px solid var(--gold-line); border-radius: 16px;
+      overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,0.95);
       display: flex; align-items: center; justify-content: center;
-      overflow: hidden; background: #000;
-    }
-    .storyboard-panel-img {
-      max-width: 96vw; max-height: 88vh; width: auto; height: auto;
-      object-fit: contain; border-radius: 8px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.95);
-      transition: opacity 0.35s ease, transform 0.35s ease;
-      filter: contrast(1.04) brightness(1.01);
     }
 
-    /* Top HUD: Title, Progress Dots, Skip Button */
-    .storyboard-top-hud {
-      position: absolute; top: clamp(16px, 3vh, 32px); left: 0; right: 0;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 clamp(20px, 4vw, 48px); z-index: 20; pointer-events: none;
-    }
-    .storyboard-label-box {
-      background: rgba(14, 18, 24, 0.88); border: 1px solid var(--gold-line);
-      padding: 8px 18px; border-radius: 30px; backdrop-filter: blur(12px);
-      display: flex; align-items: center; gap: 10px;
-    }
-    .storyboard-counter {
-      font-family: 'Cinzel', serif; font-size: 13px; font-weight: 700;
-      color: var(--gold-accent); letter-spacing: 1.5px;
-    }
-    .storyboard-dots {
-      display: flex; gap: 6px; align-items: center;
-    }
-    .sb-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: rgba(255,255,255,0.25); transition: all 0.25s ease;
-    }
-    .sb-dot.active {
-      background: var(--gold-accent); width: 18px; border-radius: 6px;
-      box-shadow: 0 0 10px rgba(223, 183, 108, 0.7);
-    }
-    .storyboard-skip-btn {
-      pointer-events: auto;
-      background: rgba(14, 18, 24, 0.88); border: 1px solid var(--gold-line);
-      color: var(--text-ivory); font-family: 'Cinzel', serif; font-size: 11px;
-      letter-spacing: 2px; font-weight: 700; padding: 8px 20px; border-radius: 30px;
-      cursor: pointer; backdrop-filter: blur(12px); transition: all 0.2s ease;
-    }
-    .storyboard-skip-btn:hover {
-      background: var(--terracotta-rust); border-color: #fff;
+    .storyboard-video {
+      width: 100%; height: 100%; object-fit: contain; background: #000; display: block;
     }
 
-    /* Bottom Prompt HUD */
-    .storyboard-bottom-prompt {
-      position: absolute; bottom: clamp(18px, 3.5vh, 36px);
-      left: 50%; transform: translateX(-50%);
-      background: rgba(14, 18, 24, 0.85); border: 1px solid rgba(223, 183, 108, 0.45);
-      padding: 8px 24px; border-radius: 30px; backdrop-filter: blur(12px);
-      font-size: 12px; letter-spacing: 1.5px; color: var(--gold-accent);
-      pointer-events: none; z-index: 20; text-transform: uppercase; font-weight: 500;
-      animation: pulsePrompt 2.2s infinite ease-in-out;
+    .storyboard-footer {
+      margin-top: 14px; display: flex; align-items: center; justify-content: space-between;
+      width: min(94vw, 1100px); font-family: 'Cinzel', serif; font-size: 12px;
+      color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase;
     }
-    @keyframes pulsePrompt {
-      0%, 100% { opacity: 0.75; transform: translateX(-50%) scale(1); }
-      50% { opacity: 1; transform: translateX(-50%) scale(1.03); }
+
+    .storyboard-badge {
+      background: rgba(223, 183, 108, 0.15); border: 1px solid var(--gold-line);
+      padding: 6px 16px; border-radius: 20px; color: var(--gold-accent); font-weight: 700;
+      font-size: 11px;
+    }
+
+    .skip-story-btn {
+      background: rgba(88, 28, 20, 0.6); border: 1.5px solid var(--gold-line);
+      color: var(--text-ivory); padding: 7px 20px; border-radius: 20px;
+      cursor: pointer; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 1.5px;
+      transition: all 0.25s ease;
+    }
+    .skip-story-btn:hover {
+      background: var(--terracotta-rust); border-color: #fff; color: #fff;
     }
 
     /* ==========================================================================
-       STAGE 3: ROYAL HERITAGE OVERVIEW SCREEN (SLIDES UP FROM BOTTOM)
+       STAGE 3: HERITAGE OVERVIEW SLIDE-UP SCREEN
        ========================================================================== */
     #welcome-screen {
       position: absolute; inset: 0; z-index: 50;
       display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-      padding: clamp(14px, 3vw, 36px);
-      background: radial-gradient(circle at center, rgba(14, 18, 24, 0.35) 0%, rgba(6, 8, 12, 0.82) 100%);
-      transform: translateY(100%);
-      transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
-      pointer-events: none;
+      padding: clamp(16px, 3.5vw, 42px);
+      background: radial-gradient(circle at center, rgba(14, 18, 24, 0.38) 0%, rgba(6, 8, 12, 0.85) 100%);
+      transform: translateY(100%); transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.85s;
+      pointer-events: none; opacity: 0;
     }
-    #welcome-screen.active {
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-    #welcome-screen.hidden {
-      opacity: 0; pointer-events: none; transform: translateY(-40px);
+    #welcome-screen.active { transform: translateY(0); pointer-events: auto; opacity: 1; }
+
+    .outer-border-frame {
+      position: absolute;
+      top: clamp(14px, 2.8vw, 32px); bottom: clamp(14px, 2.8vw, 32px);
+      left: clamp(14px, 2.8vw, 32px); right: clamp(14px, 2.8vw, 32px);
+      border: 1.5px solid var(--gold-line); pointer-events: none;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 15px rgba(223, 183, 108, 0.15);
     }
 
     .welcome-top {
-      position: relative; z-index: 2;
-      display: flex; flex-direction: column; align-items: center; text-align: center;
-      margin-top: 6px;
+      position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 10px;
     }
     .market-sketch {
-      width: clamp(88px, 8.5vw, 125px); height: auto; margin-bottom: 6px;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.9));
+      width: clamp(90px, 9vw, 130px); height: auto; margin-bottom: 8px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.85));
     }
     .market-sketch path, .market-sketch rect, .market-sketch line, .market-sketch circle, .market-sketch polygon {
       stroke: var(--gold-line); fill: none; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
     }
     .monarchy-brand-label {
-      font-family: 'Cinzel', serif; font-size: clamp(10px, 1.1vw, 13px);
-      letter-spacing: clamp(3px, 0.4vw, 5px); color: var(--gold-line); text-transform: uppercase;
-      font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+      font-family: 'Cinzel', serif; font-size: clamp(11px, 1.2vw, 14px);
+      letter-spacing: clamp(3px, 0.4vw, 5px); color: var(--gold-line); text-transform: uppercase; font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,0.9);
     }
 
     .welcome-center {
-      position: relative; z-index: 2;
-      max-width: 900px; width: 100%; text-align: center;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 0 16px;
+      position: relative; z-index: 2; max-width: 860px; width: 100%; text-align: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 20px;
     }
     .tour-title {
-      font-family: 'Cinzel', serif; font-size: clamp(20px, 3vw, 36px);
-      font-weight: 700; letter-spacing: 2px; color: #ffffff;
-      text-shadow: 0 2px 14px rgba(0,0,0,0.95), 0 0 25px rgba(0,0,0,0.85);
-      margin-bottom: 4px; line-height: 1.25;
+      font-family: 'Cinzel', serif; font-size: clamp(22px, 3.2vw, 38px);
+      font-weight: 700; letter-spacing: 2px; color: #ffffff; text-shadow: 0 2px 14px rgba(0,0,0,0.95), 0 0 25px rgba(0,0,0,0.8); margin-bottom: 6px; line-height: 1.25;
     }
     .tour-subtitle {
-      font-family: 'Cinzel', serif; font-size: clamp(11px, 1.4vw, 15px);
-      font-weight: 600; letter-spacing: 4px; color: var(--gold-line);
-      text-transform: uppercase; text-shadow: 0 2px 10px rgba(0,0,0,0.9);
-      margin-bottom: 18px;
+      font-family: 'Cinzel', serif; font-size: clamp(12px, 1.5vw, 16px);
+      font-weight: 600; letter-spacing: 4px; color: var(--gold-line); text-transform: uppercase; text-shadow: 0 2px 10px rgba(0,0,0,0.9); margin-bottom: 22px;
     }
     .tour-description {
-      font-size: clamp(11.5px, 1.05vw, 14px); line-height: 1.74;
-      color: var(--text-ivory); font-weight: 300; max-width: 820px;
-      margin-bottom: 26px; text-shadow: 0 2px 10px rgba(0,0,0,0.95);
-      text-wrap: balance; transition: all 0.3s ease;
+      font-size: clamp(12px, 1.1vw, 14.5px); line-height: 1.75; color: var(--text-ivory); font-weight: 300; max-width: 820px; margin-bottom: 28px; text-shadow: 0 2px 10px rgba(0,0,0,0.95); text-wrap: balance;
     }
 
     .lang-te .tour-title, .lang-te .tour-subtitle, .lang-te .tour-description, .lang-te .diamond-label {
@@ -294,64 +196,38 @@
     }
 
     .diamond-btn-container {
-      position: relative; width: 105px; height: 105px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; background: transparent; border: none; outline: none;
+      position: relative; width: 95px; height: 95px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: transparent; border: none; outline: none; margin-bottom: 6px;
     }
     .diamond-bg {
-      position: absolute; inset: 12px;
-      background: rgba(14, 18, 24, 0.75);
-      border: 1.5px solid var(--gold-line);
-      transform: rotate(45deg);
-      backdrop-filter: blur(10px);
-      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+      position: absolute; inset: 10px; background: rgba(14, 18, 24, 0.72); border: 1.5px solid var(--gold-line); transform: rotate(45deg); backdrop-filter: blur(8px); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 6px 20px rgba(0,0,0,0.7);
     }
     .diamond-btn-container:hover .diamond-bg {
-      transform: rotate(45deg) scale(1.12);
-      border-color: #ffffff;
-      background: rgba(223, 183, 108, 0.35);
-      box-shadow: 0 0 28px rgba(223, 183, 108, 0.75);
+      transform: rotate(45deg) scale(1.12); border-color: #ffffff; background: rgba(223, 183, 108, 0.32); box-shadow: 0 0 25px rgba(223, 183, 108, 0.7);
     }
     .diamond-pulse-ring {
-      position: absolute; inset: 4px;
-      border: 1px solid var(--gold-line);
-      transform: rotate(45deg);
-      animation: diamondPulse 2.4s infinite cubic-bezier(0.25, 1, 0.5, 1);
-      pointer-events: none;
+      position: absolute; inset: 4px; border: 1px solid var(--gold-line); transform: rotate(45deg); animation: diamondPulse 2.4s infinite cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none;
     }
     @keyframes diamondPulse {
       0% { transform: rotate(45deg) scale(0.9); opacity: 0.9; }
       100% { transform: rotate(45deg) scale(1.45); opacity: 0; }
     }
     .diamond-label {
-      position: relative; z-index: 2;
-      font-family: 'Cinzel', serif; font-size: 10.5px; font-weight: 700;
-      letter-spacing: 1.8px; color: #ffffff; text-shadow: 0 2px 6px rgba(0,0,0,0.9);
-      text-align: center; line-height: 1.25; text-transform: uppercase;
-      pointer-events: none; padding: 0 6px;
+      position: relative; z-index: 2; font-family: 'Cinzel', serif; font-size: 10.5px; font-weight: 700; letter-spacing: 1.8px; color: #ffffff; text-shadow: 0 2px 6px rgba(0,0,0,0.9); text-align: center; line-height: 1.25; text-transform: uppercase; pointer-events: none; padding: 0 6px;
     }
 
     .welcome-bottom {
-      position: relative; z-index: 2; margin-bottom: 4px;
+      position: relative; z-index: 2; margin-bottom: 6px; display: flex; flex-direction: column; align-items: center; gap: 8px;
     }
     .language-bar {
-      display: flex; align-items: center; justify-content: center;
-      gap: 16px; font-size: clamp(10.5px, 1.05vw, 12.5px); letter-spacing: 2.5px;
-      color: var(--text-muted); text-transform: uppercase;
+      display: flex; align-items: center; justify-content: center; gap: 16px; font-size: clamp(11px, 1.1vw, 13px); letter-spacing: 2.5px; color: var(--text-muted); text-transform: uppercase;
     }
-    .lang-btn {
-      cursor: pointer; transition: all 0.25s; padding: 4px 6px;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.9);
-    }
+    .lang-btn { cursor: pointer; transition: all 0.25s; padding: 4px 6px; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
     .lang-btn:hover { color: #ffffff; text-shadow: 0 0 8px var(--gold-line); }
-    .lang-btn.active {
-      color: var(--gold-line); font-weight: 700; border-bottom: 1.5px solid var(--gold-line);
-    }
+    .lang-btn.active { color: var(--gold-line); font-weight: 700; border-bottom: 1.5px solid var(--gold-line); }
     .lang-sep { color: var(--gold-line); opacity: 0.6; font-size: 9px; }
 
     /* ==========================================================================
-       TOP-LEFT BRAND BADGE WITH 3-BAR MENU BUTTON
+       TOP-LEFT BRAND BADGE WITH INTEGRATED 3-BAR MENU BUTTON
        ========================================================================== */
     .top-left-brand-container {
       position: absolute; top: 24px; left: 24px; z-index: 25;
@@ -379,38 +255,29 @@
       width: 34px; height: 34px; border-radius: 6px;
       background: rgba(223, 183, 108, 0.12); border: 1px solid var(--gold-line);
       cursor: pointer; display: flex; flex-direction: column; justify-content: center;
-      align-items: center; gap: 4px; padding: 0; transition: all 0.25s ease;
-      flex-shrink: 0;
+      align-items: center; gap: 4px; padding: 0; transition: all 0.25s ease; flex-shrink: 0;
     }
     .hamburger-btn:hover, .hamburger-btn.active {
       background: var(--terracotta-rust); border-color: #fff;
     }
     .hamburger-bar {
-      width: 16px; height: 2px; background: var(--gold-accent);
-      border-radius: 2px; transition: all 0.25s ease;
+      width: 16px; height: 2px; background: var(--gold-accent); border-radius: 2px; transition: all 0.25s ease;
     }
-    .hamburger-btn:hover .hamburger-bar, .hamburger-btn.active .hamburger-bar {
-      background: #ffffff;
-    }
+    .hamburger-btn:hover .hamburger-bar, .hamburger-btn.active .hamburger-bar { background: #ffffff; }
 
     .dropdown-menu {
-      margin-top: 8px; width: 175px;
-      background: rgba(14, 18, 24, 0.95); border: 1.5px solid var(--gold-line);
-      border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 4px;
-      backdrop-filter: blur(20px); box-shadow: 0 12px 32px rgba(0,0,0,0.85);
-      opacity: 0; visibility: hidden; transform: translateY(-8px);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      margin-top: 8px; width: 175px; background: rgba(14, 18, 24, 0.95);
+      border: 1.5px solid var(--gold-line); border-radius: 8px; padding: 6px;
+      display: flex; flex-direction: column; gap: 4px; backdrop-filter: blur(20px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.85); opacity: 0; visibility: hidden;
+      transform: translateY(-8px); transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .dropdown-menu.open {
-      opacity: 1; visibility: visible; transform: translateY(0);
-    }
+    .dropdown-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
     .dropdown-item {
-      display: flex; align-items: center; gap: 10px;
-      background: transparent; border: none; outline: none;
-      color: var(--text-ivory); font-family: 'Cinzel', serif; font-size: 11px;
-      letter-spacing: 1.2px; font-weight: 600; text-transform: uppercase;
-      padding: 9px 12px; border-radius: 6px; cursor: pointer; text-align: left;
-      transition: background 0.2s, color 0.2s;
+      display: flex; align-items: center; gap: 10px; background: transparent;
+      border: none; outline: none; color: var(--text-ivory); font-family: 'Cinzel', serif;
+      font-size: 11px; letter-spacing: 1.2px; font-weight: 600; text-transform: uppercase;
+      padding: 9px 12px; border-radius: 6px; cursor: pointer; text-align: left; transition: background 0.2s, color 0.2s;
     }
     .dropdown-item:hover { background: rgba(223, 183, 108, 0.22); color: var(--gold-accent); }
     .dropdown-item svg { width: 14px; height: 14px; stroke: currentColor; fill: none; flex-shrink: 0; }
@@ -428,8 +295,7 @@
       width: 40px; height: 40px; border-radius: 50%;
       background: rgba(14, 18, 24, 0.88); border: 1.5px solid var(--gold-line);
       color: var(--gold-accent); display: flex; align-items: center; justify-content: center;
-      cursor: pointer; backdrop-filter: blur(16px); transition: all 0.2s;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+      cursor: pointer; backdrop-filter: blur(16px); transition: all 0.2s; box-shadow: 0 6px 18px rgba(0,0,0,0.6);
     }
     .icon-round-btn:hover { background: var(--terracotta-rust); color: #fff; border-color: #fff; }
     .icon-round-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
@@ -445,16 +311,12 @@
     .bottom-left-corner.visible { opacity: 1; visibility: visible; }
 
     .aerial-plan-btn {
-      background: rgba(14, 18, 24, 0.92);
-      border: 1.5px solid var(--gold-line);
-      color: var(--gold-accent);
-      padding: 10px 18px; border-radius: 8px;
+      background: rgba(14, 18, 24, 0.92); border: 1.5px solid var(--gold-line);
+      color: var(--gold-accent); padding: 10px 18px; border-radius: 8px;
       font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700;
-      letter-spacing: 1.5px; text-transform: uppercase;
-      cursor: pointer; backdrop-filter: blur(16px);
-      box-shadow: 0 8px 26px rgba(0,0,0,0.7);
-      display: flex; align-items: center; gap: 9px;
-      transition: all 0.25s ease;
+      letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer;
+      backdrop-filter: blur(16px); box-shadow: 0 8px 26px rgba(0,0,0,0.7);
+      display: flex; align-items: center; gap: 9px; transition: all 0.25s ease;
     }
     .aerial-plan-btn:hover {
       background: var(--terracotta-rust); border-color: #ffffff; color: #ffffff;
@@ -472,8 +334,7 @@
       background: rgba(6, 8, 12, 0.88); backdrop-filter: blur(24px);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: clamp(16px, 3vw, 40px); opacity: 0; visibility: hidden; pointer-events: none;
-      perspective: 1200px;
-      transition: opacity 0.4s ease, visibility 0.4s ease;
+      perspective: 1200px; transition: opacity 0.4s ease, visibility 0.4s ease;
     }
     #plan-modal.visible { opacity: 1; visibility: visible; pointer-events: auto; }
 
@@ -481,20 +342,16 @@
       position: relative; width: min(94vw, 1050px); height: min(84vh, 760px);
       background: var(--bg-glass); border: 1.5px solid var(--gold-line);
       border-radius: 18px; overflow: hidden; display: flex; flex-direction: column;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.9);
-      transform-style: preserve-3d;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.9); transform-style: preserve-3d;
       transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
     }
     .plan-modal-header {
       height: 52px; display: flex; align-items: center; justify-content: space-between;
-      padding: 0 20px; background: rgba(88, 28, 20, 0.7); border-bottom: 1px solid var(--border-accent);
-      z-index: 10;
+      padding: 0 20px; background: rgba(88, 28, 20, 0.7); border-bottom: 1.5px solid var(--border-accent); z-index: 10;
     }
     .plan-modal-title { font-family: 'Cinzel', serif; font-size: 14.5px; color: var(--gold-accent); font-weight: 700; letter-spacing: 1.5px; }
     .plan-close-btn {
-      background: rgba(255,255,255,0.1); border: 1px solid var(--gold-line);
-      color: #fff; width: 32px; height: 32px; border-radius: 50%;
-      cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.1); border: 1.5px solid var(--gold-line); color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center;
     }
     .plan-close-btn:hover { background: var(--terracotta-rust); }
 
@@ -502,27 +359,21 @@
       position: relative; flex: 1; width: 100%; height: 100%; overflow: hidden; background: #1a1514;
     }
     .plan-canvas-area img {
-      width: 100%; height: 100%; object-fit: contain; filter: contrast(1.05) brightness(0.98);
-      display: block;
+      width: 100%; height: 100%; object-fit: contain; filter: contrast(1.05) brightness(0.98); display: block;
     }
 
-    /* Interactive Radar Waypoint Pins mapped to plan.jpg */
     .map-pin {
-      position: absolute; width: 26px; height: 26px; transform: translate(-50%, -50%);
-      cursor: pointer; z-index: 10;
+      position: absolute; width: 26px; height: 26px; transform: translate(-50%, -50%); cursor: pointer; z-index: 10;
     }
     .pin-core {
       position: absolute; inset: 4px; border-radius: 50%; background: #ff4757;
-      border: 1.5px solid #fff; box-shadow: 0 0 12px rgba(255, 71, 87, 0.95);
-      transition: transform 0.2s, background 0.2s;
+      border: 1.5px solid #fff; box-shadow: 0 0 12px rgba(255, 71, 87, 0.95); transition: transform 0.2s, background 0.2s;
     }
     .map-pin:hover .pin-core, .map-pin.active .pin-core {
-      transform: scale(1.35); background: var(--gold-accent);
-      box-shadow: 0 0 14px rgba(223, 183, 108, 0.95);
+      transform: scale(1.35); background: var(--gold-accent); box-shadow: 0 0 14px rgba(223, 183, 108, 0.95);
     }
     .pin-radar-ring {
-      position: absolute; inset: -4px; border-radius: 50%; border: 1px solid var(--gold-accent);
-      opacity: 0.8; animation: pinRadar 2.2s infinite ease-out; pointer-events: none;
+      position: absolute; inset: -4px; border-radius: 50%; border: 1px solid var(--gold-accent); opacity: 0.8; animation: pinRadar 2.2s infinite ease-out; pointer-events: none;
     }
     @keyframes pinRadar {
       0% { transform: scale(0.6); opacity: 0.9; }
@@ -531,24 +382,18 @@
     .pin-fov-cone {
       position: absolute; top: 13px; left: 13px; width: 0; height: 0;
       border-left: 16px solid transparent; border-right: 16px solid transparent;
-      border-bottom: 34px solid rgba(223, 183, 108, 0.45);
-      transform-origin: 0% 0%; pointer-events: none; display: none; z-index: 5;
+      border-bottom: 34px solid rgba(223, 183, 108, 0.45); transform-origin: 0% 0%; pointer-events: none; display: none; z-index: 5;
     }
     .map-pin.active .pin-fov-cone { display: block; }
 
     .map-tooltip {
       position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
-      background: rgba(10, 14, 20, 0.95); border: 1px solid var(--gold-line);
-      padding: 6px 12px; border-radius: 6px; white-space: nowrap; font-size: 10.5px;
-      color: var(--text-ivory); pointer-events: none; opacity: 0; visibility: hidden;
-      transition: opacity 0.2s, transform 0.2s; box-shadow: 0 6px 18px rgba(0,0,0,0.8);
-      z-index: 30; font-weight: 500; display: flex; flex-direction: column; align-items: center; gap: 2px;
+      background: rgba(10, 14, 20, 0.95); border: 1.5px solid var(--gold-line); padding: 6px 12px; border-radius: 6px; white-space: nowrap; font-size: 10.5px; color: var(--text-ivory); pointer-events: none; opacity: 0; visibility: hidden; transition: opacity 0.2s, transform 0.2s; box-shadow: 0 6px 18px rgba(0,0,0,0.8); z-index: 30; font-weight: 500; display: flex; flex-direction: column; align-items: center; gap: 2px;
     }
     .map-tooltip-title { font-weight: 700; color: var(--gold-accent); }
     .map-tooltip-sub { font-size: 8.5px; color: var(--text-muted); }
     .map-tooltip::after {
-      content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-      border-width: 4px; border-style: solid; border-color: var(--gold-line) transparent transparent transparent;
+      content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border-width: 4px; border-style: solid; border-color: var(--gold-line) transparent transparent transparent;
     }
     .map-pin:hover .map-tooltip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(-2px); }
 
@@ -558,87 +403,86 @@
     .bottom-dock {
       position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
       display: none; align-items: center; gap: 8px; z-index: 20;
-      background: var(--bg-glass); border: 1px solid var(--gold-line);
+      background: var(--bg-glass); border: 1.5px solid var(--gold-line);
       padding: 6px 14px; border-radius: 40px; backdrop-filter: blur(20px);
       box-shadow: 0 10px 30px rgba(0,0,0,0.65); opacity: 0; transition: opacity 0.6s ease;
     }
     .bottom-dock.visible { display: flex; opacity: 1; }
     .dock-btn {
-      background: transparent; border: none; color: var(--text-ivory);
-      width: 36px; height: 36px; border-radius: 50%; display: flex;
-      align-items: center; justify-content: center; font-size: 15px;
-      cursor: pointer; transition: all 0.2s;
+      background: transparent; border: none; color: var(--text-ivory); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; cursor: pointer; transition: all 0.2s;
     }
     .dock-btn:hover { background: rgba(223, 183, 108, 0.2); color: var(--gold-line); }
     .dock-zoom-readout {
-      font-size: 11px; font-family: monospace; color: var(--gold-line);
-      padding: 0 8px; border-left: 1px solid rgba(255,255,255,0.12);
-      border-right: 1px solid rgba(255,255,255,0.12);
+      font-size: 11px; font-family: monospace; color: var(--gold-line); padding: 0 8px; border-left: 1px solid rgba(255,255,255,0.12); border-right: 1px solid rgba(255,255,255,0.12);
     }
 
     #file-input { display: none; }
   </style>
+
+  <script>
+    function handlePlanError(img) {
+      const fallbacks = ['./plan.png', './plan.jpeg', './image_16.png'];
+      const cur = img.getAttribute('data-err') || '0';
+      const idx = parseInt(cur, 10);
+      if (idx < fallbacks.length) {
+        img.setAttribute('data-err', (idx + 1).toString());
+        img.src = fallbacks[idx];
+      }
+    }
+  </script>
 </head>
 <body>
   <canvas id="webgl-canvas"></canvas>
 
-  <!-- Background Music Audio Element -->
+  <!-- Background Music Audio Element for 360 Tour -->
   <audio id="bg-audio" loop preload="auto">
     <source src="./alex-morgan-optimistic-pleasant-light-music-583266.mp3" type="audio/mpeg">
     <source src="./background-music.mp3" type="audio/mpeg">
     <source src="./music.mp3" type="audio/mpeg">
   </audio>
 
+  <!-- Universal Back Button on Top Right -->
+  <button class="global-back-btn" id="global-back-btn" onclick="handleGlobalBack()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    <span>Back</span>
+  </button>
+
   <!-- ==========================================================================
-       STAGE 1: TEASER SCREEN
-       ========================================================================== -->
+       STAGE 1: FULLSCREEN HELLOW TEASER SCREEN
+       ========================================================================== */
+  -->
   <div id="teaser-screen">
     <div class="outer-border-frame"></div>
-
-    <div class="teaser-content">
-      <div class="teaser-badge">✨ Architectural Experience</div>
+    <div></div>
+    <div class="teaser-center">
+      <div class="teaser-badge">✨ ARCHITECTURAL EXPERIENCE</div>
       <h1 class="teaser-title">HELLOWW!! 👋</h1>
       <p class="teaser-subtitle">wanna see something new?</p>
     </div>
-
     <div class="teaser-bottom">
-      <div class="teaser-arrow-circle">
-        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-      </div>
-      <button class="teaser-go-btn" id="teaser-go-btn">LET'S GO 🚀</button>
+      <button class="lets-go-btn" id="lets-go-btn" onclick="goToStoryboardVideo()">LET'S GO 🚀</button>
     </div>
   </div>
 
   <!-- ==========================================================================
-       STAGE 2: FULL-SCREEN SEQUENTIAL 6-FRAME STORYBOARD
+       STAGE 2: STORYBOARD VIDEO SCREEN
        ========================================================================== -->
   <div id="storyboard-screen">
-    <div class="storyboard-top-hud">
-      <div class="storyboard-label-box">
-        <span class="storyboard-counter" id="sb-counter">1 / 6</span>
-        <div class="storyboard-dots" id="sb-dots">
-          <div class="sb-dot active"></div>
-          <div class="sb-dot"></div>
-          <div class="sb-dot"></div>
-          <div class="sb-dot"></div>
-          <div class="sb-dot"></div>
-          <div class="sb-dot"></div>
-        </div>
-      </div>
-      <button class="storyboard-skip-btn" id="sb-skip-btn">SKIP ⏭</button>
-    </div>
-
     <div class="storyboard-viewport">
-      <img id="storyboard-frame-img" class="storyboard-panel-img" src="./FRAME-2.png" alt="Storyboard Frame" data-index="0" onerror="handleFrameError(this)">
+      <video id="storyboard-video" class="storyboard-video" playsinline preload="auto">
+        <source src="./storybook video.mp4" type="video/mp4">
+        <source src="./storybook_video.mp4" type="video/mp4">
+        <source src="./storybook-video.mp4" type="video/mp4">
+      </video>
     </div>
-
-    <div class="storyboard-bottom-prompt">
-      <span id="sb-prompt-text">Click anywhere for next frame ➔</span>
+    <div class="storyboard-footer">
+      <div class="storyboard-badge">POORNA MARKET - STORYBOOK</div>
+      <button class="skip-story-btn" onclick="startHeritageTour();">SKIP ⏭</button>
     </div>
   </div>
 
   <!-- ==========================================================================
-       STAGE 3: ROYAL HERITAGE OVERVIEW SCREEN (SLIDES UP)
+       STAGE 3: HERITAGE OVERVIEW SLIDE-UP SCREEN
        ========================================================================== -->
   <div id="welcome-screen">
     <div class="outer-border-frame"></div>
@@ -745,9 +589,7 @@
     <button class="icon-round-btn" onclick="toggleFullScreen()" title="Fullscreen">
       <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
     </button>
-    <button class="icon-round-btn" id="enter-vr-btn" title="Enter WebXR VR" style="width: auto; padding: 0 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px;">
-      VR
-    </button>
+    <button class="icon-round-btn" id="enter-vr-btn" title="Enter WebXR VR" style="width: auto; padding: 0 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px;">VR</button>
   </div>
 
   <!-- ==========================================================================
@@ -773,7 +615,6 @@
       <div class="plan-canvas-area" id="plan-canvas">
         <img id="plan-img" src="./plan.jpg" alt="Aerial Master Site Plan" onerror="handlePlanError(this)">
 
-        <!-- Responsive Pins accurately positioned on plan.jpg -->
         <div class="map-pin active" style="top: 52%; left: 55%;" onclick="selectZone(180, 0)">
           <div class="pin-radar-ring"></div><div class="pin-core"></div><div class="pin-fov-cone"></div>
           <div class="map-tooltip"><span class="map-tooltip-title">Central Amphitheater & Fountain</span><span class="map-tooltip-sub">Sunken circular gathering court</span></div>
@@ -831,66 +672,40 @@
   <input type="file" id="file-input" accept="image/*">
 
   <!-- ==========================================================================
-       MAIN JAVASCRIPT LOGIC
+       JAVASCRIPT APP LOGIC
        ========================================================================== -->
   <script>
-    /* Multilingual Content Dictionary */
     const translations = {
-      en: {
-        title: "Sardar Vallabhbhai Patel Market",
-        subtitle: "360° RENDER VIEWS",
-        desc: "The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist.",
-        bazaarLabel: "ENTER THE<br>BAZAAR"
-      },
-      te: {
-        title: "సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్",
-        subtitle: "360° రెండర్ దృశ్యాలు",
-        desc: "పునరుద్ధరించబడిన సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్, వలస పాలన నాటి వారసత్వాన్ని ఆధునిక డిజైన్‌తో అద్భుతంగా మిళితం చేస్తుంది. పునరుద్ధరించిన గడియార స్తంభం (క్లాక్ టవర్) మరియు అసలు ముఖద్వారం ఈ ప్రాంగణానికి ప్రధాన ఆకర్షణగా నిలుస్తాయి; పాత ఇరుకైన, రద్దీగా ఉండే సందుల స్థానంలో ఇప్పుడు పాదచారులకు అనుకూలమైన, నీడనిచ్చే చెట్లతో కూడిన మార్గాలు ఏర్పాటు చేయబడ్డాయి. సాంప్రదాయ దుకాణాలు తమ ప్రత్యేకతను నిలుపుకుంటూనే, మెరుగైన వెలుతురుతో పాటు వాతావరణ పరిస్థితులను తట్టుకునే ఆధునిక 'మాడ్యులర్' హంగులను సంతరించుకున్నాయి. పైకప్పుతో కూడిన బహిరంగ ప్రదేశం (ప్లాజా), డిజిటల్ దిశానిర్దేశక వ్యవస్థ మరియు క్రమబద్ధమైన పార్కింగ్ వంటి సౌకర్యాలు ఇందులో సున్నితంగా జోడించబడ్డాయి. రాత్రివేళల్లో వారసత్వ శైలి లైటింగ్ ఆధునిక పైకప్పులతో (కానోపీలతో) కలిసిపోయి, చరిత్ర మరియు ఆధునిక అవసరాలు కలిసి సాగే ఒక సుస్థిరమైన ప్రాంగణాన్ని సృష్టిస్తాయి.",
-        bazaarLabel: "బజారులోకి<br>ప్రవేశించండి"
-      },
-      hi: {
-        title: "सरदार वल्लभभाई पटेल मार्केट",
-        subtitle: "360° रेंडर व्यूज़",
-        desc: "नए सिरे से तैयार सरदार वल्लभभाई पटेल (पूर्णा) मार्केट में औपनिवेशिक दौर की विरासत और आधुनिक डिज़ाइन का मेल दिखता है। ठीक किया गया क्लॉक टावर और पुरानी इमारत का सामने का हिस्सा इस जगह की मुख्य पहचान हैं। इसके चारों ओर पैदल चलने वालों के लिए रास्ते और छायादार हरियाली है, जिसने पुरानी भीड़-भाड़ वाली गलियों की जगह ले ली है। पारंपरिक स्टॉल अपनी जीवंत पहचान बनाए रखते हैं, लेकिन उन्हें बेहतर लाइटिंग के साथ मॉड्यूलर और मौसम से सुरक्षित अपग्रेड मिला है। यहाँ एक ढका हुआ प्लाज़ा, डिजिटल वे-फाइंडिंग और व्यवस्थित पार्किंग की सुविधा भी दी गई है। रात में हेरिटेज लाइटिंग आधुनिक कैनोपी के साथ मिलकर एक ऐसी टिकाऊ जगह बनाती है जहाँ इतिहास और आधुनिक कामकाज साथ-साथ चलते हैं।",
-        bazaarLabel: "बाज़ार में<br>प्रवेश करें"
-      }
+      en: { title: "Sardar Vallabhbhai Patel Market", subtitle: "360° RENDER VIEWS", desc: "The redeveloped Sardar Vallabhbhai Patel (Poorna) Market blends colonial-era heritage with modern design. The restored clock tower and original facade anchor the space, surrounded by pedestrian-friendly lanes with shaded greenery replacing the old congested alleys. Traditional stalls keep their vibrant character but get modular, weather-resistant upgrades with better lighting. A covered plaza, digital wayfinding, and organized parking are added subtly, while heritage lighting at night blends with modern canopies — creating a sustainable space where history and contemporary function coexist.", bazaarLabel: "ENTER THE<br>BAZAAR" },
+      te: { title: "సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్", subtitle: "360° రెండర్ దృశ్యాలు", desc: "పునరుద్ధరించబడిన సర్దార్ వల్లభాయ్ పటేల్ (పూర్ణ) మార్కెట్, వలస పాలన నాటి వారసత్వాన్ని ఆధునిక డిజైన్‌తో అద్భుతంగా మిళితం చేస్తుంది. పునరుద్ధరించిన గడియార స్తంభం (క్లాక్ టవర్) మరియు అసలు ముఖద్వారం ఈ ప్రాంగణానికి ప్రధాన ఆకర్షణగా నిలుస్తాయి; పాత ఇరుకైన, రద్దీగా ఉండే సందుల స్థానంలో ఇప్పుడు పాదచారులకు అనుకూలమైన, నీడనిచ్చే చెట్లతో కూడిన మార్గాలు ఏర్పాటు చేయబడ్డాయి. సాంప్రదాయ దుకాణాలు తమ ప్రత్యేకతను నిలుపుకుంటూనే, మెరుగైన వెలుతురుతో పాటు వాతావరణ పరిస్థితులను తట్టుకునే ఆధునిక 'మాడ్యులర్' హంగులను సంతరించుకున్నాయి. పైకప్పుతో కూడిన బహిరంగ ప్రదేశం (ప్లాజా), డిజిటల్ దిశానిర్దేశక వ్యవస్థ మరియు క్రమబద్ధమైన పార్కింగ్ వంటి సౌకర్యాలు ఇందులో సున్నితంగా జోడించబడ్డాయి. రాత్రివేళల్లో వారసత్వ శైలి లైటింగ్ ఆధునిక పైకప్పులతో (కానోపీలతో) కలిసిపోయి, చరిత్ర మరియు ఆధునిక అవసరాలు కలిసి సాగే ఒక సుస్థిరమైన ప్రాంగణాన్ని సృష్టిస్తాయి.", bazaarLabel: "బజారులోకి<br>ప్రవేశించండి" },
+      hi: { title: "सरदार वल्लभभाई पटेल मार्केट", subtitle: "360° रेंडर व्यूज़", desc: "नए सिरे से तैयार सरदार वल्लभभाई पटेल (पूर्णा) मार्केट में औपनिवेशिक दौर की विरासत और आधुनिक डिज़ाइन का मेल दिखता है। ठीक किया गया क्लॉक टावर और पुरानी इमारत का सामने का हिस्सा इस जगह की मुख्य पहचान हैं। इसके चारों ओर पैदल चलने वालों के लिए रास्ते और छायादार हरियाली है, जिसने पुरानी भीड़-भाड़ वाली गलियों की जगह ले ली है। पारंपरिक स्टॉल अपनी जीवंत पहचान बनाए रखते हैं, लेकिन उन्हें बेहतर लाइटिंग के साथ मॉड्यूलर और मौसम से सुरक्षित अपग्रेड मिला है। यहाँ एक ढका हुआ प्लाज़ा, डिजिटल वे-फाइंडिंग और व्यवस्थित पार्किंग की सुविधा भी दी गई है। रात में हेरिटेज लाइटिंग आधुनिक कैनोपी के साथ मिलकर एक ऐसी टिकाऊ जगह बनाती है जहाँ इतिहास और आधुनिक कामकाज साथ-साथ चलते हैं।", bazaarLabel: "बाज़ार में<br>प्रवेश करें" }
     };
 
     function changeLanguage(lang) {
       const data = translations[lang];
       if (!data) return;
-
       document.getElementById('tour-title').textContent = data.title;
       document.getElementById('tour-subtitle').textContent = data.subtitle;
       document.getElementById('tour-desc').textContent = data.desc;
       document.getElementById('bazaar-label').innerHTML = data.bazaarLabel;
-
       const container = document.getElementById('welcome-text-container');
       container.classList.remove('lang-te', 'lang-hi');
       if (lang === 'te') container.classList.add('lang-te');
       if (lang === 'hi') container.classList.add('lang-hi');
-
       document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.getElementById(`btn-${lang}`);
+      const activeBtn = document.getElementById('btn-' + lang);
       if (activeBtn) activeBtn.classList.add('active');
     }
 
-    /* DOM References */
     const teaserScreen = document.getElementById('teaser-screen');
-    const teaserGoBtn = document.getElementById('teaser-go-btn');
     const storyboardScreen = document.getElementById('storyboard-screen');
-    const storyboardFrameImg = document.getElementById('storyboard-frame-img');
-    const sbCounter = document.getElementById('sb-counter');
-    const sbDots = document.getElementById('sb-dots').children;
-    const sbSkipBtn = document.getElementById('sb-skip-btn');
-    const sbPromptText = document.getElementById('sb-prompt-text');
+    const storyboardVideo = document.getElementById('storyboard-video');
     const welcomeScreen = document.getElementById('welcome-screen');
-    const enterBazaarBtn = document.getElementById('enter-bazaar-btn');
-
     const bottomDock = document.getElementById('bottom-dock');
     const topBrand = document.getElementById('top-brand');
     const topRight = document.getElementById('top-right');
     const cornerPlanContainer = document.getElementById('corner-plan-container');
+    const globalBackBtn = document.getElementById('global-back-btn');
     const planModal = document.getElementById('plan-modal');
     const planBoard = document.getElementById('plan-board');
     const dropdownMenu = document.getElementById('dropdown-menu');
@@ -899,74 +714,6 @@
     const audioIconOn = document.getElementById('audio-icon-on');
     const audioIconOff = document.getElementById('audio-icon-off');
 
-    /* Storyboard Frame Paths */
-    const storyboardFrames = [
-      './FRAME-2.png', // Frame 1: The Entrance (8:00 AM)
-      './FRAME-3.png', // Frame 2: Meeting the Vendors
-      './FRAME-4.png', // Frame 3: The Morning Chaos (11:00 AM)
-      './FRAME-5.png', // Frame 4: The Keeper of Stories
-      './FRAME-6.png', // Frame 5: Observing the Issues
-      './FRAME-1.png'  // Frame 6: The Vision
-    ];
-    let currentFrameIndex = 0;
-
-    function renderStoryboardFrame(index) {
-      currentFrameIndex = index;
-      storyboardFrameImg.style.opacity = '0';
-      storyboardFrameImg.style.transform = 'scale(0.97)';
-
-      setTimeout(() => {
-        storyboardFrameImg.setAttribute('data-index', index.toString());
-        storyboardFrameImg.setAttribute('data-retry', '0');
-        storyboardFrameImg.src = storyboardFrames[index];
-        storyboardFrameImg.style.opacity = '1';
-        storyboardFrameImg.style.transform = 'scale(1)';
-
-        sbCounter.textContent = `${index + 1} / ${storyboardFrames.length}`;
-        for (let i = 0; i < sbDots.length; i++) {
-          sbDots[i].classList.toggle('active', i === index);
-        }
-
-        if (index === storyboardFrames.length - 1) {
-          sbPromptText.textContent = "Click to enter the Heritage Experience ➔";
-        } else {
-          sbPromptText.textContent = "Click anywhere for next frame ➔";
-        }
-      }, 150);
-    }
-
-    function advanceStoryboard() {
-      if (currentFrameIndex < storyboardFrames.length - 1) {
-        renderStoryboardFrame(currentFrameIndex + 1);
-      } else {
-        finishStoryboard();
-      }
-    }
-
-    function finishStoryboard() {
-      storyboardScreen.classList.remove('active');
-      welcomeScreen.classList.add('active');
-    }
-
-    /* Stage Transitions */
-    teaserGoBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      teaserScreen.classList.add('hidden');
-      storyboardScreen.classList.add('active');
-      renderStoryboardFrame(0);
-    });
-
-    storyboardScreen.addEventListener('click', (e) => {
-      if (e.target === sbSkipBtn) return;
-      advanceStoryboard();
-    });
-
-    sbSkipBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      finishStoryboard();
-    });
-
-    /* Audio Management */
     let isAudioPlaying = false;
     function startBackgroundAudio() {
       if (!isAudioPlaying) {
@@ -978,7 +725,6 @@
         }).catch(() => {});
       }
     }
-
     function toggleAudio() {
       if (isAudioPlaying) {
         bgAudio.pause();
@@ -994,28 +740,70 @@
       }
     }
 
-    /* Enter the 360 Bazaar from Stage 3 */
-    enterBazaarBtn.addEventListener('click', () => {
+    /* Video Storyboard Workflow */
+    function goToStoryboardVideo() {
+      teaserScreen.classList.add('hidden');
+      storyboardScreen.classList.add('visible');
+      globalBackBtn.classList.add('visible');
+      
+      storyboardVideo.currentTime = 0;
+      storyboardVideo.play().catch(e => {
+        console.log("Autoplay caught:", e);
+      });
+    }
+
+    // When the video ends naturally, proceed to the Heritage Overview screen
+    storyboardVideo.addEventListener('ended', () => {
+      startHeritageTour();
+    });
+
+    function startHeritageTour() {
+      storyboardVideo.pause();
+      storyboardScreen.classList.remove('visible');
+      welcomeScreen.classList.add('active');
+      globalBackBtn.classList.add('visible');
+    }
+
+    /* Enter the Bazaar -> Unlock 360 viewer & Background Audio */
+    document.getElementById('enter-bazaar-btn').addEventListener('click', () => {
       welcomeScreen.classList.remove('active');
-      welcomeScreen.classList.add('hidden');
       bottomDock.classList.add('visible');
       topBrand.classList.add('visible');
       topRight.classList.add('visible');
       cornerPlanContainer.classList.add('visible');
+      globalBackBtn.classList.remove('visible');
       startBackgroundAudio();
     });
 
-    /* 3-Bar Dropdown Menu Controls */
+    /* Global Back Button State Management */
+    function handleGlobalBack() {
+      if (planModal.classList.contains('visible')) {
+        closePlanModal();
+        return;
+      }
+      if (welcomeScreen.classList.contains('active')) {
+        welcomeScreen.classList.remove('active');
+        storyboardScreen.classList.add('visible');
+        storyboardVideo.play().catch(() => {});
+        return;
+      }
+      if (storyboardScreen.classList.contains('visible')) {
+        storyboardVideo.pause();
+        storyboardScreen.classList.remove('visible');
+        teaserScreen.classList.remove('hidden');
+        globalBackBtn.classList.remove('visible');
+        return;
+      }
+    }
+
     function toggleDropdownMenu() {
       const isOpen = dropdownMenu.classList.toggle('open');
       menuToggleBtn.classList.toggle('active', isOpen);
     }
-
     function closeDropdownMenu() {
       dropdownMenu.classList.remove('open');
       menuToggleBtn.classList.remove('active');
     }
-
     window.addEventListener('click', (e) => {
       if (!e.target.closest('#top-brand')) {
         closeDropdownMenu();
@@ -1026,22 +814,19 @@
       closeDropdownMenu();
       document.getElementById('file-input').click();
     }
-
     function handleDetailsClick() {
       closeDropdownMenu();
-      welcomeScreen.classList.remove('hidden');
       welcomeScreen.classList.add('active');
+      globalBackBtn.classList.add('visible');
     }
-
     function handleHomeClick() {
       closeDropdownMenu();
+      welcomeScreen.classList.remove('active');
       bottomDock.classList.remove('visible');
       topBrand.classList.remove('visible');
       topRight.classList.remove('visible');
       cornerPlanContainer.classList.remove('visible');
-      welcomeScreen.classList.remove('active');
-      welcomeScreen.classList.add('hidden');
-      storyboardScreen.classList.remove('active');
+      globalBackBtn.classList.remove('visible');
       teaserScreen.classList.remove('hidden');
     }
 
@@ -1053,17 +838,20 @@
       }
     }
 
-    /* Master Plan Modal */
-    function openPlanModal() { planModal.classList.add('visible'); }
+    function openPlanModal() {
+      planModal.classList.add('visible');
+      globalBackBtn.classList.add('visible');
+    }
     function closePlanModal() {
       planModal.classList.remove('visible');
       planBoard.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+      if (!bottomDock.classList.contains('visible')) {
+        globalBackBtn.classList.remove('visible');
+      }
     }
 
-    /* 3D Mouse Parallax Tilt for Aerial Plan */
     let tiltTargetX = 0, tiltTargetY = 0;
     let tiltCurrentX = 0, tiltCurrentY = 0;
-
     window.addEventListener('mousemove', (e) => {
       if (!planModal.classList.contains('visible')) return;
       const rect = planBoard.getBoundingClientRect();
@@ -1071,7 +859,6 @@
       const cY = rect.top + rect.height / 2;
       const dX = (e.clientX - cX) / (window.innerWidth / 2);
       const dY = (e.clientY - cY) / (window.innerHeight / 2);
-
       tiltTargetX = -dY * 13;
       tiltTargetY = dX * 15;
     });
@@ -1080,23 +867,21 @@
       if (planModal.classList.contains('visible')) {
         tiltCurrentX += (tiltTargetX - tiltCurrentX) * 0.1;
         tiltCurrentY += (tiltTargetY - tiltCurrentY) * 0.1;
-        planBoard.style.transform = `rotateX(${tiltCurrentX}deg) rotateY(${tiltCurrentY}deg) scale3d(1.02, 1.02, 1.02)`;
+        planBoard.style.transform = 'rotateX(' + tiltCurrentX + 'deg) rotateY(' + tiltCurrentY + 'deg) scale3d(1.02, 1.02, 1.02)';
         const sX = -tiltCurrentY * 2.2;
         const sY = tiltCurrentX * 2.2 + 24;
-        planBoard.style.boxShadow = `${sX}px ${sY}px 64px rgba(0,0,0,0.92)`;
+        planBoard.style.boxShadow = sX + 'px ' + sY + 'px 64px rgba(0,0,0,0.92)';
       }
       requestAnimationFrame(renderTilt);
     }
     requestAnimationFrame(renderTilt);
 
-    /* Three.js 360 Viewer Setup */
     let lon = 180, lat = 0;
     let targetLon = 180, targetLat = 0;
     let isTransitioning = false;
 
     const canvas = document.getElementById('webgl-canvas');
     const scene = new THREE.Scene();
-
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 0, 0.1);
 
@@ -1110,7 +895,6 @@
 
     const sphereGeometry = new THREE.SphereGeometry(500, 96, 64);
     sphereGeometry.scale(-1, 1, 1);
-
     const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x181c24 });
     const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
     scene.add(sphereMesh);
@@ -1144,7 +928,6 @@
     }
     tryLoadPano(0);
 
-    /* Local File Upload */
     document.getElementById('file-input').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -1168,14 +951,13 @@
       closePlanModal();
     }
 
-    /* Orbit Drag Controls */
     let isUserInteracting = false;
     let startX = 0, startY = 0;
     let startLon = 0, startLat = 0;
     let autoRotate = true;
 
     window.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('#teaser-screen') || e.target.closest('#storyboard-screen') || e.target.closest('#welcome-screen') || e.target.closest('#top-brand') || e.target.closest('#top-right') || e.target.closest('#bottom-dock') || e.target.closest('#corner-plan-container') || e.target.closest('#plan-modal')) return;
+      if (e.target.closest('#teaser-screen') || e.target.closest('#storyboard-screen') || e.target.closest('#welcome-screen') || e.target.closest('#top-brand') || e.target.closest('#top-right') || e.target.closest('#bottom-dock') || e.target.closest('#corner-plan-container') || e.target.closest('#plan-modal') || e.target.closest('#global-back-btn')) return;
       isUserInteracting = true;
       isTransitioning = false;
       startX = e.clientX;
@@ -1195,7 +977,7 @@
     function stepZoom(delta) {
       camera.fov = THREE.MathUtils.clamp(camera.fov + delta, 40, 95);
       camera.updateProjectionMatrix();
-      document.getElementById('zoom-readout').textContent = `${Math.round(camera.fov)}° FOV`;
+      document.getElementById('zoom-readout').textContent = Math.round(camera.fov) + '° FOV';
     }
 
     document.getElementById('btn-rotate-toggle').addEventListener('click', () => {
@@ -1209,7 +991,6 @@
       document.getElementById('zoom-readout').textContent = '60° FOV';
     });
 
-    /* WebXR Meta Quest Support */
     const enterVrBtn = document.getElementById('enter-vr-btn');
     if ('xr' in navigator) {
       navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
@@ -1224,7 +1005,6 @@
       enterVrBtn.style.display = 'none';
     }
 
-    /* Render Loop */
     renderer.setAnimationLoop(() => {
       if (isTransitioning) {
         lon += (targetLon - lon) * 0.08;
@@ -1251,7 +1031,7 @@
 
       const activeCone = document.querySelector('.map-pin.active .pin-fov-cone');
       if (activeCone) {
-        activeCone.style.transform = `rotate(${lon + 90}deg)`;
+        activeCone.style.transform = 'rotate(' + (lon + 90) + 'deg)';
       }
 
       renderer.render(scene, camera);
